@@ -1,31 +1,12 @@
 module FiniteCoproducts.Utils where
 
+open import Relation.Binary.PropositionalEquality public
+
 -- A few mod cons
 
 data False : Set where
 
 record True : Set where
-
-data _==_ {A : Set}(a : A) : {B : Set} → (b : B) → Set where
-  refl⁼ : a == a
-
-sym⁼ : {A : Set}{a a' : A} → a == a' → a' == a
-sym⁼ refl⁼ = refl⁼
-
-trans⁼ : {A : Set}{a a' a'' : A} → a == a' → a' == a'' → a == a''
-trans⁼ refl⁼ p = p
-
-resp : {A : Set}{B : A → Set}{a a' : A} → a == a'  → 
-       (f : ∀ a → B a) → f a == f a'
-resp refl⁼ f = refl⁼ 
-
-resp2 : {A B : Set}{C : A → B → Set}{a a' : A} → a == a' → {b b' : B} →
-  b == b' → (f : ∀ a b → C a b) → f a b == f a' b'
-resp2 refl⁼ refl⁼ f = refl⁼ 
-
-resp3 : {A B C : Set}{D : A → B → C → Set}{a a' : A} → a == a' → {b b' : B} →
-  b == b' → {c c' : C} → c == c' → (f : ∀ a b c → D a b c) → f a b c == f a' b' c'
-resp3 refl⁼ refl⁼ refl⁼ f = refl⁼ 
 
 data Σ (A : Set) (B : A → Set) : Set where
   sig : (a : A) → (b : B a) → Σ A B

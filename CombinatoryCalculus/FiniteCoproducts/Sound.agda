@@ -4,12 +4,12 @@ open import FiniteCoproducts.Utils
 open import FiniteCoproducts.Syntax
 open import FiniteCoproducts.Recursive
 
-sound : ∀ {σ}{t u : Tm σ} → t ≡ u → nf t == nf u
-sound refl        = refl⁼ 
-sound (sym p)     = sym⁼ (sound p) 
-sound (trans p q) = trans⁼ (sound p) (sound q) 
-sound K≡          = refl⁼ 
-sound S≡          = refl⁼ 
-sound ($≡ p q)    = resp2 (sound p) (sound q) _$$_
-sound Cl = refl⁼ 
-sound Cr = refl⁼ 
+sound : ∀ {σ}{t u : Tm σ} → t ≈ u → nf t ≡ nf u
+sound ≈refl        = refl 
+sound (≈sym p)     = sym (sound p) 
+sound (≈trans p q) = trans (sound p) (sound q) 
+sound ≈K          = refl 
+sound ≈S          = refl 
+sound (≈∙-cong p q)    = cong₂ _∙∙_ (sound p) (sound q)
+sound Cl = refl 
+sound Cr = refl 

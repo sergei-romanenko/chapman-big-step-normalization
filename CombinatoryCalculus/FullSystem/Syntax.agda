@@ -16,7 +16,7 @@ infixr 50 _⇒_
 data Tm : Ty → Set where
   K    : ∀ {σ τ} → Tm (σ ⇒ τ ⇒ σ)
   S    : ∀ {σ τ ρ} → Tm ((σ ⇒ τ ⇒ ρ) ⇒ (σ ⇒ τ) ⇒ σ ⇒ ρ)
-  _$_  : ∀ {σ τ} → Tm (σ ⇒ τ) → Tm σ → Tm τ
+  _∙_  : ∀ {σ τ} → Tm (σ ⇒ τ) → Tm σ → Tm τ
   void : Tm One
   pr   : ∀ {σ τ} → Tm (σ ⇒ τ ⇒ (σ × τ))
   fst  : ∀ {σ τ} → Tm ((σ × τ) ⇒ σ)
@@ -29,25 +29,25 @@ data Tm : Ty → Set where
   suc  : Tm (N ⇒ N)
   R    : ∀ {σ} → Tm (σ ⇒ (N ⇒ σ ⇒ σ) ⇒ N ⇒ σ)
  
-infixl 50 _$_
+infixl 50 _∙_
 
 -- Definitional Equality
-data _≡_ : ∀ {σ} → Tm σ → Tm σ → Set where
-  refl  : ∀ {σ}{t : Tm σ} → t ≡ t
-  sym   : ∀ {σ}{t t' : Tm σ} → t ≡ t' → t' ≡ t
-  trans : ∀ {σ}{t t' t'' : Tm σ} → t ≡ t' → t' ≡ t'' → t ≡ t''
-  K≡    : ∀ {σ τ}{x : Tm σ}{y : Tm τ} → K $ x $ y ≡ x
-  S≡    : ∀ {σ τ ρ}{x : Tm (σ ⇒ τ ⇒ ρ)}{y : Tm (σ ⇒ τ)}{z : Tm σ} →
-          S $ x $ y $ z ≡ x $ z $ (y $ z)
-  $≡    : ∀ {σ}{τ}{t t' : Tm (σ ⇒ τ)}{u u' : Tm σ} → t ≡ t' → u ≡ u' →
-          t $ u ≡ t' $ u'
-  fst≡  : ∀ {σ τ}{t : Tm σ}{u : Tm τ} → fst $ (pr $ t $ u) ≡ t
-  snd≡  : ∀ {σ τ}{t : Tm σ}{u : Tm τ} → snd $ (pr $ t $ u) ≡ u
-  Cl : ∀ {σ τ ρ}{l : Tm (σ ⇒ ρ)}{r : Tm (τ ⇒ ρ)}{c : Tm σ} → C $ l $ r $ (inl $ c) ≡ l $ c
-  Cr : ∀ {σ τ ρ}{l : Tm (σ ⇒ ρ)}{r : Tm (τ ⇒ ρ)}{c : Tm τ} → C $ l $ r $ (inr $ c) ≡ r $ c
-  Rzero≡ : ∀ {σ}{z : Tm σ}{s : Tm (N ⇒ σ ⇒ σ)} → R $ z $ s $ zero ≡ z
-  Rsuc≡  : ∀ {σ}{z : Tm σ}{s : Tm (N ⇒ σ ⇒ σ)}{n : Tm N} → 
-           R $ z $ s $ (suc $ n) ≡ s $ n $ (R $ z $ s $ n)
+data _≈_ : ∀ {σ} → Tm σ → Tm σ → Set where
+  ≈refl  : ∀ {σ}{t : Tm σ} → t ≈ t
+  ≈sym   : ∀ {σ}{t t' : Tm σ} → t ≈ t' → t' ≈ t
+  ≈trans : ∀ {σ}{t t' t'' : Tm σ} → t ≈ t' → t' ≈ t'' → t ≈ t''
+  ≈K    : ∀ {σ τ}{x : Tm σ}{y : Tm τ} → K ∙ x ∙ y ≈ x
+  ≈S    : ∀ {σ τ ρ}{x : Tm (σ ⇒ τ ⇒ ρ)}{y : Tm (σ ⇒ τ)}{z : Tm σ} →
+          S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
+  ≈∙-cong    : ∀ {σ}{τ}{t t' : Tm (σ ⇒ τ)}{u u' : Tm σ} → t ≈ t' → u ≈ u' →
+          t ∙ u ≈ t' ∙ u'
+  ≈fst  : ∀ {σ τ}{t : Tm σ}{u : Tm τ} → fst ∙ (pr ∙ t ∙ u) ≈ t
+  ≈snd  : ∀ {σ τ}{t : Tm σ}{u : Tm τ} → snd ∙ (pr ∙ t ∙ u) ≈ u
+  Cl : ∀ {σ τ ρ}{l : Tm (σ ⇒ ρ)}{r : Tm (τ ⇒ ρ)}{c : Tm σ} → C ∙ l ∙ r ∙ (inl ∙ c) ≈ l ∙ c
+  Cr : ∀ {σ τ ρ}{l : Tm (σ ⇒ ρ)}{r : Tm (τ ⇒ ρ)}{c : Tm τ} → C ∙ l ∙ r ∙ (inr ∙ c) ≈ r ∙ c
+  ≈Rzero : ∀ {σ}{z : Tm σ}{s : Tm (N ⇒ σ ⇒ σ)} → R ∙ z ∙ s ∙ zero ≈ z
+  ≈Rsuc  : ∀ {σ}{z : Tm σ}{s : Tm (N ⇒ σ ⇒ σ)}{n : Tm N} → 
+           R ∙ z ∙ s ∙ (suc ∙ n) ≈ s ∙ n ∙ (R ∙ z ∙ s ∙ n)
 
 -- Normal forms
 data Nf : Ty → Set where
@@ -80,27 +80,27 @@ data Nf : Ty → Set where
 -- inclusion of normal forms in terms
 ⌜_⌝ : ∀ {σ} → Nf σ → Tm σ
 ⌜ Kⁿ       ⌝ = K
-⌜ Kⁿ¹ x    ⌝ = K $ ⌜ x ⌝
+⌜ Kⁿ¹ x    ⌝ = K ∙ ⌜ x ⌝
 ⌜ Sⁿ       ⌝ = S
-⌜ Sⁿ¹ x    ⌝ = S $ ⌜ x ⌝
-⌜ Sⁿ² x y  ⌝ = S $ ⌜ x ⌝ $ ⌜ y ⌝
+⌜ Sⁿ¹ x    ⌝ = S ∙ ⌜ x ⌝
+⌜ Sⁿ² x y  ⌝ = S ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
 ⌜ voidⁿ    ⌝ = void
 ⌜ prⁿ      ⌝ = pr 
-⌜ prⁿ¹ x   ⌝ = pr $ ⌜ x ⌝
-⌜ prⁿ² x y ⌝ = pr $ ⌜ x ⌝ $ ⌜ y ⌝
+⌜ prⁿ¹ x   ⌝ = pr ∙ ⌜ x ⌝
+⌜ prⁿ² x y ⌝ = pr ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
 ⌜ fstⁿ     ⌝ = fst
 ⌜ sndⁿ     ⌝ = snd 
 ⌜ NEⁿ     ⌝ = NE
-⌜ inlⁿ¹ x ⌝ = inl $ ⌜ x ⌝
+⌜ inlⁿ¹ x ⌝ = inl ∙ ⌜ x ⌝
 ⌜ inlⁿ    ⌝ = inl
-⌜ inrⁿ¹ x ⌝ = inr $ ⌜ x ⌝
+⌜ inrⁿ¹ x ⌝ = inr ∙ ⌜ x ⌝
 ⌜ inrⁿ    ⌝ = inr
 ⌜ Cⁿ      ⌝ = C
-⌜ Cⁿ¹ l   ⌝ = C $ ⌜ l ⌝
-⌜ Cⁿ² l r ⌝ = C $ ⌜ l ⌝ $ ⌜ r ⌝
+⌜ Cⁿ¹ l   ⌝ = C ∙ ⌜ l ⌝
+⌜ Cⁿ² l r ⌝ = C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝
 ⌜ zeroⁿ   ⌝ = zero
 ⌜ sucⁿ    ⌝ = suc
-⌜ sucⁿ¹ n ⌝ = suc $ ⌜ n ⌝
+⌜ sucⁿ¹ n ⌝ = suc ∙ ⌜ n ⌝
 ⌜ Rⁿ      ⌝ = R
-⌜ Rⁿ¹ z   ⌝ = R $ ⌜ z ⌝
-⌜ Rⁿ² z f ⌝ = R $ ⌜ z ⌝ $ ⌜ f ⌝
+⌜ Rⁿ¹ z   ⌝ = R ∙ ⌜ z ⌝
+⌜ Rⁿ² z f ⌝ = R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝
