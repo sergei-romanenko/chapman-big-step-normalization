@@ -4,8 +4,8 @@ open import FiniteCoproducts.Syntax
 open import FiniteCoproducts.BigStep
 open import FiniteCoproducts.StrongComp
 
-_$$⁼_&_ : forall {σ τ}(f : Nf (σ ⇒ τ))(a : Nf σ){n} -> f $ⁿ a ⇓ n ->
-          Σ (Nf τ) \n' -> n' == n
+_$$⁼_&_ : ∀ {σ τ}(f : Nf (σ ⇒ τ))(a : Nf σ){n} → f $ⁿ a ⇓ n →
+          Σ (Nf τ) \n' → n' == n
 .Kⁿ        $$⁼ x & rKⁿ           = sig (Kⁿ¹ x) refl⁼ 
 .(Kⁿ¹ x)   $$⁼ y & rKⁿ¹ {x = x}  = sig x  refl⁼  
 .Sⁿ        $$⁼ x & rSⁿ           = sig (Sⁿ¹ x) refl⁼  
@@ -19,7 +19,7 @@ _$$⁼_&_ : forall {σ τ}(f : Nf (σ ⇒ τ))(a : Nf σ){n} -> f $ⁿ a ⇓ n -
 .(Cⁿ² l r) $$⁼ .(inlⁿ¹ x) & rCⁿ²ˡ {l = l}{r = r}{x = x} p = l $$⁼ x & p
 .(Cⁿ² l r) $$⁼ .(inrⁿ¹ x) & rCⁿ²ʳ {l = l}{r = r}{x = x} p = r $$⁼ x & p
 
-nf⁼ : forall {σ}(t : Tm σ){n} -> t ⇓ n -> Σ (Nf σ) \n' -> n' == n
+nf⁼ : ∀ {σ}(t : Tm σ){n} → t ⇓ n → Σ (Nf σ) \n' → n' == n
 nf⁼ .K rK = sig Kⁿ refl⁼ 
 nf⁼ .S rS = sig Sⁿ refl⁼
 nf⁼ .(t $ u) (r$ {t = t} p {u = u} q r) with nf⁼ t p | nf⁼ u q
@@ -29,5 +29,5 @@ nf⁼ .inl rinl = sig inlⁿ refl⁼
 nf⁼ .inr rinr = sig inrⁿ refl⁼
 nf⁼ .C rC = sig Cⁿ refl⁼ 
 
-nf : forall {σ} -> Tm σ -> Nf σ
+nf : ∀ {σ} → Tm σ → Nf σ
 nf t = σ₀ (nf⁼ t (π₀ (σ₁ (prop2 t))))

@@ -4,7 +4,7 @@ open import FiniteCoproducts.Utils
 open import FiniteCoproducts.Syntax
 open import FiniteCoproducts.Recursive
 
-sound : forall {σ}{t u : Tm σ} -> t ≡ u -> nf t == nf u
+sound : ∀ {σ}{t u : Tm σ} → t ≡ u → nf t == nf u
 sound refl        = refl⁼ 
 sound (sym p)     = sym⁼ (sound p) 
 sound (trans p q) = trans⁼ (sound p) (sound q) 

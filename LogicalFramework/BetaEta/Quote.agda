@@ -13,7 +13,7 @@ open import BetaEta.Replace
 open import BetaEta.Normal
 
 mutual
-  quot : forall {Γ} σ -> Val Γ (emb⁺ σ) -> Nf Γ (emb⁺ σ)
+  quot : ∀ {Γ} σ → Val Γ (emb⁺ σ) → Nf Γ (emb⁺ σ)
   quot (VΠ σ τ vs) f          = 
     ncoe (λn (quot _ (replace (vapp (wk (σ [ embˢ vs ]⁺) (coev f Π[])) refl⁺ (nev (var vZ)))))) (trans⁺ (congΠ refl⁺ (trans⁺ (sym⁺ (comev⁺ τ ((evˢ (embˢ vs) (wkˢ (σ [ embˢ vs ]⁺) vid) << coev
      (coev
@@ -174,7 +174,7 @@ mutual
                          p))  
   quot (VEl σ)     (nev n)    = neel (quotⁿ n) 
 
-  quotⁿ : forall {Γ σ} -> NeV Γ σ -> NeN Γ σ
+  quotⁿ : ∀ {Γ σ} → NeV Γ σ → NeN Γ σ
   quotⁿ (var x)    = nvar x 
   quotⁿ (app {σ = σ}{τ = τ} n v) = 
     ncoeⁿ (napp (quotⁿ n) 
@@ -192,7 +192,7 @@ mutual
   quotⁿ (coen n p) = ncoeⁿ (quotⁿ n) p 
 
   abstract 
-    comquot : forall {Γ}(σ : VTy Γ)(v : Val Γ (emb⁺ σ)) -> 
+    comquot : ∀ {Γ}(σ : VTy Γ)(v : Val Γ (emb⁺ σ)) → 
            nemb (quot σ v) ≡ emb v
     comquot (VΠ σ τ vs) f          = trans 
       (coh
@@ -697,7 +697,7 @@ nemb
       ir (trans (comquot (ev⁺ σ' vid) (replace v)) (comreplace v) ) 
     comquot (VEl σ)     (nev n)    = comquotⁿ n 
 
-    comquotⁿ : forall {Γ σ}(n : NeV Γ σ) -> 
+    comquotⁿ : ∀ {Γ σ}(n : NeV Γ σ) → 
              nembⁿ (quotⁿ n) ≡ embⁿ n
     comquotⁿ (var x)    = refl 
     comquotⁿ (app {σ = σ} n v)  = 

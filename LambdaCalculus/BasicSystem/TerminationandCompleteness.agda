@@ -11,9 +11,9 @@ open import BasicSystem.StrongComputability
 open import BasicSystem.IdentityEnvironment
 
 mutual
-  fundthrm : forall {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) -> SCE vs ->
+  fundthrm : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) → SCE vs →
              Σ (Val Γ σ) 
-               \v -> eval t & vs ⇓ v ∧ SCV v ∧ (t [ embˢ vs ] ≃ emb v)
+               \v → eval t & vs ⇓ v ∧ SCV v ∧ (t [ embˢ vs ] ≃ emb v)
   fundthrm top        (vs << v) (s<< svs sv) = sig v (tr rvar sv  top<) 
   fundthrm (t [ ts ]) vs svs = 
      sig (σ₁ sw) 
@@ -26,7 +26,7 @@ mutual
   fundthrm (λt t)      vs svs = 
     sig (λv t vs) 
         (tr rlam 
-            (\{_} f a sa -> 
+            (\{_} f a sa → 
               let st = fundthrm t (emap f vs << a) (s<< (scemap f vs svs) sa) 
               in  sig (σ₁ st) 
                       (tr (r$lam (t1 (σ₂ st)))
@@ -63,9 +63,9 @@ mutual
     su  = fundthrm u vs svs
     stu = t2 (σ₂ st) oid (σ₁ su) (t2 (σ₂ su))
 
-  fundthrmˢ : forall {B Γ Δ}(ts : Sub Γ Δ)(vs : Env B Γ) -> SCE vs ->
+  fundthrmˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ)(vs : Env B Γ) → SCE vs →
               Σ (Env B Δ) 
-                \ws -> 
+                \ws → 
                   evalˢ ts & vs ⇓ ws ∧ SCE ws ∧ (ts ○ (embˢ vs) ≃ˢ embˢ ws)
   fundthrmˢ (pop σ)   (vs << v) (s<< svs sv) = sig vs (tr rˢpop svs popcomp) 
   fundthrmˢ (ts < t)  vs        svs          = 
@@ -87,8 +87,8 @@ mutual
     sts = fundthrmˢ ts (σ₁ sus) (t2 (σ₂ sus))
 
 mutual
-  quotlema : forall {Γ} σ {v : Val Γ σ} -> 
-              SCV v -> Σ (Nf Γ σ) (\m ->  quot v ⇓ m × (emb v ≃ nemb m ))
+  quotlema : ∀ {Γ} σ {v : Val Γ σ} → 
+              SCV v → Σ (Nf Γ σ) (\m →  quot v ⇓ m × (emb v ≃ nemb m ))
   quotlema ι {nev n} (sig m (pr p q)) = sig (ne m) (pr (qbase p) q)
   quotlema {Γ} (σ ⇒ τ) {v} sv =
     sig (λn (σ₁ qvvZ)) 
@@ -110,10 +110,10 @@ mutual
     svvZ = sv (skip σ oid) (nev (varV vZ)) svZ
     qvvZ = quotlema τ (t2 (σ₂ svvZ))
 
-  quotlemb : forall {Γ} σ {n : NeV Γ σ}{m : NeN Γ σ} -> 
-              quotⁿ n ⇓ m -> embⁿ n ≃ nembⁿ m -> SCV (nev n)
+  quotlemb : ∀ {Γ} σ {n : NeV Γ σ}{m : NeN Γ σ} → 
+              quotⁿ n ⇓ m → embⁿ n ≃ nembⁿ m → SCV (nev n)
   quotlemb ι       {n} p q = sig _ (pr p q) 
-  quotlemb (σ ⇒ τ) {n}{m} p q = \f a sa -> 
+  quotlemb (σ ⇒ τ) {n}{m} p q = \f a sa → 
     let qla = quotlema σ sa
     in  sig (nev (appV (nevmap f n) a)) 
             (tr r$ne 
@@ -126,14 +126,14 @@ mutual
                 (cong$ (trans (onevemb f n) (sym (onevemb f n))) refl))
 
 
-scvar : forall {Γ σ}(x : Var Γ σ) -> SCV (nev (varV x))
+scvar : ∀ {Γ σ}(x : Var Γ σ) → SCV (nev (varV x))
 scvar x = quotlemb _ qⁿvar refl 
 
-scid : forall Γ -> SCE (vid {Γ})
+scid : ∀ Γ → SCE (vid {Γ})
 scid ε       = sε 
 scid (Γ < σ) = s<< (scemap (weak σ) _ (scid Γ)) (scvar vZ) 
 
-normthrm : forall {Γ σ}(t : Tm Γ σ) -> Σ (Nf Γ σ) \n -> nf t ⇓ n × (t ≃ nemb n)
+normthrm : ∀ {Γ σ}(t : Tm Γ σ) → Σ (Nf Γ σ) \n → nf t ⇓ n × (t ≃ nemb n)
 normthrm t = sig (σ₁ qt) (pr (norm⇓ (t1 (σ₂ ft)) (π₁ (σ₂ qt))) 
                          (trans (trans (trans (sym []id) (cong[] refl embvid))
                                        (t3 (σ₂ ft))) 

@@ -6,7 +6,7 @@ open import BetaEta.IdentityEnvironment
 open import BetaEta.Evaluator
 
 mutual
-  replace : forall {Γ σ} -> Val Γ σ -> Val Γ (emb⁺ (ev⁺ σ vid))
+  replace : ∀ {Γ σ} → Val Γ σ → Val Γ (emb⁺ (ev⁺ σ vid))
   replace (λv t vs) = λv t (evˢ (embˢ vs) vid) 
   replace (nev n) = nev (replaceⁿ n) 
   replace (coev {σ = σ}{σ' = σ'} v p) =
@@ -18,7 +18,7 @@ mutual
                                         comvid))
                          (comev⁺ σ' vid))) 
 
-  replaceⁿ : forall {Γ σ} -> NeV Γ σ -> NeV Γ (emb⁺ (ev⁺ σ vid))
+  replaceⁿ : ∀ {Γ σ} → NeV Γ σ → NeV Γ (emb⁺ (ev⁺ σ vid))
   replaceⁿ (var {σ = σ} x)    = 
     coen (var x)
          (trans⁺ (trans⁺ (sym⁺ rightid⁺) (cong⁺ refl⁺ comvid)) (comev⁺ σ vid))
@@ -58,7 +58,7 @@ mutual
                  (comev⁺ σ' vid)) 
 
   abstract
-    comreplace : forall {Γ σ}(v : Val Γ σ) ->
+    comreplace : ∀ {Γ σ}(v : Val Γ σ) →
                  emb (replace v) ≡ emb v
     comreplace (λv t vs)  = cong refl (transˢ (symˢ (comevˢ (embˢ vs) vid)) 
                                               (transˢ (cong• reflˢ (symˢ comvid))
@@ -66,7 +66,7 @@ mutual
     comreplace (nev n)    = comreplaceⁿ n 
     comreplace (coev v p) = ir (comreplace v) 
 
-    comreplaceⁿ : forall {Γ σ}(n : NeV Γ σ) ->
+    comreplaceⁿ : ∀ {Γ σ}(n : NeV Γ σ) →
                   embⁿ (replaceⁿ n) ≡ embⁿ n
     comreplaceⁿ (var x)    = coh _ _ 
     comreplaceⁿ (app n v)  =

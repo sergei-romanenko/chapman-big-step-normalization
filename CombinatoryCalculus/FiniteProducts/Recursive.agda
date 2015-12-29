@@ -5,7 +5,7 @@ module FiniteProducts.Recursive where
 open import FiniteProducts.Syntax
 
 -- Recursive normaliser
-_$$_ : forall {σ τ} -> Nf (σ ⇒ τ) -> Nf σ -> Nf τ
+_$$_ : ∀ {σ τ} → Nf (σ ⇒ τ) → Nf σ → Nf τ
 Kⁿ      $$ x        = Kⁿ¹ x
 Kⁿ¹ x   $$ y        = x
 Sⁿ      $$ x        = Sⁿ¹ x
@@ -16,7 +16,7 @@ prⁿ¹ x  $$ y        = prⁿ² x y
 fstⁿ    $$ prⁿ² x y = x
 sndⁿ    $$ prⁿ² x y = y 
 
-nf : {σ : Ty} -> Tm σ -> Nf σ
+nf : {σ : Ty} → Tm σ → Nf σ
 nf K = Kⁿ
 nf S = Sⁿ
 nf (t $ u) = nf t $$ nf u

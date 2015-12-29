@@ -5,7 +5,7 @@ module NaturalNumbers.Recursive where
 open import NaturalNumbers.Syntax
 
 -- Recursive normaliser
-_$$_ : forall {σ τ} -> Nf (σ ⇒ τ) -> Nf σ -> Nf τ
+_$$_ : ∀ {σ τ} → Nf (σ ⇒ τ) → Nf σ → Nf τ
 Kⁿ      $$ x       = Kⁿ¹ x
 Kⁿ¹ x   $$ y       = x
 Sⁿ      $$ x       = Sⁿ¹ x
@@ -17,7 +17,7 @@ Rⁿ¹ z   $$ f       = Rⁿ² z f
 Rⁿ² z f $$ zeroⁿ   = z
 Rⁿ² z f $$ sucⁿ¹ n  = (f $$ n) $$ (Rⁿ² z f $$ n)
 
-nf : {σ : Ty} -> Tm σ -> Nf σ
+nf : {σ : Ty} → Tm σ → Nf σ
 nf K = Kⁿ
 nf S = Sⁿ
 nf (t $ u) = nf t $$ nf u

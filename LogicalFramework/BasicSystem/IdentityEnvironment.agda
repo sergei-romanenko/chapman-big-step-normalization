@@ -5,7 +5,7 @@ open import BasicSystem.Value
 open import BasicSystem.Weakening
 
 mutual
-  vid : forall {Γ} -> Env Γ Γ
+  vid : ∀ {Γ} → Env Γ Γ
   vid {ε}     = e
   vid {Γ , σ} =
     wkˢ σ (vid {Γ}) << coev (nev (var (vZ {σ = σ})))
@@ -14,7 +14,7 @@ mutual
                                          (transˢ (cong• comvid reflˢ)
                                                 (comwkˢ σ vid))))
 
-  comvid : forall {Γ} -> id {Γ} ≡ˢ embˢ (vid {Γ})
+  comvid : ∀ {Γ} → id {Γ} ≡ˢ embˢ (vid {Γ})
   comvid {ε}     = reflˢ
   comvid {Γ , σ} =
     transˢ (symˢ poptop)

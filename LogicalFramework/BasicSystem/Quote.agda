@@ -12,7 +12,7 @@ open import BasicSystem.IdentityEnvironment
 open import BasicSystem.Normal
 
 mutual
-  quot : forall {Γ σ} -> Val Γ σ -> Nf Γ σ
+  quot : ∀ {Γ σ} → Val Γ σ → Nf Γ σ
   quot (λv {σ = σ} t vs)  = 
     ncoe (λn (quot (ev t 
                         (wkˢ _ vs 
@@ -27,14 +27,14 @@ mutual
   quot (nev n)    = nen (quotⁿ n) 
   quot (coev v p) = ncoe (quot v) p 
 
-  quotⁿ : forall {Γ σ} -> NeV Γ σ -> NeN Γ σ
+  quotⁿ : ∀ {Γ σ} → NeV Γ σ → NeN Γ σ
   quotⁿ (var x)    = nvar x 
   quotⁿ (app {σ = σ}{τ = τ} n v) = 
     ncoeⁿ (napp (quotⁿ n) (quot v)) 
           (cong⁺ refl⁺ (cong< reflˢ (cong (comquot v) reflˢ)))
   quotⁿ (coen n p) = ncoeⁿ (quotⁿ n) p 
 
-  comquot : forall {Γ σ}(v : Val Γ σ) -> 
+  comquot : ∀ {Γ σ}(v : Val Γ σ) → 
            nemb (quot v) ≡ emb v
   comquot (λv {σ = σ} t vs)  =
     trans 
@@ -57,7 +57,7 @@ mutual
   comquot (coev v p) = 
     trans (coh _ _) (trans (comquot v) (sym (coh _ _))) 
 
-  comquotⁿ : forall {Γ σ}(n : NeV Γ σ) -> 
+  comquotⁿ : ∀ {Γ σ}(n : NeV Γ σ) → 
            nembⁿ (quotⁿ n) ≡ embⁿ n
   comquotⁿ (var x)    = refl 
   comquotⁿ (app {σ = σ} n v)  = 

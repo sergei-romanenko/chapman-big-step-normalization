@@ -7,7 +7,7 @@ open import BetaEta.Variables
 open import BetaEta.Value
 
 mutual
-  ev : forall {Γ Δ σ} -> Tm Δ σ -> (vs : Env Γ Δ) -> Val Γ (σ [ embˢ vs ]⁺)
+  ev : ∀ {Γ Δ σ} → Tm Δ σ → (vs : Env Γ Δ) → Val Γ (σ [ embˢ vs ]⁺)
   ev (coe t p)     vs        = coev (ev t (coevˢ vs reflˠ (symˠ(fog⁺ p)))) 
                                     (cong⁺ p (symˢ (cohvˢ vs reflˠ _))) 
   ev (t [ ts ])    vs        = coev (ev t (evˢ ts vs)) 
@@ -18,7 +18,7 @@ mutual
   ev (λt t)        vs        = λv t vs 
   ev (app f)       (vs << v) = vapp (ev f vs) refl⁺ v  
 
-  evˢ : forall {Γ Δ Σ} -> Sub Δ Σ -> Env Γ Δ -> Env Γ Σ
+  evˢ : ∀ {Γ Δ Σ} → Sub Δ Σ → Env Γ Δ → Env Γ Σ
   evˢ (coeˢ ts p q) vs       = coevˢ (evˢ ts (coevˢ vs reflˠ (symˠ p))) reflˠ q
   evˢ (ts • us)     vs       = evˢ ts (evˢ us vs)
   evˢ id            vs       = vs
@@ -26,9 +26,9 @@ mutual
   evˢ (ts < t)     vs        =
     evˢ ts vs << coev (ev t vs) (trans⁺ assoc⁺ (cong⁺ refl⁺ (comevˢ ts vs)))
 
-  vapp : forall {Γ Γ' Δ σ τ ρ}{ts : Sub Γ Δ} -> Val Γ' ρ ->
-         ρ ≡⁺ (Π σ τ [ ts ]⁺) ->
-         (v : Val Γ (σ [ ts ]⁺)) -> Val Γ (τ [ ts < emb v ]⁺)
+  vapp : ∀ {Γ Γ' Δ σ τ ρ}{ts : Sub Γ Δ} → Val Γ' ρ →
+         ρ ≡⁺ (Π σ τ [ ts ]⁺) →
+         (v : Val Γ (σ [ ts ]⁺)) → Val Γ (τ [ ts < emb v ]⁺)
   vapp (λv t vs)    p a = 
     coev (ev t (vs << coev a (sym⁺ (dom (trans⁺ (sym⁺ Π[]) (trans⁺ p Π[])))))) 
          (inst (cod (trans⁺ (sym⁺ Π[]) (trans⁺ p Π[]))) (coh _ _))
@@ -38,7 +38,7 @@ mutual
   vapp (coev v p)   q a = vapp v (trans⁺ p q) a  
 
   abstract
-    comev : forall {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) ->
+    comev : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) →
           t [ embˢ vs ] ≡ emb (ev t vs)
     comev (coe t p)     vs        = trans (trans (cong (coh _ _) (cohvˢ vs reflˠ _)) 
                                                  (comev t (coevˢ vs _ _))) 
@@ -60,7 +60,7 @@ mutual
                    (sym (coh _ _)))
             (comvapp (ev f vs) refl⁺ v)
 
-    comevˢ : forall {Γ Δ Σ}(ts : Sub Δ Σ)(vs : Env Γ Δ) ->
+    comevˢ : ∀ {Γ Δ Σ}(ts : Sub Δ Σ)(vs : Env Γ Δ) →
            ts • embˢ vs ≡ˢ embˢ (evˢ ts vs)
     comevˢ (coeˢ ts p q) vs        = transˢ (transˢ (cong• (cohˢ ts _ _)
                                                          (cohvˢ vs reflˠ _))
@@ -75,9 +75,9 @@ mutual
                                           (cong< (comevˢ ts vs)
                                                  (ir (comev t vs))) 
 
-    comvapp : forall {Γ Γ' Δ σ τ ρ}{ts : Sub Γ Δ}
-           (f : Val Γ' ρ)(p : ρ ≡⁺ Π σ τ [ ts ]⁺) ->
-           (v : Val Γ (σ [ ts ]⁺)) ->
+    comvapp : ∀ {Γ Γ' Δ σ τ ρ}{ts : Sub Γ Δ}
+           (f : Val Γ' ρ)(p : ρ ≡⁺ Π σ τ [ ts ]⁺) →
+           (v : Val Γ (σ [ ts ]⁺)) →
            coe (emb f) p $ˢ emb v ≡ emb (vapp f p v)
     comvapp (λv t vs)  p a = 
       ir 
@@ -108,7 +108,7 @@ mutual
                                              reflˢ))
                                    (comvapp v (trans⁺ p q) a)
 
-ev⁺ : forall {Γ Δ} -> Ty Δ -> Env Γ Δ -> VTy Γ
+ev⁺ : ∀ {Γ Δ} → Ty Δ → Env Γ Δ → VTy Γ
 ev⁺ (coe⁺ σ p)  vs = ev⁺ σ (coevˢ vs reflˠ (symˠ p))
 ev⁺ (σ [ ts ]⁺) vs = ev⁺ σ (evˢ ts vs)
 ev⁺ U          vs = VU
@@ -116,7 +116,7 @@ ev⁺ (El σ)     vs = VEl (coev (ev σ vs) U[])
 ev⁺ (Π σ τ)    vs = VΠ σ τ vs
 
 abstract
-  comev⁺ : forall {Γ Δ}(σ : Ty Δ)(vs : Env Γ Δ) ->
+  comev⁺ : ∀ {Γ Δ}(σ : Ty Δ)(vs : Env Γ Δ) →
            σ [ embˢ vs ]⁺ ≡⁺ emb⁺ (ev⁺ σ vs)
   comev⁺ (coe⁺ σ p)  vs =
     trans⁺ (cong⁺ (coh⁺ _ _) (cohvˢ vs reflˠ _))

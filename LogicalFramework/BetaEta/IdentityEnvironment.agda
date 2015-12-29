@@ -5,7 +5,7 @@ open import BetaEta.Value
 open import BetaEta.Weakening
 
 mutual
-  vid : forall {Γ} -> Env Γ Γ
+  vid : ∀ {Γ} → Env Γ Γ
   vid {ε}     = e
   vid {Γ , σ} =
     wkˢ σ (vid {Γ}) << coev (nev (var (vZ {σ = σ})))
@@ -15,7 +15,7 @@ mutual
                                                 (comwkˢ σ vid))))
 
   abstract
-    comvid : forall {Γ} -> id {Γ} ≡ˢ embˢ (vid {Γ})
+    comvid : ∀ {Γ} → id {Γ} ≡ˢ embˢ (vid {Γ})
     comvid {ε}     = reflˢ
     comvid {Γ , σ} =
       transˢ (symˢ poptop)

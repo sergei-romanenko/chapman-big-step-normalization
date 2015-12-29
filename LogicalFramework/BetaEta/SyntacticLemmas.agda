@@ -2,7 +2,7 @@ module BetaEta.SyntacticLemmas where
 open import BetaEta.Syntax
 
 mutual
-  fog⁺ : forall {Γ Γ'}{σ : Ty Γ}{σ' : Ty Γ'} -> σ ≡⁺ σ' -> Γ ≡ˠ Γ'
+  fog⁺ : ∀ {Γ Γ'}{σ : Ty Γ}{σ' : Ty Γ'} → σ ≡⁺ σ' → Γ ≡ˠ Γ'
   fog⁺ (coh⁺ σ p) = symˠ p 
   fog⁺ refl⁺ = reflˠ 
   fog⁺ (trans⁺ p q) = transˠ (fog⁺ p) (fog⁺ q) 
@@ -19,7 +19,7 @@ mutual
   fog⁺ (dom p) = fog⁺ p 
   fog⁺ (cod p) = cong, (fog⁺ p) (dom p)
 
-  fog : forall {Γ Γ' σ σ'}{t : Tm Γ σ}{t' : Tm Γ' σ'} -> t ≡ t' ->
+  fog : ∀ {Γ Γ' σ σ'}{t : Tm Γ σ}{t' : Tm Γ' σ'} → t ≡ t' →
                 σ ≡⁺ σ'
   fog (coh t p) = sym⁺ p
   fog refl = refl⁺
@@ -37,8 +37,8 @@ mutual
   fog λ[] = refl⁺
   fog app[] = refl⁺ 
 
-  fogˢ : forall {Γ Γ' Δ Δ'}{ts : Sub Γ Δ}{ts' : Sub Γ' Δ'} -> 
-                   ts ≡ˢ ts' -> Γ ≡ˠ Γ'
+  fogˢ : ∀ {Γ Γ' Δ Δ'}{ts : Sub Γ Δ}{ts' : Sub Γ' Δ'} → 
+                   ts ≡ˢ ts' → Γ ≡ˠ Γ'
   fogˢ (cohˢ ts p q) = symˠ p
   fogˢ reflˢ = reflˠ
   fogˢ (transˢ p q) = transˠ (fogˢ p) (fogˢ q)
@@ -54,27 +54,27 @@ mutual
   fogˢ •< = reflˠ
   fogˢ poptop = reflˠ
 
-εˢ : forall {Γ} -> Sub Γ ε
+εˢ : ∀ {Γ} → Sub Γ ε
 εˢ {ε}     = id
 εˢ {Γ , σ} = εˢ • pop σ
 
-ir : forall {Γ Γ' Γ'' Γ'''}{σ : Ty Γ}{σ' σ''}{σ''' : Ty Γ'''}
-     {t : Tm Γ' σ'}{t' : Tm Γ'' σ''} -> 
-     t ≡ t' -> {p : σ' ≡⁺ σ}{q : σ'' ≡⁺ σ'''} -> coe t p ≡ coe t' q
+ir : ∀ {Γ Γ' Γ'' Γ'''}{σ : Ty Γ}{σ' σ''}{σ''' : Ty Γ'''}
+     {t : Tm Γ' σ'}{t' : Tm Γ'' σ''} → 
+     t ≡ t' → {p : σ' ≡⁺ σ}{q : σ'' ≡⁺ σ'''} → coe t p ≡ coe t' q
 ir p =  trans (coh _ _) (trans p (sym (coh _ _)))
 
 
-popid : forall {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ (σ [ ts ]⁺)} ->
+popid : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ (σ [ ts ]⁺)} →
         (ts • pop (σ [ ts ]⁺) < coe top assoc⁺) • (id < t [ id ]) ≡ˢ ts < t
 popid = 
   transˢ •< (cong< (transˢ assocˢ (transˢ (cong• reflˢ pop<) rightidˢ))
                    (trans (coh _ _) (trans (trans (cong (coh _ _) reflˢ) top<) 
                                            rightid))) 
 
-inst : forall {Γ Γ' Δ Δ' σ σ' τ τ'}{ts : Sub Γ Δ}{ts' : Sub Γ' Δ'}
-      {t : Tm Γ (σ [ ts ]⁺)}{t' : Tm Γ' (σ' [ ts' ]⁺)} ->
-      τ [ ts ↗ σ ]⁺ ≡⁺ τ' [ ts' ↗ σ' ]⁺ ->
-      t ≡ t' -> τ [ ts < t ]⁺ ≡⁺ τ' [ ts' < t' ]⁺
+inst : ∀ {Γ Γ' Δ Δ' σ σ' τ τ'}{ts : Sub Γ Δ}{ts' : Sub Γ' Δ'}
+      {t : Tm Γ (σ [ ts ]⁺)}{t' : Tm Γ' (σ' [ ts' ]⁺)} →
+      τ [ ts ↗ σ ]⁺ ≡⁺ τ' [ ts' ↗ σ' ]⁺ →
+      t ≡ t' → τ [ ts < t ]⁺ ≡⁺ τ' [ ts' < t' ]⁺
 inst p q = 
   trans⁺ (cong⁺ refl⁺ (symˢ popid))
          (trans⁺ (trans⁺ (sym⁺ assoc⁺) 
