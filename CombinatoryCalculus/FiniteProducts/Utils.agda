@@ -1,19 +1,11 @@
 module FiniteProducts.Utils where
 
 open import Relation.Binary.PropositionalEquality public
+open import Data.Product public
 
 -- A few mod cons
 
 record True : Set where
-
-data Σ (A : Set) (B : A → Set) : Set where
-  sig : (a : A) → (b : B a) → Σ A B
-
-σ₀ : {A : Set}{B : A → Set} → (Σ A B) → A
-σ₀ (sig x _) = x
-
-σ₁ : {A : Set}{B : A → Set} → (s : Σ A B) → B (σ₀ s)
-σ₁ (sig _ y) = y
 
 data _∧_ (A B : Set) : Set where
   pr : (a : A)(b : B) → A ∧ B
