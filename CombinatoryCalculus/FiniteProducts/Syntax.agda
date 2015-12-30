@@ -5,7 +5,7 @@ data Ty : Set where
   ι   : Ty
   _⇒_ : Ty → Ty → Ty
   One : Ty
-  _×_ : Ty → Ty → Ty
+  _*_ : Ty → Ty → Ty
 
 infixr 50 _⇒_
 
@@ -15,9 +15,9 @@ data Tm : Ty → Set where
   S    : ∀ {σ τ ρ} → Tm ((σ ⇒ τ ⇒ ρ) ⇒ (σ ⇒ τ) ⇒ σ ⇒ ρ)
   _∙_  : ∀ {σ τ} → Tm (σ ⇒ τ) → Tm σ → Tm τ
   void : Tm One
-  pr   : ∀ {σ τ} → Tm (σ ⇒ τ ⇒ (σ × τ))
-  fst  : ∀ {σ τ} → Tm ((σ × τ) ⇒ σ)
-  snd  : ∀ {σ τ} → Tm ((σ × τ) ⇒ τ)
+  pr   : ∀ {σ τ} → Tm (σ ⇒ τ ⇒ (σ * τ))
+  fst  : ∀ {σ τ} → Tm ((σ * τ) ⇒ σ)
+  snd  : ∀ {σ τ} → Tm ((σ * τ) ⇒ τ)
  
 infixl 50 _∙_
 
@@ -42,11 +42,11 @@ data Nf : Ty → Set where
   Sⁿ¹   : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf ((σ ⇒ τ) ⇒ σ ⇒ ρ)
   Sⁿ²   : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf (σ ⇒ τ) → Nf (σ ⇒ ρ)
   voidⁿ : Nf One
-  prⁿ   : ∀ {σ τ} → Nf (σ ⇒ τ ⇒ (σ × τ))
-  prⁿ¹  : ∀ {σ τ} → Nf σ → Nf (τ ⇒ (σ × τ))
-  prⁿ²  : ∀ {σ τ} → Nf σ → Nf τ → Nf (σ × τ)
-  fstⁿ  : ∀ {σ τ} → Nf ((σ × τ) ⇒ σ)
-  sndⁿ  : ∀ {σ τ} → Nf ((σ × τ) ⇒ τ)
+  prⁿ   : ∀ {σ τ} → Nf (σ ⇒ τ ⇒ (σ * τ))
+  prⁿ¹  : ∀ {σ τ} → Nf σ → Nf (τ ⇒ (σ * τ))
+  prⁿ²  : ∀ {σ τ} → Nf σ → Nf τ → Nf (σ * τ)
+  fstⁿ  : ∀ {σ τ} → Nf ((σ * τ) ⇒ σ)
+  sndⁿ  : ∀ {σ τ} → Nf ((σ * τ) ⇒ τ)
 
 -- inclusion of normal forms in terms
 ⌜_⌝ : ∀ {σ} → Nf σ → Tm σ

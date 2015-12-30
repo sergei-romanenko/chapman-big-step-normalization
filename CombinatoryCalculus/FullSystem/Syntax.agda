@@ -7,7 +7,7 @@ data Ty : Set where
   One : Ty
   Zero : Ty
   _⇒_  : Ty → Ty → Ty
-  _×_ : Ty → Ty → Ty
+  _*_ : Ty → Ty → Ty
   _+_  : Ty → Ty → Ty
 
 infixr 50 _⇒_
@@ -18,9 +18,9 @@ data Tm : Ty → Set where
   S    : ∀ {σ τ ρ} → Tm ((σ ⇒ τ ⇒ ρ) ⇒ (σ ⇒ τ) ⇒ σ ⇒ ρ)
   _∙_  : ∀ {σ τ} → Tm (σ ⇒ τ) → Tm σ → Tm τ
   void : Tm One
-  pr   : ∀ {σ τ} → Tm (σ ⇒ τ ⇒ (σ × τ))
-  fst  : ∀ {σ τ} → Tm ((σ × τ) ⇒ σ)
-  snd  : ∀ {σ τ} → Tm ((σ × τ) ⇒ τ)
+  pr   : ∀ {σ τ} → Tm (σ ⇒ τ ⇒ (σ * τ))
+  fst  : ∀ {σ τ} → Tm ((σ * τ) ⇒ σ)
+  snd  : ∀ {σ τ} → Tm ((σ * τ) ⇒ τ)
   NE   : ∀ {σ} → Tm (Zero ⇒ σ) 
   inl  : ∀ {σ τ} → Tm (σ ⇒ (σ + τ))
   inr  : ∀ {σ τ} → Tm (τ ⇒ (σ + τ))
@@ -57,11 +57,11 @@ data Nf : Ty → Set where
   Sⁿ¹   : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf ((σ ⇒ τ) ⇒ σ ⇒ ρ)
   Sⁿ²   : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf (σ ⇒ τ) → Nf (σ ⇒ ρ)
   voidⁿ : Nf One
-  prⁿ   : ∀ {σ τ} → Nf (σ ⇒ τ ⇒ (σ × τ))
-  prⁿ¹  : ∀ {σ τ} → Nf σ → Nf (τ ⇒ (σ × τ))
-  prⁿ²  : ∀ {σ τ} → Nf σ → Nf τ → Nf (σ × τ)
-  fstⁿ  : ∀ {σ τ} → Nf ((σ × τ) ⇒ σ)
-  sndⁿ  : ∀ {σ τ} → Nf ((σ × τ) ⇒ τ)
+  prⁿ   : ∀ {σ τ} → Nf (σ ⇒ τ ⇒ (σ * τ))
+  prⁿ¹  : ∀ {σ τ} → Nf σ → Nf (τ ⇒ (σ * τ))
+  prⁿ²  : ∀ {σ τ} → Nf σ → Nf τ → Nf (σ * τ)
+  fstⁿ  : ∀ {σ τ} → Nf ((σ * τ) ⇒ σ)
+  sndⁿ  : ∀ {σ τ} → Nf ((σ * τ) ⇒ τ)
   NEⁿ  : ∀ {σ} → Nf (Zero ⇒ σ)
   inlⁿ  : ∀ {σ τ} → Nf (σ ⇒ (σ + τ))
   inlⁿ¹ : ∀ {σ τ} → Nf σ → Nf (σ + τ)
