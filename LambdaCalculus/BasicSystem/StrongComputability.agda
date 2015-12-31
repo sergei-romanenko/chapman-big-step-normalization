@@ -9,37 +9,37 @@ open import BasicSystem.Conversion
 open import BasicSystem.BigStepSemantics
 
 SCV : ∀ {Γ σ} → Val Γ σ → Set
-SCV {Γ} {ι}     (nev n) = Σ (NeN Γ ι) \m → quotⁿ n ⇓ m × (embⁿ n ≃ nembⁿ m)
+SCV {Γ} {ι}     (nev n) = Σ (NeN Γ ι) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)
 SCV {Γ} {σ ⇒ τ} v       = ∀ {B}(f : OPE B Γ)(a : Val B σ) → SCV a → 
   Σ (Val B τ) 
-    \w → (vmap f v $$ a ⇓ w) ∧ SCV w ∧ (emb (vmap f v) $ emb a ≃ emb w)    
+    λ w → (vmap f v $$ a ⇓ w) ∧ SCV w ∧ (emb (vmap f v) $ emb a ≈ emb w)    
 
 data SCE {Γ : Con} : ∀ {Δ} → Env Γ Δ → Set where
   sε : SCE ε
   s<< : ∀ {Δ σ}{vs : Env Γ Δ}{v : Val Γ σ} →
         SCE vs → SCV v → SCE (vs << v)
 
-helper : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f == f' → 
+helper : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' → 
     {a : Val Θ σ} →
-    Σ (Val Θ τ) (\v → (f' $$ a ⇓ v) ∧ SCV v ∧ (emb f' $ emb a ≃ emb v)) →
-    Σ (Val Θ τ) \v → (f $$ a ⇓ v) ∧ SCV v ∧ (emb f $ emb a ≃ emb v)
-helper refl⁼ p = p 
+    Σ (Val Θ τ) (λ v → (f' $$ a ⇓ v) ∧ SCV v ∧ (emb f' $ emb a ≈ emb v)) →
+    Σ (Val Θ τ) λ v → (f $$ a ⇓ v) ∧ SCV v ∧ (emb f $ emb a ≈ emb v)
+helper refl p = p 
 
-helper' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f == f' → 
+helper' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' → 
     {a : Val Θ σ}{v : Val Θ τ} → f' $$ a ⇓ v → f $$ a ⇓ v
-helper' refl⁼ p = p 
+helper' refl p = p 
 
-helper'' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f == f' → 
+helper'' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' → 
     {a : Val Θ σ}{v : Val Θ τ} → 
-    emb f' $ emb a ≃ emb v → emb f $ emb a ≃ emb v
-helper'' refl⁼ p = p 
+    emb f' $ emb a ≈ emb v → emb f $ emb a ≈ emb v
+helper'' refl p = p 
 
 scvmap : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) → SCV v → SCV (vmap f v)
 scvmap {σ = ι}     f (nev m) (sig n (pr p q)) = 
   sig (nenmap f n) 
       (pr (quotⁿ⇓map f p) 
-          (trans (onevemb f m) (trans (cong[] q reflˢ) (sym (onenemb f n)))))
-scvmap {σ = σ ⇒ τ} f v       sv = \f' a sa → 
+          (≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n)))))
+scvmap {σ = σ ⇒ τ} f v       sv = λ f' a sa → 
   helper (compvmap f' f v) (sv (comp f' f) a sa) 
 
 scemap : ∀ {B Γ Δ}(f : OPE B Γ)(vs : Env Γ Δ) → 

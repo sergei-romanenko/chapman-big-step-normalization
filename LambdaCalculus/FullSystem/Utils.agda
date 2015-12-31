@@ -1,6 +1,7 @@
 module FullSystem.Utils where
 
-infix 10 _==_
+open import Relation.Binary.PropositionalEquality as P
+  renaming ([_] to ≡[_]) public
 
 data Σ (A : Set) (B : A → Set) : Set where
   sig : (a : A) → B a → Σ A B
@@ -34,31 +35,7 @@ t3 (tr _ _ c) = c
 data True : Set where
   void : True
 
-data _==_ {A : Set} : (a : A) → {B : Set} → (b : B) → Set where
-  refl⁼ : {a : A} → a == a
-
-sym⁼ : {A : Set} → {a a' : A} → a == a' → a' == a
-sym⁼ refl⁼ = refl⁼ 
-
-trans⁼ : {A : Set} → {a a' a'' : A} → a == a' → a' == a'' → a == a''
-trans⁼ refl⁼ p = p 
-
-subst : {A : Set} → {a a' : A} → a == a' → (P : A → Set) → P a → P a'
-subst {_} {_} {._} refl⁼ P p = p 
-
-resp : {A : Set} → {B : A → Set} → (f : (x : A) → B x) → {a a' : A} →
-  a == a' → f a == f a'
-resp f {a} {.a} (refl⁼ {.a}) = refl⁼ 
-
-resp2 : {A B : Set} → {C : A → B → Set} → 
-  (f : (x : A) → (y : B) → C x y) → {a a' : A} →
-  a == a' → {b b' : B} → b == b' → f a b == f a' b'
-resp2 f refl⁼ refl⁼ = refl⁼ 
-
-resp3 : {A B C : Set} → {D : A → B → C → Set} → 
-  (f : ∀ x y z → D x y z) → 
-  {a a' : A} → a == a' → 
-  {b b' : B} → b == b' → 
-  {c c' : C} → c == c' →
-  f a b c == f a' b' c'
-resp3 f refl⁼ refl⁼ refl⁼ = refl⁼ 
+cong₃ : ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+        (f : A → B → C → D) {x y z u v w} →
+        x ≡ u → y ≡ v → z ≡ w  → f x y z ≡ f u v w
+cong₃ f refl refl refl = refl

@@ -14,10 +14,10 @@ mutual
           eval t vs ∼ eval t vs'
   idext top              (∼<< p q) = q 
   idext (t [ ts ])       p         = idext t (idextˢ ts p)
-  idext (λt t)           p         = \f p' → idext t (∼<< (∼ˢmap f p) p')   
+  idext (λt t)           p         = λ f p' → idext t (∼<< (∼ˢmap f p) p')   
   idext (t $ u){vs}{vs'} p         = 
-    helper (sym⁼ (oidvmap (eval t vs))) 
-           (sym⁼ (oidvmap (eval t vs'))) 
+    helper (sym (oidvmap (eval t vs))) 
+           (sym (oidvmap (eval t vs'))) 
            (idext t p oid (idext u p)) 
 
   idextˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ){vs vs' : Env B Γ} → vs ∼ˢ vs' →
@@ -28,34 +28,34 @@ mutual
   idextˢ (ts ○ us) p         = idextˢ ts (idextˢ us p)
 
 mutual
-  sfundthrm : ∀ {Γ Δ σ}{t t' : Tm Δ σ} → t ≃ t' →
+  sfundthrm : ∀ {Γ Δ σ}{t t' : Tm Δ σ} → t ≈ t' →
               {vs vs' : Env Γ Δ} → vs ∼ˢ vs' → eval t vs ∼ eval t' vs'
-  sfundthrm {t = t} refl  q = idext t q
-  sfundthrm (sym p)       q = sym∼ (sfundthrm p (sym∼ˢ q)) 
-  sfundthrm (trans p p')  q = 
+  sfundthrm {t = t} ≈refl q = idext t q
+  sfundthrm (≈sym p)       q = sym∼ (sfundthrm p (sym∼ˢ q)) 
+  sfundthrm (≈trans p p')  q = 
     trans∼ (sfundthrm p (trans∼ˢ q (sym∼ˢ q))) 
            (sfundthrm p' q)  
   sfundthrm (cong[] p p') q = sfundthrm p (sfundthrmˢ p' q) 
-  sfundthrm (congλ p)     q = \f p' → sfundthrm p (∼<< (∼ˢmap f q) p')  
+  sfundthrm (congλ p)     q = λ f p' → sfundthrm p (∼<< (∼ˢmap f q) p')  
   sfundthrm (cong$ {t = t}{t' = t'} p p')  q = 
-    helper (sym⁼ (oidvmap (eval t  _)))
-           (sym⁼ (oidvmap (eval t' _)))
+    helper (sym (oidvmap (eval t  _)))
+           (sym (oidvmap (eval t' _)))
            (sfundthrm p q oid (sfundthrm p' q)) 
   sfundthrm {t' = t'} top<          q = idext t' q 
   sfundthrm {t = t [ ts ] [ us ]} [][]          q = idext t (idextˢ ts (idextˢ us q))  
   sfundthrm {t' = t} []id          q = idext t q 
-  sfundthrm (λ[] {t = t}{ts = ts}){vs}{vs'} q = \f p → 
+  sfundthrm (λ[] {t = t}{ts = ts}){vs}{vs'} q = λ f p → 
     helper' {t = t}
             (evˢmaplem f ts vs') 
             (idext t (∼<< (∼ˢmap f (idextˢ ts q)) p)) 
   sfundthrm ($[]{t = t}{u = u}{ts = ts}) q =
-    helper (sym⁼ (oidvmap (eval t (evalˢ ts _))))
-           (sym⁼ (oidvmap (eval t (evalˢ ts _))))
+    helper (sym (oidvmap (eval t (evalˢ ts _))))
+           (sym (oidvmap (eval t (evalˢ ts _))))
            (idext t (idextˢ ts q) oid (idext u (idextˢ ts q))) 
   sfundthrm (β {t = t}{u = u}) q = idext t (∼<< q (idext u q)) 
-  sfundthrm (η {t = t}){vs = vs}{vs' = vs'} q = \f {a} {a'} p → 
+  sfundthrm (η {t = t}){vs = vs}{vs' = vs'} q = λ f {a} {a'} p → 
     helper {f = vmap f (eval t vs)} 
-           refl⁼
+           refl
            (evmaplem f t vs')
            (idext t q f p) 
   sfundthrmˢ : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ˢ ts' →
@@ -77,31 +77,31 @@ mutual
 
 mutual
   squotelema : ∀ {Γ σ}{v v' : Val Γ σ} → 
-               v ∼ v' → quot v == quot v'
-  squotelema {σ = ι}    {nev n}{nev n'} p = resp ne p 
+               v ∼ v' → quot v ≡ quot v'
+  squotelema {σ = ι}    {nev n}{nev n'} p = cong ne p 
   squotelema {Γ}{σ ⇒ τ}                p = 
-    resp λn (squotelema {σ = τ} (p (weak σ) q)) 
+    cong λn (squotelema {σ = τ} (p (weak σ) q)) 
     where
-    q = squotelemb (refl⁼ {a = quotⁿ (varV (vZ {Γ}{σ}))})
+    q = squotelemb refl
 
   squotelemb : ∀ {Γ σ}{n n' : NeV Γ σ} → 
-               quotⁿ n == quotⁿ n' → nev n ∼ nev n'
+               quotⁿ n ≡ quotⁿ n' → nev n ∼ nev n'
   squotelemb {σ = ι}     p = p 
-  squotelemb {σ = σ ⇒ τ}{n}{n'} p = \f q → 
+  squotelemb {σ = σ ⇒ τ}{n}{n'} p = λ f q → 
     let q' = squotelema {σ = σ} q     
     in  squotelemb {σ = τ} 
-                   (resp2 appN 
-                          (trans⁼ (qⁿmaplem f n) 
-                                  (trans⁼ (resp (nenmap f) p) 
-                                          (sym⁼ (qⁿmaplem f n')))) 
+                   (cong₂ appN 
+                          (trans (qⁿmaplem f n) 
+                                  (trans (cong (nenmap f) p) 
+                                          (sym (qⁿmaplem f n')))) 
                           q')   
 
 sndvar : ∀ {Γ σ}(x : Var Γ σ) → nev (varV x) ∼ nev (varV x)
-sndvar x = squotelemb (refl⁼ {a = quotⁿ (varV x)}) 
+sndvar x = squotelemb refl 
 
 sndid : ∀ Γ → (vid {Γ}) ∼ˢ (vid {Γ})
 sndid ε       = ∼ε 
 sndid (Γ < σ) = ∼<< (∼ˢmap (skip σ oid) (sndid Γ)) (sndvar vZ) 
 
-soundthrm : ∀ {Γ σ}{t t' : Tm Γ σ} → t ≃ t' → nf t == nf t'
+soundthrm : ∀ {Γ σ}{t t' : Tm Γ σ} → t ≈ t' → nf t ≡ nf t'
 soundthrm {Γ}{σ} p = squotelema {σ = σ} (sfundthrm p (sndid Γ)) 

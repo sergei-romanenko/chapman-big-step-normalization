@@ -50,7 +50,7 @@ data Nf : Ty → Set where
   Cⁿ¹ : ∀ {σ τ ρ} → Nf (σ ⇒ ρ) → Nf ((τ ⇒ ρ) ⇒ (σ + τ) ⇒ ρ)
   Cⁿ² : ∀ {σ τ ρ} → Nf (σ ⇒ ρ) → Nf (τ ⇒ ρ) → Nf ((σ + τ) ⇒ ρ)
 
--- inclusion of normal forms in terms
+-- Inclusion of normal forms in terms
 ⌜_⌝ : ∀ {σ} → Nf σ → Tm σ
 ⌜ Kⁿ      ⌝ = K
 ⌜ Kⁿ¹ x   ⌝ = K ∙ ⌜ x ⌝

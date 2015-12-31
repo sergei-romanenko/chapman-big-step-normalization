@@ -1,6 +1,7 @@
 module BasicSystem.Utils where
 
-infix 10 _==_
+open import Relation.Binary.PropositionalEquality as P
+  renaming ([_] to ≡[_]) public
 
 data Σ (A : Set) (B : A → Set) : Set where
   sig : (a : A) → B a → Σ A B
@@ -33,24 +34,3 @@ t3 (tr _ _ c) = c
 
 data One : Set where
   void : One
-
-data _==_ {A : Set} : (a : A) → {B : Set} → (b : B) → Set where
-  refl⁼ : {a : A} → a == a
-
-sym⁼ : {A : Set} → {a a' : A} → a == a' → a' == a
-sym⁼ refl⁼ = refl⁼ 
-
-trans⁼ : {A : Set} → {a a' a'' : A} → a == a' → a' == a'' → a == a''
-trans⁼ refl⁼ p = p 
-
-subst : {A : Set} → {a a' : A} → a == a' → (P : A → Set) → P a → P a'
-subst {_} {_} {._} refl⁼ P p = p 
-
-resp : {A : Set} → {B : A → Set} → (f : (x : A) → B x) → {a a' : A} →
-  a == a' → f a == f a'
-resp f {a} {.a} (refl⁼ {.a}) = refl⁼ 
-
-resp2 : {A B : Set} → {C : A → B → Set} → 
-  (f : (x : A) → (y : B) → C x y) → {a a' : A} →
-  a == a' → {b b' : B} → b == b' → f a b == f a' b'
-resp2 f refl⁼ refl⁼ = refl⁼ 

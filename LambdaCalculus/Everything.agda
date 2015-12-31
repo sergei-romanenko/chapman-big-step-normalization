@@ -52,3 +52,18 @@ import NaturalNumbers.OPERecursive
 import NaturalNumbers.StrongConvertibility
 
 import FullSystem.Utils
+import FullSystem.BigStepSemantics
+import FullSystem.OPE 
+import FullSystem.RecursiveNormaliser
+--import FullSystem.StructuralNormaliser 
+import FullSystem.Conversion
+import FullSystem.OPEBigStep
+import FullSystem.Soundness
+import FullSystem.Syntax
+import FullSystem.Embeddings
+import FullSystem.OPELemmas
+import FullSystem.StrongComputability
+import FullSystem.TerminationandCompleteness
+import FullSystem.IdentityEnvironment
+import FullSystem.OPERecursive
+import FullSystem.StrongConvertibility

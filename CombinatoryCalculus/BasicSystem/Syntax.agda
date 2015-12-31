@@ -34,7 +34,7 @@ data Nf : Ty → Set where
   Sⁿ¹  : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf ((σ ⇒ τ) ⇒ σ ⇒ ρ)
   Sⁿ²  : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf (σ ⇒ τ) → Nf (σ ⇒ ρ)
 
--- inclusion of normal forms in terms
+-- Inclusion of normal forms in terms
 ⌜_⌝ : ∀ {σ} → Nf σ → Tm σ
 ⌜ Kⁿ      ⌝ = K
 ⌜ Kⁿ¹ x   ⌝ = K ∙ ⌜ x ⌝

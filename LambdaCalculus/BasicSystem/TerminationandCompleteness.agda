@@ -13,33 +13,33 @@ open import BasicSystem.IdentityEnvironment
 mutual
   fundthrm : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) → SCE vs →
              Σ (Val Γ σ) 
-               \v → eval t & vs ⇓ v ∧ SCV v ∧ (t [ embˢ vs ] ≃ emb v)
+               λ v → eval t & vs ⇓ v ∧ SCV v ∧ (t [ embˢ vs ] ≈ emb v)
   fundthrm top        (vs << v) (s<< svs sv) = sig v (tr rvar sv  top<) 
   fundthrm (t [ ts ]) vs svs = 
      sig (σ₁ sw) 
          (tr (rsubs (t1 (σ₂ sws)) (t1 (σ₂ sw))) 
              (t2 (σ₂ sw)) 
-             (trans (trans [][] (cong[] refl (t3 (σ₂ sws)))) (t3 (σ₂ sw)))) 
+             (≈trans (≈trans [][] (cong[] ≈refl (t3 (σ₂ sws)))) (t3 (σ₂ sw)))) 
      where
      sws = fundthrmˢ ts vs svs
      sw  = fundthrm t (σ₁ sws) (t2 (σ₂ sws))
   fundthrm (λt t)      vs svs = 
     sig (λv t vs) 
         (tr rlam 
-            (\{_} f a sa → 
+            (λ {_} f a sa → 
               let st = fundthrm t (emap f vs << a) (s<< (scemap f vs svs) sa) 
               in  sig (σ₁ st) 
                       (tr (r$lam (t1 (σ₂ st)))
                           (t2 (σ₂ st)) 
-                          (trans 
-                            (trans 
-                              (cong$ λ[] refl)
-                              (trans 
+                          (≈trans 
+                            (≈trans 
+                              (cong$ λ[] ≈refl)
+                              (≈trans 
                                 β 
-                                (trans 
+                                (≈trans 
                                   [][] 
                                   (cong[] 
-                                    refl 
+                                    ≈refl 
                                     (transˢ 
                                       comp< 
                                         (cong< 
@@ -50,14 +50,14 @@ mutual
                                               rightidˢ)) 
                                           top<)))))) 
                                   (t3 (σ₂ st)))))
-            refl)  
+            ≈refl)  
   fundthrm (t $ u)    vs svs = 
     sig (σ₁ stu) 
         (tr (rapp (t1 (σ₂ st)) 
                   (t1 (σ₂ su)) 
-                  (helper' (sym⁼ (oidvmap (σ₁ st))) (t1 (σ₂ stu)))) 
+                  (helper' (sym (oidvmap (σ₁ st))) (t1 (σ₂ stu)))) 
             (t2 (σ₂ stu)) 
-            (trans (trans $[] ((cong$ (t3 (σ₂ st)) (t3 (σ₂ su))))) (helper'' (sym⁼ (oidvmap (σ₁ st))) {(σ₁ (fundthrm u vs svs))}{σ₁ (t2 (σ₂ (fundthrm t vs svs)) oid (σ₁ (fundthrm u vs svs)) (t2 (σ₂ (fundthrm u vs svs))))} (t3 (σ₂ stu)))))
+            (≈trans (≈trans $[] ((cong$ (t3 (σ₂ st)) (t3 (σ₂ su))))) (helper'' (sym (oidvmap (σ₁ st))) {(σ₁ (fundthrm u vs svs))}{σ₁ (t2 (σ₂ (fundthrm t vs svs)) oid (σ₁ (fundthrm u vs svs)) (t2 (σ₂ (fundthrm u vs svs))))} (t3 (σ₂ stu)))))
     where
     st  = fundthrm t vs svs
     su  = fundthrm u vs svs
@@ -65,7 +65,7 @@ mutual
 
   fundthrmˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ)(vs : Env B Γ) → SCE vs →
               Σ (Env B Δ) 
-                \ws → 
+                λ ws → 
                   evalˢ ts & vs ⇓ ws ∧ SCE ws ∧ (ts ○ (embˢ vs) ≃ˢ embˢ ws)
   fundthrmˢ (pop σ)   (vs << v) (s<< svs sv) = sig vs (tr rˢpop svs popcomp) 
   fundthrmˢ (ts < t)  vs        svs          = 
@@ -88,54 +88,54 @@ mutual
 
 mutual
   quotlema : ∀ {Γ} σ {v : Val Γ σ} → 
-              SCV v → Σ (Nf Γ σ) (\m →  quot v ⇓ m × (emb v ≃ nemb m ))
+              SCV v → Σ (Nf Γ σ) (λ m →  quot v ⇓ m × (emb v ≈ nemb m ))
   quotlema ι {nev n} (sig m (pr p q)) = sig (ne m) (pr (qbase p) q)
   quotlema {Γ} (σ ⇒ τ) {v} sv =
     sig (λn (σ₁ qvvZ)) 
         (pr (qarr (t1 (σ₂ svvZ)) (π₁ (σ₂ qvvZ))) 
-            (trans 
+            (≈trans 
               η 
               (congλ 
-                (trans 
+                (≈trans 
                   (cong$ 
-                    (trans
-                      (trans (cong[] (trans (sym []id) (cong[] refl lemoid)) 
+                    (≈trans
+                      (≈trans (cong[] (≈trans (≈sym []id) (cong[] ≈refl lemoid)) 
                                      reflˢ ) 
                              [][]) 
-                      (sym (ovemb (skip σ oid) v))) 
-                    refl) 
-                  (trans (t3 (σ₂ svvZ)) (π₂ (σ₂ qvvZ)))))))
+                      (≈sym (ovemb (skip σ oid) v))) 
+                    ≈refl) 
+                  (≈trans (t3 (σ₂ svvZ)) (π₂ (σ₂ qvvZ)))))))
     where
-    svZ = quotlemb σ {varV (vZ {Γ})} qⁿvar refl
+    svZ = quotlemb σ {varV (vZ {Γ})} qⁿvar ≈refl
     svvZ = sv (skip σ oid) (nev (varV vZ)) svZ
     qvvZ = quotlema τ (t2 (σ₂ svvZ))
 
   quotlemb : ∀ {Γ} σ {n : NeV Γ σ}{m : NeN Γ σ} → 
-              quotⁿ n ⇓ m → embⁿ n ≃ nembⁿ m → SCV (nev n)
+              quotⁿ n ⇓ m → embⁿ n ≈ nembⁿ m → SCV (nev n)
   quotlemb ι       {n} p q = sig _ (pr p q) 
-  quotlemb (σ ⇒ τ) {n}{m} p q = \f a sa → 
+  quotlemb (σ ⇒ τ) {n}{m} p q = λ f a sa → 
     let qla = quotlema σ sa
     in  sig (nev (appV (nevmap f n) a)) 
             (tr r$ne 
                 (quotlemb τ 
                            (qⁿapp (quotⁿ⇓map f p) (π₁ (σ₂ qla))) 
-                           (cong$ (trans (onevemb f n) 
-                                         (trans (cong[] q reflˢ) 
-                                                (sym (onenemb f m)))) 
+                           (cong$ (≈trans (onevemb f n) 
+                                         (≈trans (cong[] q reflˢ) 
+                                                (≈sym (onenemb f m)))) 
                                   (π₂ (σ₂ qla)))) 
-                (cong$ (trans (onevemb f n) (sym (onevemb f n))) refl))
+                (cong$ (≈trans (onevemb f n) (≈sym (onevemb f n))) ≈refl))
 
 
 scvar : ∀ {Γ σ}(x : Var Γ σ) → SCV (nev (varV x))
-scvar x = quotlemb _ qⁿvar refl 
+scvar x = quotlemb _ qⁿvar ≈refl 
 
 scid : ∀ Γ → SCE (vid {Γ})
 scid ε       = sε 
 scid (Γ < σ) = s<< (scemap (weak σ) _ (scid Γ)) (scvar vZ) 
 
-normthrm : ∀ {Γ σ}(t : Tm Γ σ) → Σ (Nf Γ σ) \n → nf t ⇓ n × (t ≃ nemb n)
+normthrm : ∀ {Γ σ}(t : Tm Γ σ) → Σ (Nf Γ σ) λ n → nf t ⇓ n × (t ≈ nemb n)
 normthrm t = sig (σ₁ qt) (pr (norm⇓ (t1 (σ₂ ft)) (π₁ (σ₂ qt))) 
-                         (trans (trans (trans (sym []id) (cong[] refl embvid))
+                         (≈trans (≈trans (≈trans (≈sym []id) (cong[] ≈refl embvid))
                                        (t3 (σ₂ ft))) 
                                 (π₂ (σ₂ qt))))  
   where

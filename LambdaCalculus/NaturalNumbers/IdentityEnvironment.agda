@@ -18,4 +18,4 @@ embvid {Γ < σ} =
                                        reflˢ)
                                 assoc) 
                         (symˢ (oeemb (skip σ oid) vid)) )
-                refl) 
+                ≈refl) 

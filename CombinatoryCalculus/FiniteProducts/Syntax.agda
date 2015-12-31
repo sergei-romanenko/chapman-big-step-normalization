@@ -48,7 +48,7 @@ data Nf : Ty → Set where
   fstⁿ  : ∀ {σ τ} → Nf ((σ * τ) ⇒ σ)
   sndⁿ  : ∀ {σ τ} → Nf ((σ * τ) ⇒ τ)
 
--- inclusion of normal forms in terms
+-- Inclusion of normal forms in terms
 ⌜_⌝ : ∀ {σ} → Nf σ → Tm σ
 ⌜ Kⁿ       ⌝ = K
 ⌜ Kⁿ¹ x    ⌝ = K ∙ ⌜ x ⌝

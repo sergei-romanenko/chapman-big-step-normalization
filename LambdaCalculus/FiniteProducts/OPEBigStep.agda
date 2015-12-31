@@ -50,7 +50,7 @@ mutual
   quot⇓map f (qbase p)   = qbase (quotⁿ⇓map f p) 
   quot⇓map {σ = σ ⇒ τ} f (qarr {f = v} p p') with $$⇓map (keep _ f) p
   ... | p'' with vmap (keep σ f) (vmap (skip σ oid) v) | quotlemma σ f v
-  ... | ._ | refl⁼ = qarr p'' (quot⇓map (keep _ f) p') 
+  ... | ._ | refl = qarr p'' (quot⇓map (keep _ f) p') 
   quot⇓map f qone                  = qone 
   quot⇓map f (qprod p p' p'' p''') = 
     qprod (vfst⇓map f p) (quot⇓map f p') (vsnd⇓map f p'') (quot⇓map f p''')  
