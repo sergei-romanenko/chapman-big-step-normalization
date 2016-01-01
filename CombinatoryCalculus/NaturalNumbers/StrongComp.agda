@@ -5,7 +5,7 @@ open import NaturalNumbers.BigStep
 
 -- Strong Computability
 SCN : ∀ {σ} → Nf σ → Set
-SCN {ι}     n = ⊤
+SCN {⋆}     n = ⊤
 SCN {N}     n = ⊤
 SCN {σ ⇒ τ} f = ∀ a → SCN a → 
   Σ (Nf τ) λ n →  (f ∙ⁿ a ⇓ n) × SCN n × (⌜ f ⌝ ∙ ⌜ a ⌝ ≈ ⌜ n ⌝)
@@ -19,14 +19,14 @@ SCR : ∀ {σ}(z : Nf σ)(f : Nf (N ⇒ σ ⇒ σ))(n : Nf N) →
 SCR z f zeroⁿ sz sf = z , rRⁿ²z , sz , ≈Rzero 
 SCR z f (sucⁿ¹ n) sz sf  = 
   proj₁ fnrn ,
-      (rRⁿ²f (π₀ (proj₂ fn)) (π₀ (proj₂ rn)) (π₀ (proj₂ fnrn)) ,
-          π₁ (proj₂ fnrn) ,
-          ≈trans ≈Rsuc (≈trans (≈∙-cong (π₂ (proj₂ fn)) (π₂ (proj₂ rn)))
-                       (π₂ (proj₂ fnrn))))
+      (rRⁿ²f (proj₁ (proj₂ fn)) (proj₁ (proj₂ rn)) (proj₁ (proj₂ fnrn)) ,
+          (proj₁ ∘ proj₂) (proj₂ fnrn) ,
+          ≈trans ≈Rsuc (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ fn)) ((proj₂ ∘ proj₂) (proj₂ rn)))
+                       ((proj₂ ∘ proj₂) (proj₂ fnrn))))
   where
   fn = sf n (record {})
   rn = SCR z f n sz sf
-  fnrn = π₁ (proj₂ fn) (proj₁ rn) (π₁ (proj₂ rn)) 
+  fnrn = (proj₁ ∘ proj₂) (proj₂ fn) (proj₁ rn) ((proj₁ ∘ proj₂) (proj₂ rn)) 
 
 prop1 : ∀ {σ} → (n : Nf σ) → SCN n
 prop1 Kⁿ        = λ x sx → Kⁿ¹ x ,
@@ -39,38 +39,38 @@ prop1 Sⁿ        = λ x sx → Sⁿ¹ x ,
                                                      (λ z sz → 
   let pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          (rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz)) ,
-              π₁ (proj₂ pxzyz) ,
+          (rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
+              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
               ≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                             (π₂ (proj₂ pxzyz))))) , ≈refl)) ,
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                             ((proj₂ ∘ proj₂) (proj₂ pxzyz))))) , ≈refl)) ,
   ≈refl)
 prop1 (Sⁿ¹ x)   = λ y sy → Sⁿ² x y , rSⁿ¹ , (λ z sz → 
   let sx = prop1 x
       pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz)) ,
-              π₁ (proj₂ pxzyz) ,
+          rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
+              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
               ≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                             (π₂ (proj₂ pxzyz)))) ,
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                             ((proj₂ ∘ proj₂) (proj₂ pxzyz)))) ,
   ≈refl
 prop1 (Sⁿ² x y) = λ z sz →
   let sx = prop1 x
       sy = prop1 y
       pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz)) ,
-              (π₁ (proj₂ pxzyz)) ,
+          rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
+              ((proj₁ ∘ proj₂) (proj₂ pxzyz)) ,
               ≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                             (π₂ (proj₂ pxzyz)))
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                             ((proj₂ ∘ proj₂) (proj₂ pxzyz)))
 prop1 zeroⁿ = record {} 
 prop1 sucⁿ = λ n _ → sucⁿ¹ n , rsucⁿ , record {} , ≈refl
 prop1 (sucⁿ¹ n) = record {} 

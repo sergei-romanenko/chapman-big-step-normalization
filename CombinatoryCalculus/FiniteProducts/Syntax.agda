@@ -2,7 +2,7 @@ module FiniteProducts.Syntax where
 
 -- Types
 data Ty : Set where
-  ι   : Ty
+  ⋆   : Ty
   _⇒_ : Ty → Ty → Ty
   One : Ty
   _*_ : Ty → Ty → Ty

@@ -11,10 +11,10 @@ open import FiniteProducts.IdentityEnvironment
 mutual
   idext : ∀ {Γ Δ σ}(t : Tm Δ σ){vs vs' : Env Γ Δ} → vs ∼ˢ vs' →
           eval t vs ∼ eval t vs'
-  idext top              (∼<< p q) = q 
+  idext ø              (∼<< p q) = q 
   idext (t [ ts ])       p         = idext t (idextˢ ts p)
-  idext (λt t)            p         = λ f p' → idext t (∼<< (∼ˢmap f p) p')   
-  idext (t $ u){vs}{vs'} p         = 
+  idext (ƛ t)            p         = λ f p' → idext t (∼<< (∼ˢmap f p) p')   
+  idext (t ∙ u){vs}{vs'} p         = 
     helper (sym (oidvmap (eval t vs))) 
            (sym (oidvmap (eval t vs'))) 
            (idext t p oid (idext u p)) 
@@ -25,9 +25,9 @@ mutual
 
   idextˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ){vs vs' : Env B Γ} → vs ∼ˢ vs' →
            evalˢ ts vs ∼ˢ evalˢ ts vs' 
-  idextˢ (pop σ)   (∼<< p q) = p 
+  idextˢ (↑ σ)   (∼<< p q) = p 
   idextˢ (ts < t)  p         = ∼<< (idextˢ ts p) (idext t p) 
-  idextˢ id        p         = p 
+  idextˢ ı        p         = p 
   idextˢ (ts ○ us) p         = idextˢ ts (idextˢ us p)
 
 mutual
@@ -40,18 +40,18 @@ mutual
            (sfundthrm p' q)  
   sfundthrm (cong[] p p') q = sfundthrm p (sfundthrmˢ p' q) 
   sfundthrm (congλ p)     q = λ f p' → sfundthrm p (∼<< (∼ˢmap f q) p')  
-  sfundthrm (cong$ {t = t}{t' = t'} p p')  q = 
+  sfundthrm (cong∙ {t = t}{t' = t'} p p')  q = 
     helper (sym (oidvmap (eval t  _)))
            (sym (oidvmap (eval t' _)))
            (sfundthrm p q oid (sfundthrm p' q)) 
-  sfundthrm {t' = t'} top<          q = idext t' q 
+  sfundthrm {t' = t'} ø<          q = idext t' q 
   sfundthrm {t = t [ ts ] [ us ]} [][]          q = idext t (idextˢ ts (idextˢ us q))  
   sfundthrm {t' = t} []id          q = idext t q 
   sfundthrm (λ[] {t = t}{ts = ts}){vs}{vs'} q = λ f p → 
     helper' {t = t}
             (evˢmaplem f ts vs') 
             (idext t (∼<< (∼ˢmap f (idextˢ ts q)) p)) 
-  sfundthrm ($[]{t = t}{u = u}{ts = ts}) q =
+  sfundthrm (∙[]{t = t}{u = u}{ts = ts}) q =
     helper (sym (oidvmap (eval t (evalˢ ts _))))
            (sym (oidvmap (eval t (evalˢ ts _))))
            (idext t (idextˢ ts q) oid (idext u (idextˢ ts q))) 
@@ -84,7 +84,7 @@ mutual
   sfundthrmˢ (cong< p p')  q = ∼<< (sfundthrmˢ p q) (sfundthrm p' q) 
   sfundthrmˢ (cong○ p p')  q = sfundthrmˢ p (sfundthrmˢ p' q ) 
   sfundthrmˢ idcomp        (∼<< q q') = ∼<< q q' 
-  sfundthrmˢ {ts' = ts} popcomp       q = idextˢ ts q 
+  sfundthrmˢ {ts' = ts} ↑comp       q = idextˢ ts q 
   sfundthrmˢ {ts' = ts} leftidˢ       q = idextˢ ts q 
   sfundthrmˢ {ts' = ts} rightidˢ      q = idextˢ ts q 
   sfundthrmˢ {ts = (ts ○ ts') ○ ts''} assoc         q = idextˢ ts (idextˢ ts' (idextˢ ts'' q)) 
@@ -94,7 +94,7 @@ mutual
 mutual
   squotlema : ∀ {Γ σ}{v v' : Val Γ σ} → 
                v ∼ v' → quot v ≡ quot v'
-  squotlema {σ = ι}    {nev n}{nev n'} p = cong ne p 
+  squotlema {σ = ⋆}    {nev n}{nev n'} p = cong ne p 
   squotlema {Γ}{σ ⇒ τ}                 p = 
     cong λn (squotlema {σ = τ} (p (weak σ) q)) 
     where
@@ -104,7 +104,7 @@ mutual
 
   squotlemb : ∀ {Γ σ}{n n' : NeV Γ σ} → 
                quotⁿ n ≡ quotⁿ n' → nev n ∼ nev n'
-  squotlemb {σ = ι}     p = p 
+  squotlemb {σ = ⋆}     p = p 
   squotlemb {σ = σ ⇒ τ}{n}{n'} p = λ f q → 
     let q' = squotlema {σ = σ} q     
     in  squotlemb {σ = τ} 

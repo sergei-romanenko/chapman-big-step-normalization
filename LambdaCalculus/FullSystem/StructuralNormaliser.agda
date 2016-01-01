@@ -7,12 +7,12 @@ open import FullSystem.BigStepSemantics
 mutual
   eval : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ){v : Val Γ σ} →
          eval t & vs ⇓ v → Σ (Val Γ σ) λ v' → v ≡ v'
-  eval .(λt t) vs       (rlam {t = t})                 = sig (λv t vs) refl  
-  eval .top .(_ << v) (rvar {v = v})        = sig v refl  
+  eval .(ƛ t) vs       (rlam {t = t})                 = sig (λv t vs) refl  
+  eval .ø .(_ << v) (rvar {v = v})        = sig v refl  
   eval .(t [ ts ]) vs  (rsubs {t = t}{ts = ts} p p')  with evalˢ ts vs p
   ... | sig ws refl = eval t ws p'
-  eval .(t $ u) vs     (rapp {t = t}{u = u} p p' p'') with eval t vs p | eval u vs p'
-  ... | sig f refl | sig a refl = f $$ a & p''
+  eval .(t ∙ u) vs     (rapp {t = t}{u = u} p p' p'') with eval t vs p | eval u vs p'
+  ... | sig f refl | sig a refl = f ∙∙ a & p''
   eval .zero vs rzero = sig zerov refl 
   eval .(suc t) vs (rsuc {t = t} p) with eval t vs p
   ... | sig v refl = sig (sucv v) refl
@@ -30,8 +30,8 @@ mutual
           {w : Val Γ σ} → prim z & s & v ⇓ w → Σ (Val Γ σ) λ w' → w ≡ w'
   vprim z s .(nev n)  (rprn {n = n}) = sig (nev (primV z s n)) refl 
   vprim z s .zerov    rprz           = sig z refl 
-  vprim z s .(sucv v) (rprs {v = v} p p' p'') with s $$ v & p | vprim z s v p'
-  ... | sig f refl | sig w refl = f $$ w & p'' 
+  vprim z s .(sucv v) (rprs {v = v} p p' p'') with s ∙∙ v & p | vprim z s v p'
+  ... | sig f refl | sig w refl = f ∙∙ w & p'' 
 
   vfst : ∀ {Γ σ τ}(v : Val Γ (σ * τ)){w : Val Γ σ} → vfst v ⇓ w →
          Σ (Val Γ σ) λ w' → w ≡ w'
@@ -43,14 +43,14 @@ mutual
   vsnd .(< v , w >v) (rsnd<,> {v = v}{w = w}) = sig w refl
   vsnd .(nev n)      (rsndnev {n = n})        = sig (nev (sndV n)) refl 
 
-  _$$_&_ : ∀ {Γ σ τ}(f : Val Γ (σ ⇒ τ))(a : Val Γ σ){v : Val Γ τ} →
-           f $$ a ⇓ v → Σ (Val Γ τ) λ v' → v ≡ v'
-  .(λv t vs) $$ a & r$lam {t = t}{vs = vs} p = eval t (vs << a) p  
-  .(nev n)   $$ a & r$ne {n = n}             = sig (nev (appV n a)) refl  
+  _∙∙_&_ : ∀ {Γ σ τ}(f : Val Γ (σ ⇒ τ))(a : Val Γ σ){v : Val Γ τ} →
+           f ∙∙ a ⇓ v → Σ (Val Γ τ) λ v' → v ≡ v'
+  .(λv t vs) ∙∙ a & r∙lam {t = t}{vs = vs} p = eval t (vs << a) p  
+  .(nev n)   ∙∙ a & r∙ne {n = n}             = sig (nev (appV n a)) refl  
 
   evalˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ)(vs : Env B Γ){ws : Env B Δ} →
           evalˢ ts & vs ⇓ ws → Σ (Env B Δ) λ ws' → ws ≡ ws'
-  evalˢ .(pop _)  .(vs << v) (rˢpop {vs = vs}{v = v})         = sig vs refl  
+  evalˢ .(↑ _)  .(vs << v) (rˢ↑ {vs = vs}{v = v})         = sig vs refl  
   evalˢ .(ts < t)  vs        (rˢcons {ts = ts}{t = t} p p') with evalˢ ts vs p | eval t vs p'
   ... | sig ws refl | sig w refl = sig (ws << w) refl 
   evalˢ .id        vs        rˢid                             = sig vs refl 
@@ -61,8 +61,8 @@ mutual
   quot : ∀ {Γ σ}(v : Val Γ σ){n : Nf Γ σ} → 
           quot v ⇓ n → Σ (Nf Γ σ) λ n' → n ≡ n'
   quot .(nev m) (qbase {m = m} p) with quotⁿ m p
-  ... | sig n refl = sig (neι n) refl 
-  quot f        (qarr p p')       with vwk _ f $$ nev (varV vZ) & p
+  ... | sig n refl = sig (ne⋆ n) refl 
+  quot f        (qarr p p')       with vwk _ f ∙∙ nev (varV vZ) & p
   ... | sig v refl with quot v p' 
   ... | sig n refl = sig (λn n) refl 
   quot .zerov    qNz             = sig zeron refl 

@@ -5,7 +5,7 @@ open import FiniteProducts.BigStep
 
 -- Strong Computability
 SCN : ∀ {σ} → Nf σ → Set
-SCN {ι}       n = ⊤
+SCN {⋆}       n = ⊤
 SCN {One}     n = ⊤
 SCN {σ ⇒ τ} f = ∀ a → SCN a → 
   Σ (Nf τ) λ n →  (f ∙ⁿ a ⇓ n) × SCN n × (⌜ f ⌝ ∙ ⌜ a ⌝ ≈ ⌜ n ⌝)
@@ -28,38 +28,38 @@ prop1 Sⁿ        = λ x sx → Sⁿ¹ x ,
                                                      (λ z sz → 
   let pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          ((rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz))) ,
-              (π₁ (proj₂ pxzyz)) ,
+          ((rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz))) ,
+              ((proj₁ ∘ proj₂) (proj₂ pxzyz)) ,
               (≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                            (π₂ (proj₂ pxzyz)))))) , ≈refl)) ,
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                            ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))) , ≈refl)) ,
   ≈refl)
 prop1 (Sⁿ¹ x)   = λ y sy → Sⁿ² x y , (rSⁿ¹ , (λ z sz → 
   let sx = prop1 x
       pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          ((rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz))) ,
-              (π₁ (proj₂ pxzyz)) ,
+          ((rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz))) ,
+              ((proj₁ ∘ proj₂) (proj₂ pxzyz)) ,
               (≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                            (π₂ (proj₂ pxzyz)))))) ,
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                            ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))) ,
   ≈refl)  
 prop1 (Sⁿ² x y) = λ z sz →
   let sx = prop1 x
       sy = prop1 y
       pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          ((rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz))) ,
-              (π₁ (proj₂ pxzyz)) ,
+          ((rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz))) ,
+              ((proj₁ ∘ proj₂) (proj₂ pxzyz)) ,
               (≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                            (π₂ (proj₂ pxzyz)))))        
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                            ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))        
 prop1 voidⁿ      = record {} 
 prop1 prⁿ        = λ x sx → 
   prⁿ¹ x ,

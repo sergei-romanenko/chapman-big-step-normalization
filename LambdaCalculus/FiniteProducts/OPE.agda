@@ -69,6 +69,6 @@ mutual
 
 -- Embedding
 oemb : ∀ {Γ Δ} → OPE Γ Δ → Sub Γ Δ
-oemb done       = id 
-oemb (keep σ f) = (oemb f ○ pop σ) < top  
-oemb (skip σ f) = oemb f ○ pop σ
+oemb done       = ı 
+oemb (keep σ f) = (oemb f ○ ↑ σ) < ø  
+oemb (skip σ f) = oemb f ○ ↑ σ

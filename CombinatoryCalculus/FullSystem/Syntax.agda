@@ -2,7 +2,7 @@ module FullSystem.Syntax where
 
 -- Types
 data Ty : Set where
-  ι : Ty
+  ⋆ : Ty
   N : Ty
   One : Ty
   Zero : Ty

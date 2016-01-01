@@ -9,7 +9,7 @@ vid : ∀ {Γ} → Env Γ Γ
 vid {ε}     = ε
 vid {Γ < σ} = emap (skip σ oid) vid << nev (varV vZ)
 
-embvid : ∀ {Γ} → id {Γ} ≃ embˢ vid
+embvid : ∀ {Γ} → ı {Γ} ≃ embˢ vid
 embvid {ε}     = ≃refl 
 embvid {Γ < σ} = 
   ≃trans idcomp 

@@ -28,4 +28,4 @@ nf⁼ .fst  rfst = fstⁿ , refl
 nf⁼ .snd  rsnd = sndⁿ , refl 
 
 nf : ∀ {σ} → Tm σ → Nf σ
-nf t = proj₁ (nf⁼ t (π₀ (proj₂ (prop2 t))))
+nf t = proj₁ (nf⁼ t (proj₁ (proj₂ (prop2 t))))

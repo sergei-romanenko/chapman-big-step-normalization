@@ -80,11 +80,11 @@ quotlemma τ f v =
 -- Variables
 oxemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(x : Var Δ σ) →
         embˣ (xmap f x) ≈ embˣ x [ oemb f ]
-oxemb (keep σ f) vZ       = ≈sym top< 
+oxemb (keep σ f) vZ       = ≈sym ø< 
 oxemb (skip σ f) vZ       = ≈trans (cong[] (oxemb f vZ) ≃refl) [][] 
 oxemb (keep .τ f) (vS τ x) = 
   ≈trans (cong[] (oxemb f x) ≃refl)
-        (≈trans (≈trans [][] (cong[] ≈refl (≃sym popcomp))) (≈sym [][])) 
+        (≈trans (≈trans [][] (cong[] ≈refl (≃sym ↑comp))) (≈sym [][])) 
 oxemb (skip σ  f) (vS τ x) = ≈trans (cong[] (oxemb f (vS τ x)) ≃refl) [][] 
 oxemb done ()
 
@@ -101,7 +101,7 @@ mutual
   onevemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : NeV Δ σ) →
             embⁿ (nevmap f n) ≈ embⁿ n [ oemb f ]
   onevemb f (varV x)   = oxemb f x 
-  onevemb f (appV n v) = ≈trans (cong$ (onevemb f n) (ovemb f v)) (≈sym $[]) 
+  onevemb f (appV n v) = ≈trans (cong∙ (onevemb f n) (ovemb f v)) (≈sym ∙[]) 
   onevemb f (fstV n)   = ≈trans (congfst (onevemb f n)) (≈sym fst[]) 
   onevemb f (sndV n)   = ≈trans (congsnd (onevemb f n)) (≈sym snd[]) 
 
@@ -110,13 +110,13 @@ mutual
   oeemb f (vs << v) = ≃trans (cong< (oeemb f vs) (ovemb f v)) (≃sym comp<) 
   oeemb {Γ = Γ < σ} (keep .σ f) ε = 
     ≃trans (≃trans (≃trans (cong○ (oeemb f ε) ≃refl) assoc) 
-                   (cong○ ≃refl (≃sym popcomp))) 
+                   (cong○ ≃refl (≃sym ↑comp))) 
            (≃sym assoc) 
   oeemb {Γ = Γ < σ} (skip τ  f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
   oeemb {Γ = ε} done       ε = ≃sym leftidˢ 
   oeemb {Γ = ε} (skip σ f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
 
-lemoid : ∀ {Γ} → id {Γ} ≃ oemb oid
+lemoid : ∀ {Γ} → ı {Γ} ≃ oemb oid
 lemoid {ε}     = ≃refl 
 lemoid {Γ < σ} = ≃trans idcomp (cong< (cong○ (lemoid {Γ}) ≃refl) ≈refl) 
 
@@ -132,6 +132,6 @@ mutual
   onenemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : NeN Δ σ) →
             nembⁿ (nenmap f n) ≈ nembⁿ n [ oemb f ]
   onenemb f (varN x)    = oxemb f x 
-  onenemb f (appN n n') = ≈trans (cong$ (onenemb f n) (onfemb f n')) (≈sym $[]) 
+  onenemb f (appN n n') = ≈trans (cong∙ (onenemb f n) (onfemb f n')) (≈sym ∙[]) 
   onenemb f (fstN n)    = ≈trans (congfst (onenemb f n)) (≈sym fst[]) 
   onenemb f (sndN n)    = ≈trans (congsnd (onenemb f n)) (≈sym snd[]) 

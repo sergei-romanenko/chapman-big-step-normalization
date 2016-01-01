@@ -2,7 +2,7 @@ module BasicSystem.Syntax where
 
 -- Types
 data Ty : Set where
-  ι : Ty
+  ⋆ : Ty
   _⇒_ : Ty → Ty → Ty
 
 infixr 50 _⇒_

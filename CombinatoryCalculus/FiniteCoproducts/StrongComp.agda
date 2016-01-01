@@ -5,7 +5,7 @@ open import FiniteCoproducts.BigStep
 
 -- Strong Computability
 SCN : ∀ {σ} → Nf σ → Set
-SCN {ι}     n = ⊤
+SCN {⋆}     n = ⊤
 SCN {σ ⇒ τ} f = ∀ a → SCN a → 
   Σ (Nf τ) λ n →  (f ∙ⁿ a ⇓ n) × SCN n × (⌜ f ⌝ ∙ ⌜ a ⌝ ≈ ⌜ n ⌝)
 SCN {Zero}     n = ⊥
@@ -18,11 +18,11 @@ SCC : ∀ {σ τ ρ}(l : Nf (σ ⇒ ρ))(r : Nf (τ ⇒ ρ))(c : Nf (σ + τ)) �
          λ n → (Cⁿ² l r ∙ⁿ c ⇓ n) × SCN n × (C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝ ∙ ⌜ c ⌝ ≈ ⌜ n ⌝)
 SCC l r (inlⁿ¹ x) sl sr sx = 
   proj₁ lx
-    , (rCⁿ²ˡ (π₀ (proj₂ lx)) , π₁ (proj₂ lx) , ≈trans Cl (π₂ (proj₂ lx))) 
+    , (rCⁿ²ˡ (proj₁ (proj₂ lx)) , (proj₁ ∘ proj₂) (proj₂ lx) , ≈trans Cl ((proj₂ ∘ proj₂) (proj₂ lx))) 
   where lx = sl x sx
 SCC l r (inrⁿ¹ x) sl sr sx = 
   proj₁ rx
-    , (rCⁿ²ʳ (π₀ (proj₂ rx)) , π₁ (proj₂ rx) , ≈trans Cr (π₂ (proj₂ rx))) 
+    , (rCⁿ²ʳ (proj₁ (proj₂ rx)) , (proj₁ ∘ proj₂) (proj₂ rx) , ≈trans Cr ((proj₂ ∘ proj₂) (proj₂ rx))) 
   where rx = sr x sx
 
 ZE : ⊥ → {X : Set} → X
@@ -39,38 +39,38 @@ prop1 Sⁿ        = λ x sx → Sⁿ¹ x ,
                                                      (λ z sz → 
   let pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz , 
-          (rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz)) ,
-              π₁ (proj₂ pxzyz) ,
+          (rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
+              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
               ≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                            (π₂ (proj₂ pxzyz))))) , ≈refl)) ,
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                            ((proj₂ ∘ proj₂) (proj₂ pxzyz))))) , ≈refl)) ,
   ≈refl)
 prop1 (Sⁿ¹ x)   = λ y sy → Sⁿ² x y , (rSⁿ¹ , (λ z sz → 
   let sx = prop1 x
       pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          (rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz)) ,
-              π₁ (proj₂ pxzyz) ,
+          (rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
+              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
               ≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                            (π₂ (proj₂ pxzyz))))) ,
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                            ((proj₂ ∘ proj₂) (proj₂ pxzyz))))) ,
   ≈refl)  
 prop1 (Sⁿ² x y) = λ z sz →
   let sx = prop1 x
       sy = prop1 y
       pxz = sx z sz
       pyz = sy z sz
-      pxzyz = π₁ (proj₂ pxz) (proj₁ pyz) (π₁ (proj₂ pyz)) 
+      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
   in proj₁ pxzyz ,
-          (rSⁿ² (π₀ (proj₂ pxz)) (π₀ (proj₂ pyz)) (π₀ (proj₂ pxzyz)) ,
-              π₁ (proj₂ pxzyz) ,
+          (rSⁿ² (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
+              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
               ≈trans ≈S 
-                     (≈trans (≈∙-cong (π₂ (proj₂ pxz)) (π₂ (proj₂ pyz)))
-                            (π₂ (proj₂ pxzyz))))
+                     (≈trans (≈∙-cong ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
+                            ((proj₂ ∘ proj₂) (proj₂ pxzyz))))
 prop1 NEⁿ = λ z sz → ZE sz 
 prop1 (inlⁿ¹ x)  = prop1 x 
 prop1 (inrⁿ¹ x)  = prop1 x 

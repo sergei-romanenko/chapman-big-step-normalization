@@ -56,7 +56,7 @@ ewk τ (vs << v) = ewk τ vs << vwk τ v
 mutual
   nfmap : ∀ {Γ Δ σ} → OPE Γ Δ → Nf Δ σ → Nf Γ σ
   nfmap f (λn n)   = λn (nfmap (keep _ f) n) 
-  nfmap f (neι n)  = neι (nenmap f n) 
+  nfmap f (ne⋆ n)  = ne⋆ (nenmap f n) 
   nfmap f (neN n)  = neN (nenmap f n)
   nfmap f zeron    = zeron 
   nfmap f (sucn n) = sucn (nfmap f n) 
@@ -68,6 +68,6 @@ mutual
 
 -- Embedding
 oemb : ∀ {Γ Δ} → OPE Γ Δ → Sub Γ Δ
-oemb done       = id 
-oemb (keep σ f) = (oemb f ○ pop σ) < top  
-oemb (skip σ f) = oemb f ○ pop σ
+oemb done       = ı 
+oemb (keep σ f) = (oemb f ○ ↑ σ) < ø  
+oemb (skip σ f) = oemb f ○ ↑ σ

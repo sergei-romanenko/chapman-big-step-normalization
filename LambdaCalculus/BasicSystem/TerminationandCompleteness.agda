@@ -14,7 +14,7 @@ mutual
   fundthrm : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) → SCE vs →
              Σ (Val Γ σ) 
                λ v → eval t & vs ⇓ v × SCV v × (t [ embˢ vs ] ≈ emb v)
-  fundthrm top        (vs << v) (s<< svs sv) = v , rvar , sv ,  top<
+  fundthrm ø        (vs << v) (s<< svs sv) = v , rvar , sv ,  ø<
   fundthrm (t [ ts ]) vs svs = 
      proj₁ sw , 
        rsubs (proj₁ (proj₂ sws)) (proj₁ (proj₂ sw)) ,
@@ -23,17 +23,17 @@ mutual
      where
      sws = fundthrmˢ ts vs svs
      sw  = fundthrm t (proj₁ sws) ((proj₁ ∘ proj₂) (proj₂ sws))
-  fundthrm (λt t)      vs svs = 
+  fundthrm (ƛ t)      vs svs = 
     λv t vs ,
         rlam , 
             (λ {_} f a sa → 
               let st = fundthrm t (emap f vs << a) (s<< (scemap f vs svs) sa) 
               in  proj₁ st , 
-                      r$lam (proj₁ (proj₂ st)) ,
+                      r∙lam (proj₁ (proj₂ st)) ,
                           (proj₁ ∘ proj₂) (proj₂ st) ,
                           ≈trans 
                             (≈trans 
-                              (cong$ λ[] ≈refl)
+                              (cong∙ λ[] ≈refl)
                               (≈trans 
                                 β 
                                 (≈trans 
@@ -46,18 +46,18 @@ mutual
                                           (≃trans 
                                             assoc 
                                             (≃trans 
-                                              (cong○ ≃refl popcomp) 
+                                              (cong○ ≃refl ↑comp) 
                                               rightidˢ)) 
-                                          top<)))))) 
+                                          ø<)))))) 
                                   ((proj₂ ∘ proj₂) (proj₂ st))) ,
             ≈refl
-  fundthrm (t $ u)    vs svs = 
+  fundthrm (t ∙ u)    vs svs = 
     proj₁ stu , 
         rapp (proj₁ (proj₂ st)) 
                   (proj₁ (proj₂ su)) 
                   (helper' (sym (oidvmap (proj₁ st))) (proj₁ (proj₂ stu))) ,
             (proj₁ ∘ proj₂) (proj₂ stu) ,
-            ≈trans (≈trans $[] ((cong$ ((proj₂ ∘ proj₂) (proj₂ st)) ((proj₂ ∘ proj₂) (proj₂ su))))) (helper'' (sym (oidvmap (proj₁ st))) {(proj₁ (fundthrm u vs svs))}{proj₁ ((proj₁ ∘ proj₂) (proj₂ (fundthrm t vs svs)) oid (proj₁ (fundthrm u vs svs)) ((proj₁ ∘ proj₂) (proj₂ (fundthrm u vs svs))))} ((proj₂ ∘ proj₂) (proj₂ stu)))
+            ≈trans (≈trans ∙[] ((cong∙ ((proj₂ ∘ proj₂) (proj₂ st)) ((proj₂ ∘ proj₂) (proj₂ su))))) (helper'' (sym (oidvmap (proj₁ st))) {(proj₁ (fundthrm u vs svs))}{proj₁ ((proj₁ ∘ proj₂) (proj₂ (fundthrm t vs svs)) oid (proj₁ (fundthrm u vs svs)) ((proj₁ ∘ proj₂) (proj₂ (fundthrm u vs svs))))} ((proj₂ ∘ proj₂) (proj₂ stu)))
     where
     st  = fundthrm t vs svs
     su  = fundthrm u vs svs
@@ -67,7 +67,7 @@ mutual
               Σ (Env B Δ) 
                 λ ws → 
                   evalˢ ts & vs ⇓ ws × SCE ws × (ts ○ (embˢ vs) ≃ embˢ ws)
-  fundthrmˢ (pop σ)   (vs << v) (s<< svs sv) = vs , rˢpop , svs , popcomp
+  fundthrmˢ (↑ σ)   (vs << v) (s<< svs sv) = vs , rˢ↑ , svs , ↑comp
   fundthrmˢ (ts < t)  vs        svs          = 
     proj₁ sts << proj₁ st ,
         rˢcons (proj₁ (proj₂ sts)) (proj₁ (proj₂ st)) ,
@@ -76,7 +76,7 @@ mutual
     where
     sts = fundthrmˢ ts vs svs
     st  = fundthrm  t  vs svs
-  fundthrmˢ id        vs        svs          = vs , rˢid , svs , leftidˢ
+  fundthrmˢ ı        vs        svs          = vs , rˢid , svs , leftidˢ
   fundthrmˢ (ts ○ us) vs        svs          = 
     proj₁ sts ,
         rˢcomp (proj₁ (proj₂ sus)) (proj₁ (proj₂ sts)) ,
@@ -89,7 +89,7 @@ mutual
 mutual
   quotlema : ∀ {Γ} σ {v : Val Γ σ} → 
               SCV v → Σ (Nf Γ σ) (λ m →  quot v ⇓ m × (emb v ≈ nemb m ))
-  quotlema ι {nev n} (m , p , q) = ne m , qbase p , q
+  quotlema ⋆ {nev n} (m , p , q) = ne m , qbase p , q
   quotlema {Γ} (σ ⇒ τ) {v} sv =
     λn (proj₁ qvvZ) ,
         (qarr (proj₁ (proj₂ svvZ)) (proj₁ (proj₂ qvvZ))) ,
@@ -97,7 +97,7 @@ mutual
               η 
               (congλ 
                 (≈trans 
-                  (cong$ 
+                  (cong∙ 
                     (≈trans
                       (≈trans (cong[] (≈trans (≈sym []id) (cong[] ≈refl lemoid)) 
                                      ≃refl ) 
@@ -112,18 +112,18 @@ mutual
 
   quotlemb : ∀ {Γ} σ {n : NeV Γ σ}{m : NeN Γ σ} → 
               quotⁿ n ⇓ m → embⁿ n ≈ nembⁿ m → SCV (nev n)
-  quotlemb ι       {n} p q = _ , p , q 
+  quotlemb ⋆       {n} p q = _ , p , q 
   quotlemb (σ ⇒ τ) {n}{m} p q = λ f a sa → 
     let qla = quotlema σ sa
     in  nev (appV (nevmap f n) a) ,
-            r$ne ,
+            r∙ne ,
                 quotlemb τ 
                            (qⁿapp (quotⁿ⇓map f p) (proj₁ (proj₂ qla))) 
-                           (cong$ (≈trans (onevemb f n) 
+                           (cong∙ (≈trans (onevemb f n) 
                                          (≈trans (cong[] q ≃refl) 
                                                 (≈sym (onenemb f m)))) 
                                   (proj₂ (proj₂ qla))) ,
-                cong$ (≈trans (onevemb f n) (≈sym (onevemb f n))) ≈refl
+                cong∙ (≈trans (onevemb f n) (≈sym (onevemb f n))) ≈refl
 
 
 scvar : ∀ {Γ σ}(x : Var Γ σ) → SCV (nev (varV x))

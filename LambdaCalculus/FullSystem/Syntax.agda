@@ -1,7 +1,7 @@
 module FullSystem.Syntax where
 
 data Ty : Set where
-  ι   : Ty
+  ⋆   : Ty
   _⇒_ : Ty → Ty → Ty
   N   : Ty
   One : Ty
@@ -16,10 +16,10 @@ data Con : Set where
 
 mutual
   data Tm : Con → Ty → Set where
-    top  : ∀ {Γ σ} → Tm (Γ < σ) σ
+    ø    : ∀ {Γ σ} → Tm (Γ < σ) σ
     _[_] : ∀ {Γ Δ σ} → Tm Δ σ → Sub Γ Δ → Tm Γ σ
-    λt    : ∀ {Γ σ τ} → Tm (Γ < σ) τ → Tm Γ (σ ⇒ τ)
-    _$_  : ∀ {Γ σ τ} → Tm Γ (σ ⇒ τ) → Tm Γ σ → Tm Γ τ
+    ƛ    : ∀ {Γ σ τ} → Tm (Γ < σ) τ → Tm Γ (σ ⇒ τ)
+    _∙_  : ∀ {Γ σ τ} → Tm Γ (σ ⇒ τ) → Tm Γ σ → Tm Γ τ
     zero : ∀ {Γ} → Tm Γ N
     suc  : ∀ {Γ} → Tm Γ N → Tm Γ N
     prim : ∀ {Γ σ} → Tm Γ σ → Tm Γ (N ⇒ σ ⇒ σ) → Tm Γ N → Tm Γ σ
@@ -29,10 +29,10 @@ mutual
     snd   : ∀ {Γ σ τ} → Tm Γ (σ * τ) → Tm Γ τ
 
   data Sub : Con → Con → Set where
-    pop  : ∀ {Γ} σ → Sub (Γ < σ) Γ
+    ↑   : ∀ {Γ} σ → Sub (Γ < σ) Γ
     _<_ : ∀ {Γ Δ σ} → Sub Γ Δ → Tm Γ σ → Sub Γ (Δ < σ)
-    id   : ∀ {Γ} → Sub Γ Γ
-    _○_  : ∀ {B Γ Δ} → Sub Γ Δ → Sub B Γ → Sub B Δ
+    ı  : ∀ {Γ} → Sub Γ Γ
+    _○_ : ∀ {B Γ Δ} → Sub Γ Δ → Sub B Γ → Sub B Δ
 
 data Var : Con → Ty → Set where
   vZ : ∀ {Γ σ} → Var (Γ < σ) σ
@@ -62,7 +62,7 @@ mutual
 mutual
   data Nf : Con → Ty → Set where
     λn    : ∀ {Γ σ τ} → Nf (Γ < σ) τ → Nf Γ (σ ⇒ τ)
-    neι   : ∀ {Γ} → NeN Γ ι → Nf Γ ι
+    ne⋆   : ∀ {Γ} → NeN Γ ⋆ → Nf Γ ⋆
     neN   : ∀ {Γ} → NeN Γ N → Nf Γ N
     zeron : ∀ {Γ} → Nf Γ N
     sucn  : ∀ {Γ} → Nf Γ N → Nf Γ N

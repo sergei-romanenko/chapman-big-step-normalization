@@ -15,23 +15,23 @@ mutual
     cong[]   : ∀ {Γ Δ σ}{t t' : Tm Δ σ}{ts ts' : Sub Γ Δ} → t ≈ t' →
                ts ≃ ts' → t [ ts ] ≈ t' [ ts' ]
 
-    congλ    : ∀ {Γ σ τ}{t t' : Tm (Γ < σ) τ} → t ≈ t' → λt t ≈ λt t'
-    cong$    : ∀ {Γ σ τ}{t t' : Tm Γ (σ ⇒ τ)}{u u' : Tm Γ σ} → t ≈ t' →
-                u ≈ u' → t $ u ≈ t' $ u'
+    congλ    : ∀ {Γ σ τ}{t t' : Tm (Γ < σ) τ} → t ≈ t' → ƛ t ≈ ƛ t'
+    cong∙    : ∀ {Γ σ τ}{t t' : Tm Γ (σ ⇒ τ)}{u u' : Tm Γ σ} → t ≈ t' →
+                u ≈ u' → t ∙ u ≈ t' ∙ u'
 
     -- computation rules
-    top< : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → top [ ts < t ] ≈ t 
+    ø<   : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → ø [ ts < t ] ≈ t 
     [][] : ∀ {B Γ Δ σ}{t : Tm Δ σ}{ts : Sub Γ Δ}{us : Sub B Γ} →
            t [ ts ] [ us ] ≈ t [ ts ○ us ]
-    []id : ∀ {Γ σ}{t : Tm Γ σ} → t [ id ] ≈ t
+    []id : ∀ {Γ σ}{t : Tm Γ σ} → t [ ı ] ≈ t
 
     λ[]  : ∀ {Γ Δ σ τ}{t : Tm (Δ < σ) τ}{ts : Sub Γ Δ} → 
-           λt t [ ts ] ≈ λt (t [ (ts ○ pop σ) < top ])
-    $[]  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ ⇒ τ)}{u : Tm Δ σ}{ts : Sub Γ Δ} →
-           (t $ u) [ ts ] ≈ t [ ts ] $ (u [ ts ])
+           ƛ t [ ts ] ≈ ƛ (t [ (ts ○ ↑ σ) < ø ])
+    ∙[]  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ ⇒ τ)}{u : Tm Δ σ}{ts : Sub Γ Δ} →
+           (t ∙ u) [ ts ] ≈ t [ ts ] ∙ (u [ ts ])
     β    : ∀ {Γ σ τ}{t : Tm (Γ < σ) τ}{u : Tm Γ σ} →
-           λt t $ u ≈ t [ id < u ]
-    η    : ∀ {Γ σ τ}{t : Tm Γ (σ ⇒ τ)} → t ≈  λt (t [ pop σ ] $ top)
+           ƛ t ∙ u ≈ t [ ı < u ]
+    η    : ∀ {Γ σ τ}{t : Tm Γ (σ ⇒ τ)} → t ≈  ƛ (t [ ↑ σ ] ∙ ø)
 
   data _≃_ : ∀ {Γ Δ} → Sub Γ Δ → Sub Γ Δ → Set where
     -- equivalence closure
@@ -47,11 +47,11 @@ mutual
              us ≃ us' → ts ○ us ≃ ts' ○ us'
 
     -- computation rules
-    idcomp  : ∀ {Γ σ} → id ≃ (id {Γ} ○ pop σ) < top
-    popcomp : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → 
-              pop σ ○ (ts < t) ≃ ts
-    leftidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → id ○ ts ≃ ts
-    rightidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ○ id ≃ ts
+    idcomp  : ∀ {Γ σ} → ı ≃ (ı {Γ} ○ ↑ σ) < ø
+    ↑comp : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → 
+              ↑ σ ○ (ts < t) ≃ ts
+    leftidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ı ○ ts ≃ ts
+    rightidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ○ ı ≃ ts
     assoc   : ∀ {A B Γ Δ}{ts : Sub Γ Δ}{us : Sub B Γ}{vs : Sub A B} →
               (ts ○ us) ○ vs ≃ ts ○ (us ○ vs)
     comp<   : ∀ {B Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ}{us : Sub B Γ} →

@@ -2,7 +2,7 @@ module FiniteCoproducts.Syntax where
 
 -- Types
 data Ty : Set where
-  ι    : Ty
+  ⋆    : Ty
   _⇒_  : Ty → Ty → Ty
   Zero : Ty
   _+_  : Ty → Ty → Ty

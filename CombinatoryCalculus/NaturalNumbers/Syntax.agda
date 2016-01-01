@@ -2,7 +2,7 @@ module NaturalNumbers.Syntax where
 
 -- Types
 data Ty : Set where
-  ι : Ty
+  ⋆ : Ty
   N : Ty
   _⇒_ : Ty → Ty → Ty
 

@@ -2,7 +2,7 @@ module Experiment where
 
 -- Types: one base type and arrow
 data Ty : Set where
-  ι   : Ty
+  ⋆   : Ty
   _→_ : Ty → Ty → Ty
 
 -- Contexts: left-to-right sequences of types
@@ -24,7 +24,7 @@ data Var : Con → Ty → Set where
 data Tm : Con → Ty → Set where
   var  : ∀ {Γ σ}   → Var Γ σ      → Tm Γ σ
   λ    : ∀ {Γ σ τ} → Tm (Γ < σ) τ → Tm Γ (σ → τ)
-  _$_  : ∀ {Γ σ τ} → Tm Γ (σ → τ) → Tm Γ σ → Tm Γ τ
+  _∙_  : ∀ {Γ σ τ} → Tm Γ (σ → τ) → Tm Γ σ → Tm Γ τ
 
 -- Well-typed substitutions: left-to-right sequences of terms
 data Sub : Con → Con → Set where
@@ -45,7 +45,7 @@ thinVar (Δ < σ) τ (vS x) = vS (thinVar Δ τ x)
 thinTm : ∀ {Γ σ} Δ τ → Tm (Γ + Δ) σ → Tm ((Γ < τ) + Δ) σ
 thinTm Δ τ (var x) = var (thinVar Δ τ x)
 thinTm Δ τ (λ t)   = λ (thinTm (Δ < _) τ t)
-thinTm Δ τ (t $ u) = thinTm Δ τ t $ thinTm Δ τ u
+thinTm Δ τ (t ∙ u) = thinTm Δ τ t ∙ thinTm Δ τ u
 
 thinSub : ∀ {Γ Σ} Δ τ → Sub (Γ + Δ) Σ → Sub ((Γ < τ) + Δ) Σ
 thinSub Δ τ ε        = ε
@@ -59,4 +59,4 @@ weakSub ts = thinSub ε _ ts < var vZ
 _[_] : ∀ {Γ Δ σ} → Tm Δ σ → Sub Γ Δ → Tm Γ σ
 var x   [ ts ] = lookup x ts 
 λ t     [ ts ] = λ (t [ weakSub ts ]) 
-(t $ u) [ ts ] = t [ ts ] $ u [ ts ]
+(t ∙ u) [ ts ] = t [ ts ] ∙ u [ ts ]

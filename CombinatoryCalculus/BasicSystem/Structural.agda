@@ -20,8 +20,8 @@ nf⁼ .(t ∙ u) (r∙ {t = t} p {u = u} q r) with nf⁼ t p | nf⁼ u q
 ... | f , refl | a , refl = f ∙∙⁼ a & r
 
 nf : ∀ {σ} → Tm σ → Nf σ
-nf t = proj₁ (nf⁼ t (π₀ (proj₂ (prop2 t))))
+nf t = proj₁ (nf⁼ t (proj₁ (proj₂ (prop2 t))))
 
 complete : ∀ {σ}(t : Tm σ) → t ≈ ⌜ nf t ⌝ 
-complete t with nf⁼ t (π₀ (proj₂ (prop2 t)))
-... | (._ , refl) = π₂ (proj₂(prop2 t)) 
+complete t with nf⁼ t (proj₁ (proj₂ (prop2 t)))
+... | (._ , refl) = (proj₂ ∘ proj₂) (proj₂(prop2 t)) 
