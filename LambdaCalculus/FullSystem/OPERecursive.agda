@@ -30,12 +30,12 @@ mutual
   evmaplem f (snd t)    vs        = trans (cong vsnd (evmaplem f t vs)) 
                                            (vsndmaplem f (eval t vs)) 
 
-  vfstmaplem : ∀ {B Γ σ τ}(f : OPE B Γ)(v : Val Γ (σ × τ)) →
+  vfstmaplem : ∀ {B Γ σ τ}(f : OPE B Γ)(v : Val Γ (σ * τ)) →
                vfst (vmap f v) ≡ vmap f (vfst v)
   vfstmaplem f < v , w >v = refl 
   vfstmaplem f (nev n)    = refl 
 
-  vsndmaplem : ∀ {B Γ σ τ}(f : OPE B Γ)(v : Val Γ (σ × τ)) →
+  vsndmaplem : ∀ {B Γ σ τ}(f : OPE B Γ)(v : Val Γ (σ * τ)) →
                vsnd (vmap f v) ≡ vmap f (vsnd v)
   vsndmaplem f < v , w >v = refl 
   vsndmaplem f (nev n)    = refl 
@@ -84,7 +84,7 @@ mutual
   qmaplem {Γ} {Δ} {N} f zerov    = refl 
   qmaplem {Γ} {Δ} {N} f (sucv v) = cong sucn (qmaplem f v)  
   qmaplem {σ = One}   f v       = refl 
-  qmaplem {σ = σ × τ} f v       = 
+  qmaplem {σ = σ * τ} f v       = 
     cong₂ <_,_>n (trans (cong quot (vfstmaplem f v)) (qmaplem f (vfst v))) 
                  (trans  (cong quot (vsndmaplem f v)) (qmaplem f (vsnd v))) 
 

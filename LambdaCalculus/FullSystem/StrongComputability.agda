@@ -9,17 +9,17 @@ open import FullSystem.Conversion
 open import FullSystem.BigStepSemantics
 
 SCV : ∀ {Γ σ} → Val Γ σ → Set
-SCV {Γ} {ι}     (nev n)  = Σ (NeN Γ ι) λ m → quotⁿ n ⇓ m ∧ (embⁿ n ≈ nembⁿ m)
+SCV {Γ} {ι}     (nev n)  = Σ (NeN Γ ι) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)
 SCV {Γ} {σ ⇒ τ} v        = ∀ {B}(f : OPE B Γ)(a : Val B σ) → SCV a → 
   Σ (Val B τ) 
-    λ w → (vmap f v $$ a ⇓ w) ∧ SCV w ∧ (emb (vmap f v) $ emb a ≈ emb w)    
+    λ w → (vmap f v $$ a ⇓ w) × SCV w × (emb (vmap f v) $ emb a ≈ emb w)    
 SCV {Γ} {N}     zerov    = True
 SCV {Γ} {N}     (sucv v) = SCV v 
-SCV {Γ} {N}     (nev n)  = Σ (NeN Γ N) λ m → quotⁿ n ⇓ m ∧ (embⁿ n ≈ nembⁿ m) 
+SCV {Γ} {N}     (nev n)  = Σ (NeN Γ N) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m) 
 SCV {Γ} {One}   _       = True
-SCV {Γ} {σ × τ} p       =
-  (Σ (Val Γ σ) λ v → vfst p ⇓ v ∧ SCV v ∧ (fst (emb p) ≈ emb v)) ∧ 
-  (Σ (Val Γ τ) λ v → vsnd p ⇓ v ∧ SCV v ∧ (snd (emb p) ≈ emb v))
+SCV {Γ} {σ * τ} p       =
+  (Σ (Val Γ σ) λ v → vfst p ⇓ v × SCV v × (fst (emb p) ≈ emb v)) ×
+  (Σ (Val Γ τ) λ v → vsnd p ⇓ v × SCV v × (snd (emb p) ≈ emb v))
 
 data SCE {Γ : Con} : ∀ {Δ} → Env Γ Δ → Set where
   sε : SCE ε
@@ -28,8 +28,8 @@ data SCE {Γ : Con} : ∀ {Δ} → Env Γ Δ → Set where
 
 helper : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' → 
     {a : Val Θ σ} →
-    Σ (Val Θ τ) (λ v → (f' $$ a ⇓ v) ∧ SCV v ∧ (emb f' $ emb a ≈ emb v)) →
-    Σ (Val Θ τ) λ v → (f $$ a ⇓ v) ∧ SCV v ∧ (emb f $ emb a ≈ emb v)
+    Σ (Val Θ τ) (λ v → (f' $$ a ⇓ v) × SCV v × (emb f' $ emb a ≈ emb v)) →
+    Σ (Val Θ τ) λ v → (f $$ a ⇓ v) × SCV v × (emb f $ emb a ≈ emb v)
 helper refl p = p 
 
 helper' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' → 
@@ -42,30 +42,30 @@ helper'' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' →
 helper'' refl p = p 
 
 scvmap : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) → SCV v → SCV (vmap f v)
-scvmap {σ = ι} f (nev m)  (sig n (pr p q)) = 
-  sig (nenmap f n) 
-      (pr (quotⁿ⇓map f p) 
-          (≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n)))))
+scvmap {σ = ι} f (nev m)  (n , p , q) = 
+  nenmap f n ,
+      (quotⁿ⇓map f p ,
+          ≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n))))
 scvmap {σ = σ ⇒ τ} f v     sv              = λ f' a sa → 
   helper (compvmap f' f v) (sv (comp f' f) a sa) 
 scvmap {σ = N} f zerov    void             = void 
 scvmap {σ = N} f (sucv v) sv               = scvmap f v sv 
-scvmap {σ = N} f (nev n)  (sig m (pr p q)) = 
-  sig (nenmap f m) 
-      (pr (quotⁿ⇓map f p) 
-          (≈trans (onevemb f n) (≈trans (cong[] q reflˢ) (≈sym (onenemb f m))))) 
+scvmap {σ = N} f (nev n)  (m , p , q) = 
+  nenmap f m ,
+      (quotⁿ⇓map f p ,
+          ≈trans (onevemb f n) (≈trans (cong[] q reflˢ) (≈sym (onenemb f m))))
 scvmap {σ = One}   f v       void                       = void 
-scvmap {σ = σ × τ} f v       (pr (sig w (tr p p' p'')) (sig w' (tr q q' q''))) = 
-  pr (sig (vmap f w)  
-          (tr (vfst⇓map f p) 
-              (scvmap f w p')  
-              (≈trans (≈trans (congfst (ovemb f v)) (≈sym fst[])) 
-                     (≈trans (cong[] p'' reflˢ) (≈sym (ovemb f w))))))
-     (sig (vmap f w') 
-          (tr (vsnd⇓map f q) 
-              (scvmap f w' q') 
-              (≈trans (≈trans (congsnd (ovemb f v)) (≈sym snd[])) 
-                     (≈trans (cong[] q'' reflˢ) (≈sym (ovemb f w'))))))
+scvmap {σ = σ * τ} f v       ((w , p , p' , p'') , (w' , q , q' , q'')) = 
+  (vmap f w ,  
+          (vfst⇓map f p ,
+              scvmap f w p' , 
+              ≈trans (≈trans (congfst (ovemb f v)) (≈sym fst[])) 
+                     (≈trans (cong[] p'' reflˢ) (≈sym (ovemb f w))))) ,
+  (vmap f w' ,
+          (vsnd⇓map f q ,
+              scvmap f w' q' ,
+              ≈trans (≈trans (congsnd (ovemb f v)) (≈sym snd[])) 
+                     (≈trans (cong[] q'' reflˢ) (≈sym (ovemb f w')))))
 
 scemap : ∀ {B Γ Δ}(f : OPE B Γ)(vs : Env Γ Δ) → 
          SCE vs → SCE (emap f vs)

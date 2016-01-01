@@ -25,9 +25,9 @@ mutual
                
     cong<,> : ∀ {Γ σ τ}{t t' : Tm Γ σ}{u u' : Tm Γ τ} → 
               t ≈ t' → u ≈ u' → < t , u > ≈ < t' , u' >
-    congfst : ∀ {Γ σ τ}{t t' : Tm Γ (σ × τ)} →
+    congfst : ∀ {Γ σ τ}{t t' : Tm Γ (σ * τ)} →
               t ≈ t' → fst t ≈ fst t'
-    congsnd : ∀ {Γ σ τ}{t t' : Tm Γ (σ × τ)} →
+    congsnd : ∀ {Γ σ τ}{t t' : Tm Γ (σ * τ)} →
               t ≈ t' → snd t ≈ snd t'
 
     -- computation rules
@@ -55,13 +55,13 @@ mutual
     void[] : ∀ {Γ Δ}{ts : Sub Γ Δ} → void [ ts ] ≈ void 
     <,>[] : ∀ {Γ Δ σ τ}{t : Tm Δ σ}{u : Tm Δ τ}{ts : Sub Γ Δ} →
             < t , u > [ ts ] ≈ < t [ ts ] , u [ ts ] >
-    fst[] : ∀ {Γ Δ σ τ}{t : Tm Δ (σ × τ)}{ts : Sub Γ Δ} →
+    fst[] : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{ts : Sub Γ Δ} →
             fst t [ ts ] ≈ fst (t [ ts ])
-    snd[] : ∀ {Γ Δ σ τ}{t : Tm Δ (σ × τ)}{ts : Sub Γ Δ} →
+    snd[] : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{ts : Sub Γ Δ} →
             snd t [ ts ] ≈ snd (t [ ts ])
     βfst : ∀ {Γ σ τ}{t : Tm Γ σ}{u : Tm Γ τ} → fst < t , u > ≈ t
     βsnd : ∀ {Γ σ τ}{t : Tm Γ σ}{u : Tm Γ τ} → snd < t , u > ≈ u
-    η<,> : ∀ {Γ σ τ}{t : Tm Γ (σ × τ)} → t ≈ < fst t , snd t >
+    η<,> : ∀ {Γ σ τ}{t : Tm Γ (σ * τ)} → t ≈ < fst t , snd t >
     ηvoid : ∀ {Γ}{t : Tm Γ One} → t ≈ void
 
 

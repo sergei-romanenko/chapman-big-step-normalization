@@ -24,11 +24,11 @@ mutual
   vprim z f zerov    = z 
   vprim z f (sucv v) = (f $$ v) $$ (vprim z f v) 
 
-  vfst : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ σ
+  vfst : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ σ
   vfst < v , w >v = v
   vfst (nev n)    = nev (fstV n)
 
-  vsnd : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ τ
+  vsnd : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ τ
   vsnd < v , w >v = w
   vsnd (nev n)    = nev (sndV n)
 
@@ -50,7 +50,7 @@ mutual
   quot {σ = N}     (sucv v)  = sucn (quot v) 
   quot {σ = N}     (nev n)   = neN (quotⁿ n)
   quot {σ = One}   _   = voidn
-  quot {σ = σ × τ} p   = < quot (vfst p) , quot (vsnd p) >n   
+  quot {σ = σ * τ} p   = < quot (vfst p) , quot (vsnd p) >n   
 
   quotⁿ : ∀ {Γ σ} → NeV Γ σ → NeN Γ σ
   quotⁿ (varV x)      = varN x

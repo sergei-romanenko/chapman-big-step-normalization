@@ -5,7 +5,7 @@ data Ty : Set where
   _⇒_ : Ty → Ty → Ty
   N   : Ty
   One : Ty
-  _×_ : Ty → Ty → Ty
+  _*_ : Ty → Ty → Ty
 
 
 infixr 10 _⇒_
@@ -24,9 +24,9 @@ mutual
     suc  : ∀ {Γ} → Tm Γ N → Tm Γ N
     prim : ∀ {Γ σ} → Tm Γ σ → Tm Γ (N ⇒ σ ⇒ σ) → Tm Γ N → Tm Γ σ
     void  : ∀ {Γ} → Tm Γ One
-    <_,_> : ∀ {Γ σ τ} → Tm Γ σ → Tm Γ τ → Tm Γ (σ × τ)
-    fst   : ∀ {Γ σ τ} → Tm Γ (σ × τ) → Tm Γ σ
-    snd   : ∀ {Γ σ τ} → Tm Γ (σ × τ) → Tm Γ τ
+    <_,_> : ∀ {Γ σ τ} → Tm Γ σ → Tm Γ τ → Tm Γ (σ * τ)
+    fst   : ∀ {Γ σ τ} → Tm Γ (σ * τ) → Tm Γ σ
+    snd   : ∀ {Γ σ τ} → Tm Γ (σ * τ) → Tm Γ τ
 
   data Sub : Con → Con → Set where
     pop  : ∀ {Γ} σ → Sub (Γ < σ) Γ
@@ -46,7 +46,7 @@ mutual
     zerov : ∀ {Γ} → Val Γ N
     sucv  : ∀ {Γ} → Val Γ N → Val Γ N
     voidv  : ∀ {Γ} → Val Γ One
-    <_,_>v : ∀ {Γ σ τ} → Val Γ σ → Val Γ τ → Val Γ (σ × τ)
+    <_,_>v : ∀ {Γ σ τ} → Val Γ σ → Val Γ τ → Val Γ (σ * τ)
 
   data Env : Con → Con → Set where
     ε   : ∀ {Γ} → Env Γ ε
@@ -56,8 +56,8 @@ mutual
     varV  : ∀ {Γ σ} → Var Γ σ → NeV Γ σ
     appV  : ∀ {Γ σ τ} → NeV Γ (σ ⇒ τ) → Val Γ σ → NeV Γ τ
     primV : ∀ {Γ σ} → Val Γ σ → Val Γ (N ⇒ σ ⇒ σ) → NeV Γ N → NeV Γ σ
-    fstV : ∀ {Γ σ τ} → NeV Γ (σ × τ) → NeV Γ σ
-    sndV : ∀ {Γ σ τ} → NeV Γ (σ × τ) → NeV Γ τ
+    fstV : ∀ {Γ σ τ} → NeV Γ (σ * τ) → NeV Γ σ
+    sndV : ∀ {Γ σ τ} → NeV Γ (σ * τ) → NeV Γ τ
 
 mutual
   data Nf : Con → Ty → Set where
@@ -67,11 +67,11 @@ mutual
     zeron : ∀ {Γ} → Nf Γ N
     sucn  : ∀ {Γ} → Nf Γ N → Nf Γ N
     voidn  : ∀ {Γ} → Nf Γ One
-    <_,_>n : ∀ {Γ σ τ} → Nf Γ σ → Nf Γ τ → Nf Γ (σ × τ)
+    <_,_>n : ∀ {Γ σ τ} → Nf Γ σ → Nf Γ τ → Nf Γ (σ * τ)
 
   data NeN : Con → Ty → Set where
     varN  : ∀ {Γ σ} → Var Γ σ → NeN Γ σ
     appN  : ∀ {Γ σ τ} → NeN Γ (σ ⇒ τ) → Nf Γ σ → NeN Γ τ
     primN : ∀ {Γ σ} → Nf Γ σ → Nf Γ (N ⇒ σ ⇒ σ) → NeN Γ N → NeN Γ σ
-    fstN : ∀ {Γ σ τ} → NeN Γ (σ × τ) → NeN Γ σ
-    sndN : ∀ {Γ σ τ} → NeN Γ (σ × τ) → NeN Γ τ
+    fstN : ∀ {Γ σ τ} → NeN Γ (σ * τ) → NeN Γ σ
+    sndN : ∀ {Γ σ τ} → NeN Γ (σ * τ) → NeN Γ τ

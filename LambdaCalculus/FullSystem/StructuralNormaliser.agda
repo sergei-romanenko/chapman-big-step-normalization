@@ -33,12 +33,12 @@ mutual
   vprim z s .(sucv v) (rprs {v = v} p p' p'') with s $$ v & p | vprim z s v p'
   ... | sig f refl | sig w refl = f $$ w & p'' 
 
-  vfst : ∀ {Γ σ τ}(v : Val Γ (σ × τ)){w : Val Γ σ} → vfst v ⇓ w →
+  vfst : ∀ {Γ σ τ}(v : Val Γ (σ * τ)){w : Val Γ σ} → vfst v ⇓ w →
          Σ (Val Γ σ) λ w' → w ≡ w'
   vfst .(< v , w >v) (rfst<,> {v = v}{w = w}) = sig v refl  
   vfst .(nev n)      (rfstnev {n = n})        = sig (nev (fstV n)) refl  
 
-  vsnd : ∀ {Γ σ τ}(v : Val Γ (σ × τ)){w : Val Γ τ} → vsnd v ⇓ w →
+  vsnd : ∀ {Γ σ τ}(v : Val Γ (σ * τ)){w : Val Γ τ} → vsnd v ⇓ w →
          Σ (Val Γ τ) λ w' → w ≡ w'
   vsnd .(< v , w >v) (rsnd<,> {v = v}{w = w}) = sig w refl
   vsnd .(nev n)      (rsndnev {n = n})        = sig (nev (sndV n)) refl 

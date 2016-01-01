@@ -24,11 +24,11 @@ mutual
     r<,>  : ∀ {Γ Δ σ τ}{t : Tm Δ σ}{u : Tm Δ τ}{vs : Env Γ Δ}
             {v : Val Γ σ}{w : Val Γ τ} → eval t & vs ⇓ v → eval u & vs ⇓ w →
             eval < t , u > & vs ⇓ < v , w >v
-    rfst  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ × τ)}{vs : Env Γ Δ}
-            {v : Val Γ (σ × τ)} → eval t & vs ⇓ v →
+    rfst  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{vs : Env Γ Δ}
+            {v : Val Γ (σ * τ)} → eval t & vs ⇓ v →
             {w : Val Γ σ} → vfst v ⇓ w → eval fst t & vs ⇓ w 
-    rsnd  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ × τ)}{vs : Env Γ Δ}
-            {v : Val Γ (σ × τ)} → eval t & vs ⇓ v → 
+    rsnd  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{vs : Env Γ Δ}
+            {v : Val Γ (σ * τ)} → eval t & vs ⇓ v → 
             {w : Val Γ τ} → vsnd v ⇓ w → eval snd t & vs ⇓ w
 
   data prim_&_&_⇓_ : ∀ {Γ σ} → Val Γ σ → Val Γ (N ⇒ σ ⇒ σ) → Val Γ N →
@@ -43,13 +43,13 @@ mutual
            {w' : Val Γ σ} → f $$ w ⇓ w' →
            prim z & s & sucv v ⇓ w'
 
-  data vfst_⇓_ : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ σ → Set where
+  data vfst_⇓_ : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ σ → Set where
     rfst<,> : ∀ {Γ σ τ}{v : Val Γ σ}{w : Val Γ τ} → vfst < v , w >v ⇓ v
-    rfstnev : ∀ {Γ σ τ}{n : NeV Γ (σ × τ)} → vfst nev n ⇓ nev (fstV n) 
+    rfstnev : ∀ {Γ σ τ}{n : NeV Γ (σ * τ)} → vfst nev n ⇓ nev (fstV n) 
 
-  data vsnd_⇓_ : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ τ → Set where
+  data vsnd_⇓_ : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ τ → Set where
     rsnd<,> : ∀ {Γ σ τ}{v : Val Γ σ}{w : Val Γ τ} → vsnd < v , w >v ⇓ w
-    rsndnev : ∀ {Γ σ τ}{n : NeV Γ (σ × τ)} → vsnd nev n ⇓ nev (sndV n) 
+    rsndnev : ∀ {Γ σ τ}{n : NeV Γ (σ * τ)} → vsnd nev n ⇓ nev (sndV n) 
            
   data _$$_⇓_ : ∀ {Γ σ τ} → 
                 Val Γ (σ ⇒ τ) → Val Γ σ → Val Γ τ → Set where
@@ -81,7 +81,7 @@ mutual
     qNn   : ∀ {Γ}{n : NeV Γ N}{n' : NeN Γ N} → quotⁿ n ⇓ n' →
             quot nev n ⇓ neN n'
     qone   : ∀ {Γ}{v : Val Γ One} → quot v ⇓ voidn
-    qprod  : ∀ {Γ σ τ}{p : Val Γ (σ × τ)}
+    qprod  : ∀ {Γ σ τ}{p : Val Γ (σ * τ)}
              {v : Val Γ σ} → vfst p ⇓ v → {m : Nf Γ σ} → quot v ⇓ m →
              {w : Val Γ τ} → vsnd p ⇓ w → {n : Nf Γ τ} → quot w ⇓ n →
              quot p ⇓ < m , n >n
@@ -93,9 +93,9 @@ mutual
     qⁿprim : ∀ {Γ σ}{z : Val Γ σ}{s n z' s' n'} → quot z ⇓ z' →
              quot s ⇓ s' → quotⁿ n ⇓ n' → 
              quotⁿ primV z s n ⇓ primN z' s' n'
-    qⁿfst : ∀ {Γ σ τ}{m : NeV Γ (σ × τ)}{n : NeN Γ (σ × τ)} →
+    qⁿfst : ∀ {Γ σ τ}{m : NeV Γ (σ * τ)}{n : NeN Γ (σ * τ)} →
             quotⁿ m ⇓ n → quotⁿ fstV m ⇓ fstN n
-    qⁿsnd : ∀ {Γ σ τ}{m : NeV Γ (σ × τ)}{n : NeN Γ (σ × τ)} →
+    qⁿsnd : ∀ {Γ σ τ}{m : NeV Γ (σ * τ)}{n : NeN Γ (σ * τ)} →
             quotⁿ m ⇓ n → quotⁿ sndV m ⇓ sndN n
 
 open import FullSystem.IdentityEnvironment

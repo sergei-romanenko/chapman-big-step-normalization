@@ -11,7 +11,7 @@ _∼_ {Γ}{ι}     (nev n) (nev n') = quotⁿ n ≡ quotⁿ n'
 _∼_ {Γ}{σ ⇒ τ} v       v'       = ∀ {B}(f : OPE B Γ){a a' : Val B σ} → 
     a ∼ a' → (vmap f v $$ a) ∼ (vmap f v' $$ a')
 _∼_ {Γ}{One}   v       v'       = True
-_∼_ {Γ}{σ × τ} v       v'       = (vfst v ∼ vfst v') ∧ (vsnd v ∼ vsnd v') 
+_∼_ {Γ}{σ * τ} v       v'       = (vfst v ∼ vfst v') × (vsnd v ∼ vsnd v') 
 
 data _∼ˢ_ {Γ : Con} : ∀ {Δ} → Env Γ Δ → Env Γ Δ → Set where
   ∼ε  : ε ∼ˢ ε
@@ -36,9 +36,9 @@ helper' refl p = p
 ∼map {σ = σ ⇒ τ} f {v}    {v'}      p        = λ f' p' → 
    helper (compvmap f' f v) (compvmap f' f v') (p (comp f' f) p')  
 ∼map {σ = One}   f {v}    {v'}      p        = void 
-∼map {σ = σ × τ} f {v}    {v'}      (pr p q) with ∼map f p | ∼map f q
+∼map {σ = σ * τ} f {v}    {v'}      (p , q) with ∼map f p | ∼map f q
 ... | p' | q' with vmap f (vfst v) | vmap f (vfst v') | vfstmaplem f v | vfstmaplem f v' | vmap f (vsnd v) | vmap f (vsnd v') | vsndmaplem f v | vsndmaplem f v'
-... | ._ | ._ | refl | refl | ._ | ._ | refl | refl = pr p' q'  
+... | ._ | ._ | refl | refl | ._ | ._ | refl | refl = p' , q'  
 
 ∼ˢmap : ∀ {B Γ Δ}(f : OPE B Γ){vs vs' : Env Γ Δ} → vs ∼ˢ vs' → 
         emap f vs ∼ˢ emap f vs'
@@ -50,7 +50,7 @@ mutual
   sym∼ {σ = ι}     {nev n}{nev n'} p        = sym p 
   sym∼ {σ = σ ⇒ τ}                 p        = λ f p' → sym∼ (p f (sym∼ p'))   
   sym∼ {σ = One}                   p        = void 
-  sym∼ {σ = σ × τ}                 (pr p q) = pr (sym∼ p) (sym∼ q) 
+  sym∼ {σ = σ * τ}                 (p , q) = sym∼ p , sym∼ q 
 
   sym∼ˢ : ∀ {Γ Δ}{vs vs' : Env Γ Δ} → vs ∼ˢ vs' → vs' ∼ˢ vs
   sym∼ˢ ∼ε        = ∼ε 
@@ -62,8 +62,8 @@ mutual
   trans∼ {σ = σ ⇒ τ}                          p p' = λ f p'' → 
     trans∼ (p f (trans∼ p'' (sym∼ p''))) (p' f p'')  
   trans∼ {σ = One}                            p p' = void 
-  trans∼ {σ = σ × τ}                          (pr p p') (pr q q') = 
-    pr (trans∼ p q) (trans∼ p' q') 
+  trans∼ {σ = σ * τ}                          (p , p') (q , q') = 
+    trans∼ p q , trans∼ p' q' 
 
   -- using that if a is related to a' then a is related to a
 

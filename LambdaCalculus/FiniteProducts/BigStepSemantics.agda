@@ -18,20 +18,20 @@ mutual
     r<,>  : ∀ {Γ Δ σ τ}{t : Tm Δ σ}{u : Tm Δ τ}{vs : Env Γ Δ}
             {v : Val Γ σ}{w : Val Γ τ} → eval t & vs ⇓ v → eval u & vs ⇓ w →
             eval < t , u > & vs ⇓ < v , w >v
-    rfst  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ × τ)}{vs : Env Γ Δ}
-            {v : Val Γ (σ × τ)} → eval t & vs ⇓ v →
+    rfst  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{vs : Env Γ Δ}
+            {v : Val Γ (σ * τ)} → eval t & vs ⇓ v →
             {w : Val Γ σ} → vfst v ⇓ w → eval fst t & vs ⇓ w 
-    rsnd  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ × τ)}{vs : Env Γ Δ}
-            {v : Val Γ (σ × τ)} → eval t & vs ⇓ v → 
+    rsnd  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{vs : Env Γ Δ}
+            {v : Val Γ (σ * τ)} → eval t & vs ⇓ v → 
             {w : Val Γ τ} → vsnd v ⇓ w → eval snd t & vs ⇓ w 
 
-  data vfst_⇓_ : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ σ → Set where
+  data vfst_⇓_ : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ σ → Set where
     rfst<,> : ∀ {Γ σ τ}{v : Val Γ σ}{w : Val Γ τ} → vfst < v , w >v ⇓ v
-    rfstnev : ∀ {Γ σ τ}{n : NeV Γ (σ × τ)} → vfst nev n ⇓ nev (fstV n) 
+    rfstnev : ∀ {Γ σ τ}{n : NeV Γ (σ * τ)} → vfst nev n ⇓ nev (fstV n) 
 
-  data vsnd_⇓_ : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ τ → Set where
+  data vsnd_⇓_ : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ τ → Set where
     rsnd<,> : ∀ {Γ σ τ}{v : Val Γ σ}{w : Val Γ τ} → vsnd < v , w >v ⇓ w
-    rsndnev : ∀ {Γ σ τ}{n : NeV Γ (σ × τ)} → vsnd nev n ⇓ nev (sndV n) 
+    rsndnev : ∀ {Γ σ τ}{n : NeV Γ (σ * τ)} → vsnd nev n ⇓ nev (sndV n) 
 
   data _$$_⇓_ : ∀ {Γ σ τ} → 
                 Val Γ (σ ⇒ τ) → Val Γ σ → Val Γ τ → Set where
@@ -58,7 +58,7 @@ mutual
     qarr   : ∀ {Γ σ τ}{f : Val Γ (σ ⇒ τ)}{v : Val (Γ < σ) τ}{n} →
              vwk σ f $$ nev (varV vZ) ⇓ v →  quot v ⇓ n → quot f ⇓ λn n
     qone   : ∀ {Γ}{v : Val Γ One} → quot v ⇓ voidn
-    qprod  : ∀ {Γ σ τ}{p : Val Γ (σ × τ)}
+    qprod  : ∀ {Γ σ τ}{p : Val Γ (σ * τ)}
              {v : Val Γ σ} → vfst p ⇓ v → {m : Nf Γ σ} → quot v ⇓ m →
              {w : Val Γ τ} → vsnd p ⇓ w → {n : Nf Γ τ} → quot w ⇓ n →
              quot p ⇓ < m , n >n
@@ -67,9 +67,9 @@ mutual
     qⁿvar : ∀ {Γ σ}{x : Var Γ σ} → quotⁿ varV x ⇓ varN x
     qⁿapp : ∀ {Γ σ τ}{m : NeV Γ (σ ⇒ τ)}{v}{n}{n'} →
             quotⁿ m ⇓ n → quot v ⇓ n' → quotⁿ appV m v ⇓ appN n n'
-    qⁿfst : ∀ {Γ σ τ}{m : NeV Γ (σ × τ)}{n : NeN Γ (σ × τ)} →
+    qⁿfst : ∀ {Γ σ τ}{m : NeV Γ (σ * τ)}{n : NeN Γ (σ * τ)} →
             quotⁿ m ⇓ n → quotⁿ fstV m ⇓ fstN n
-    qⁿsnd : ∀ {Γ σ τ}{m : NeV Γ (σ × τ)}{n : NeN Γ (σ × τ)} →
+    qⁿsnd : ∀ {Γ σ τ}{m : NeV Γ (σ * τ)}{n : NeN Γ (σ * τ)} →
             quotⁿ m ⇓ n → quotⁿ sndV m ⇓ sndN n
 
 open import FiniteProducts.IdentityEnvironment

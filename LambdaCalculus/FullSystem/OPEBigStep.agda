@@ -32,12 +32,12 @@ mutual
   prim⇓map f (rprs p p' p'') = 
     rprs ($$⇓map f p) (prim⇓map f p') ($$⇓map f p'') 
 
-  vfst⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ){v : Val Δ (σ × τ)}{w : Val Δ σ} →
+  vfst⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ){v : Val Δ (σ * τ)}{w : Val Δ σ} →
              vfst v ⇓ w → vfst vmap f v ⇓ vmap f w
   vfst⇓map f rfst<,> = rfst<,> 
   vfst⇓map f rfstnev = rfstnev 
 
-  vsnd⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ){v : Val Δ (σ × τ)}{w : Val Δ τ} →
+  vsnd⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ){v : Val Δ (σ * τ)}{w : Val Δ τ} →
              vsnd v ⇓ w → vsnd vmap f v ⇓ vmap f w
   vsnd⇓map f rsnd<,> = rsnd<,> 
   vsnd⇓map f rsndnev = rsndnev 

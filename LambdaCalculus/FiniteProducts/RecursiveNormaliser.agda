@@ -15,11 +15,11 @@ mutual
   eval (fst t)    vs        = vfst (eval t vs) 
   eval (snd t)    vs        = vsnd (eval t vs) 
 
-  vfst : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ σ
+  vfst : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ σ
   vfst < v , w >v = v
   vfst (nev n)    = nev (fstV n)
 
-  vsnd : ∀ {Γ σ τ} → Val Γ (σ × τ) → Val Γ τ
+  vsnd : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ τ
   vsnd < v , w >v = w
   vsnd (nev n)    = nev (sndV n)
 
@@ -38,7 +38,7 @@ mutual
   quot {σ = ι}     (nev n) = ne (quotⁿ n)
   quot {σ = σ ⇒ τ} f       = λn (quot (vwk σ f $$ nev (varV vZ)))
   quot {σ = One}   _   = voidn
-  quot {σ = σ × τ} p   = < quot (vfst p) , quot (vsnd p) >n   
+  quot {σ = σ * τ} p   = < quot (vfst p) , quot (vsnd p) >n   
 
   -- shouldn't quot return voidn for anything of type One?
   -- but then what happens to neutral terms? Aren't there any?

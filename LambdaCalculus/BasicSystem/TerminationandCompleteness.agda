@@ -13,25 +13,25 @@ open import BasicSystem.IdentityEnvironment
 mutual
   fundthrm : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) → SCE vs →
              Σ (Val Γ σ) 
-               λ v → eval t & vs ⇓ v ∧ SCV v ∧ (t [ embˢ vs ] ≈ emb v)
-  fundthrm top        (vs << v) (s<< svs sv) = sig v (tr rvar sv  top<) 
+               λ v → eval t & vs ⇓ v × SCV v × (t [ embˢ vs ] ≈ emb v)
+  fundthrm top        (vs << v) (s<< svs sv) = v , rvar , sv ,  top<
   fundthrm (t [ ts ]) vs svs = 
-     sig (σ₁ sw) 
-         (tr (rsubs (t1 (σ₂ sws)) (t1 (σ₂ sw))) 
-             (t2 (σ₂ sw)) 
-             (≈trans (≈trans [][] (cong[] ≈refl (t3 (σ₂ sws)))) (t3 (σ₂ sw)))) 
+     proj₁ sw , 
+       rsubs (t1 (proj₂ sws)) (t1 (proj₂ sw)) ,
+         t2 (proj₂ sw) ,
+            ≈trans (≈trans [][] (cong[] ≈refl (t3 (proj₂ sws)))) (t3 (proj₂ sw))
      where
      sws = fundthrmˢ ts vs svs
-     sw  = fundthrm t (σ₁ sws) (t2 (σ₂ sws))
+     sw  = fundthrm t (proj₁ sws) (t2 (proj₂ sws))
   fundthrm (λt t)      vs svs = 
-    sig (λv t vs) 
-        (tr rlam 
+    λv t vs ,
+        rlam , 
             (λ {_} f a sa → 
               let st = fundthrm t (emap f vs << a) (s<< (scemap f vs svs) sa) 
-              in  sig (σ₁ st) 
-                      (tr (r$lam (t1 (σ₂ st)))
-                          (t2 (σ₂ st)) 
-                          (≈trans 
+              in  proj₁ st , 
+                      r$lam (t1 (proj₂ st)) ,
+                          t2 (proj₂ st) ,
+                          ≈trans 
                             (≈trans 
                               (cong$ λ[] ≈refl)
                               (≈trans 
@@ -49,50 +49,50 @@ mutual
                                               (cong○ reflˢ popcomp) 
                                               rightidˢ)) 
                                           top<)))))) 
-                                  (t3 (σ₂ st)))))
-            ≈refl)  
+                                  (t3 (proj₂ st))) ,
+            ≈refl
   fundthrm (t $ u)    vs svs = 
-    sig (σ₁ stu) 
-        (tr (rapp (t1 (σ₂ st)) 
-                  (t1 (σ₂ su)) 
-                  (helper' (sym (oidvmap (σ₁ st))) (t1 (σ₂ stu)))) 
-            (t2 (σ₂ stu)) 
-            (≈trans (≈trans $[] ((cong$ (t3 (σ₂ st)) (t3 (σ₂ su))))) (helper'' (sym (oidvmap (σ₁ st))) {(σ₁ (fundthrm u vs svs))}{σ₁ (t2 (σ₂ (fundthrm t vs svs)) oid (σ₁ (fundthrm u vs svs)) (t2 (σ₂ (fundthrm u vs svs))))} (t3 (σ₂ stu)))))
+    proj₁ stu , 
+        rapp (t1 (proj₂ st)) 
+                  (t1 (proj₂ su)) 
+                  (helper' (sym (oidvmap (proj₁ st))) (t1 (proj₂ stu))) ,
+            t2 (proj₂ stu) ,
+            ≈trans (≈trans $[] ((cong$ (t3 (proj₂ st)) (t3 (proj₂ su))))) (helper'' (sym (oidvmap (proj₁ st))) {(proj₁ (fundthrm u vs svs))}{proj₁ (t2 (proj₂ (fundthrm t vs svs)) oid (proj₁ (fundthrm u vs svs)) (t2 (proj₂ (fundthrm u vs svs))))} (t3 (proj₂ stu)))
     where
     st  = fundthrm t vs svs
     su  = fundthrm u vs svs
-    stu = t2 (σ₂ st) oid (σ₁ su) (t2 (σ₂ su))
+    stu = t2 (proj₂ st) oid (proj₁ su) (t2 (proj₂ su))
 
   fundthrmˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ)(vs : Env B Γ) → SCE vs →
               Σ (Env B Δ) 
                 λ ws → 
-                  evalˢ ts & vs ⇓ ws ∧ SCE ws ∧ (ts ○ (embˢ vs) ≃ˢ embˢ ws)
-  fundthrmˢ (pop σ)   (vs << v) (s<< svs sv) = sig vs (tr rˢpop svs popcomp) 
+                  evalˢ ts & vs ⇓ ws × SCE ws × (ts ○ (embˢ vs) ≃ˢ embˢ ws)
+  fundthrmˢ (pop σ)   (vs << v) (s<< svs sv) = vs , rˢpop , svs , popcomp
   fundthrmˢ (ts < t)  vs        svs          = 
-    sig (σ₁ sts << σ₁ st) 
-        (tr (rˢcons (t1 (σ₂ sts)) (t1 (σ₂ st))) 
-            (s<< (t2 (σ₂ sts)) (t2 (σ₂ st))) 
-            (transˢ comp< (cong< (t3 (σ₂ sts)) (t3 (σ₂ st))))) 
+    proj₁ sts << proj₁ st ,
+        rˢcons (t1 (proj₂ sts)) (t1 (proj₂ st)) ,
+            s<< (t2 (proj₂ sts)) (t2 (proj₂ st)) ,
+            transˢ comp< (cong< (t3 (proj₂ sts)) (t3 (proj₂ st)))
     where
     sts = fundthrmˢ ts vs svs
     st  = fundthrm  t  vs svs
-  fundthrmˢ id        vs        svs          = sig vs (tr rˢid svs leftidˢ) 
+  fundthrmˢ id        vs        svs          = vs , rˢid , svs , leftidˢ
   fundthrmˢ (ts ○ us) vs        svs          = 
-    sig (σ₁ sts) 
-        (tr (rˢcomp (t1 (σ₂ sus)) (t1 (σ₂ sts))) 
-            (t2 (σ₂ sts)) 
-            (transˢ (transˢ assoc (cong○ reflˢ (t3 (σ₂ sus)))) (t3 (σ₂ sts)))) 
+    proj₁ sts ,
+        rˢcomp (t1 (proj₂ sus)) (t1 (proj₂ sts)) ,
+            t2 (proj₂ sts) ,
+            transˢ (transˢ assoc (cong○ reflˢ (t3 (proj₂ sus)))) (t3 (proj₂ sts))
     where
     sus = fundthrmˢ us vs svs
-    sts = fundthrmˢ ts (σ₁ sus) (t2 (σ₂ sus))
+    sts = fundthrmˢ ts (proj₁ sus) (t2 (proj₂ sus))
 
 mutual
   quotlema : ∀ {Γ} σ {v : Val Γ σ} → 
               SCV v → Σ (Nf Γ σ) (λ m →  quot v ⇓ m × (emb v ≈ nemb m ))
-  quotlema ι {nev n} (sig m (pr p q)) = sig (ne m) (pr (qbase p) q)
+  quotlema ι {nev n} (m , p , q) = ne m , qbase p , q
   quotlema {Γ} (σ ⇒ τ) {v} sv =
-    sig (λn (σ₁ qvvZ)) 
-        (pr (qarr (t1 (σ₂ svvZ)) (π₁ (σ₂ qvvZ))) 
+    λn (proj₁ qvvZ) ,
+        (qarr (t1 (proj₂ svvZ)) (proj₁ (proj₂ qvvZ))) ,
             (≈trans 
               η 
               (congλ 
@@ -104,26 +104,26 @@ mutual
                              [][]) 
                       (≈sym (ovemb (skip σ oid) v))) 
                     ≈refl) 
-                  (≈trans (t3 (σ₂ svvZ)) (π₂ (σ₂ qvvZ)))))))
+                  (≈trans (t3 (proj₂ svvZ)) (proj₂ (proj₂ qvvZ))))))
     where
     svZ = quotlemb σ {varV (vZ {Γ})} qⁿvar ≈refl
     svvZ = sv (skip σ oid) (nev (varV vZ)) svZ
-    qvvZ = quotlema τ (t2 (σ₂ svvZ))
+    qvvZ = quotlema τ (t2 (proj₂ svvZ))
 
   quotlemb : ∀ {Γ} σ {n : NeV Γ σ}{m : NeN Γ σ} → 
               quotⁿ n ⇓ m → embⁿ n ≈ nembⁿ m → SCV (nev n)
-  quotlemb ι       {n} p q = sig _ (pr p q) 
+  quotlemb ι       {n} p q = _ , p , q 
   quotlemb (σ ⇒ τ) {n}{m} p q = λ f a sa → 
     let qla = quotlema σ sa
-    in  sig (nev (appV (nevmap f n) a)) 
-            (tr r$ne 
-                (quotlemb τ 
-                           (qⁿapp (quotⁿ⇓map f p) (π₁ (σ₂ qla))) 
+    in  nev (appV (nevmap f n) a) ,
+            r$ne ,
+                quotlemb τ 
+                           (qⁿapp (quotⁿ⇓map f p) (proj₁ (proj₂ qla))) 
                            (cong$ (≈trans (onevemb f n) 
                                          (≈trans (cong[] q reflˢ) 
                                                 (≈sym (onenemb f m)))) 
-                                  (π₂ (σ₂ qla)))) 
-                (cong$ (≈trans (onevemb f n) (≈sym (onevemb f n))) ≈refl))
+                                  (proj₂ (proj₂ qla))) ,
+                cong$ (≈trans (onevemb f n) (≈sym (onevemb f n))) ≈refl
 
 
 scvar : ∀ {Γ σ}(x : Var Γ σ) → SCV (nev (varV x))
@@ -134,10 +134,10 @@ scid ε       = sε
 scid (Γ < σ) = s<< (scemap (weak σ) _ (scid Γ)) (scvar vZ) 
 
 normthrm : ∀ {Γ σ}(t : Tm Γ σ) → Σ (Nf Γ σ) λ n → nf t ⇓ n × (t ≈ nemb n)
-normthrm t = sig (σ₁ qt) (pr (norm⇓ (t1 (σ₂ ft)) (π₁ (σ₂ qt))) 
-                         (≈trans (≈trans (≈trans (≈sym []id) (cong[] ≈refl embvid))
-                                       (t3 (σ₂ ft))) 
-                                (π₂ (σ₂ qt))))  
+normthrm t = proj₁ qt , norm⇓ (t1 (proj₂ ft)) (proj₁ (proj₂ qt)) ,
+                         ≈trans (≈trans (≈trans (≈sym []id) (cong[] ≈refl embvid))
+                                       (t3 (proj₂ ft))) 
+                                (proj₂ (proj₂ qt))
   where
   ft = fundthrm t vid (scid _)
-  qt = quotlema _ (t2 (σ₂ ft))
+  qt = quotlema _ (t2 (proj₂ ft))

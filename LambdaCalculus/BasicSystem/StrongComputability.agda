@@ -12,7 +12,7 @@ SCV : ∀ {Γ σ} → Val Γ σ → Set
 SCV {Γ} {ι}     (nev n) = Σ (NeN Γ ι) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)
 SCV {Γ} {σ ⇒ τ} v       = ∀ {B}(f : OPE B Γ)(a : Val B σ) → SCV a → 
   Σ (Val B τ) 
-    λ w → (vmap f v $$ a ⇓ w) ∧ SCV w ∧ (emb (vmap f v) $ emb a ≈ emb w)    
+    λ w → (vmap f v $$ a ⇓ w) × SCV w × (emb (vmap f v) $ emb a ≈ emb w)    
 
 data SCE {Γ : Con} : ∀ {Δ} → Env Γ Δ → Set where
   sε : SCE ε
@@ -21,8 +21,8 @@ data SCE {Γ : Con} : ∀ {Δ} → Env Γ Δ → Set where
 
 helper : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' → 
     {a : Val Θ σ} →
-    Σ (Val Θ τ) (λ v → (f' $$ a ⇓ v) ∧ SCV v ∧ (emb f' $ emb a ≈ emb v)) →
-    Σ (Val Θ τ) λ v → (f $$ a ⇓ v) ∧ SCV v ∧ (emb f $ emb a ≈ emb v)
+    Σ (Val Θ τ) (λ v → (f' $$ a ⇓ v) × SCV v × (emb f' $ emb a ≈ emb v)) →
+    Σ (Val Θ τ) λ v → (f $$ a ⇓ v) × SCV v × (emb f $ emb a ≈ emb v)
 helper refl p = p 
 
 helper' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' → 
@@ -35,10 +35,10 @@ helper'' : ∀ {Θ}{σ}{τ}{f f' : Val Θ (σ ⇒ τ)} → f ≡ f' →
 helper'' refl p = p 
 
 scvmap : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) → SCV v → SCV (vmap f v)
-scvmap {σ = ι}     f (nev m) (sig n (pr p q)) = 
-  sig (nenmap f n) 
-      (pr (quotⁿ⇓map f p) 
-          (≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n)))))
+scvmap {σ = ι}     f (nev m) (n , p , q) = 
+  nenmap f n ,
+      quotⁿ⇓map f p ,
+          ≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n)))
 scvmap {σ = σ ⇒ τ} f v       sv = λ f' a sa → 
   helper (compvmap f' f v) (sv (comp f' f) a sa) 
 

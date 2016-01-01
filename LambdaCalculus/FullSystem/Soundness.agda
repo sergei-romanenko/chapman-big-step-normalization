@@ -21,7 +21,7 @@ mutual
   squotlema {Γ} {N} (∼suc p) = cong sucn (squotlema {σ = N} p) 
   squotlema {Γ} {N} (∼nev p) = cong neN p 
   squotlema {σ = One}                  p = refl 
-  squotlema {σ = σ × τ} (pr p q) = cong₂ <_,_>n (squotlema p) (squotlema q) 
+  squotlema {σ = σ * τ} (p , q) = cong₂ <_,_>n (squotlema p) (squotlema q) 
 
   squotlemb : ∀ {Γ σ}{n n' : NeV Γ σ} → 
                quotⁿ n ≡ quotⁿ n' → nev n ∼ nev n'
@@ -36,7 +36,7 @@ mutual
                           q')   
   squotlemb {σ = N} p = ∼nev p  
   squotlemb {σ = One}   p = void 
-  squotlemb {σ = σ × τ} p = pr (squotlemb (cong fstN p)) (squotlemb (cong sndN p)) 
+  squotlemb {σ = σ * τ} p = squotlemb (cong fstN p) , squotlemb (cong sndN p)
 
 sndvar : ∀ {Γ σ}(x : Var Γ σ) → nev (varV x) ∼ nev (varV x)
 sndvar x = squotlemb refl
@@ -75,9 +75,9 @@ mutual
   idext (suc t)          p         = ∼suc (idext t p)  
   idext (prim z s t)     p         = primlem (idext z p) (idext s p) (idext t p)
   idext void             p         = void 
-  idext < t , u >        p         = pr (idext t p) (idext u p) 
-  idext (fst t)          p         = π₁ (idext t p) 
-  idext (snd t)          p         = π₂ (idext t p) 
+  idext < t , u >        p         = idext t p , idext u p
+  idext (fst t)          p         = proj₁ (idext t p) 
+  idext (snd t)          p         = proj₂ (idext t p) 
 
   idextˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ){vs vs' : Env B Γ} → vs ∼ˢ vs' →
            evalˢ ts vs ∼ˢ evalˢ ts vs' 
@@ -128,14 +128,14 @@ mutual
   ... | q with vmap oid (eval s vs) | oidvmap (eval s vs)  | vmap oid (eval s vs') | oidvmap (eval s vs') 
   ... | ._ | refl | ._ | refl with vmap oid (eval s vs $$ eval t vs) | oidvmap (eval s vs $$ eval t vs) | vmap oid (eval s vs' $$ eval t vs') | oidvmap (eval s vs' $$ eval t vs')
   ... | ._ | refl | ._ | refl = q 
-  sfundthrm (cong<,> p q) r = pr (sfundthrm p r) (sfundthrm q r) 
-  sfundthrm (congfst p)   q = π₁ (sfundthrm p q) 
-  sfundthrm (congsnd p)   q = π₂ (sfundthrm p q) 
+  sfundthrm (cong<,> p q) r = sfundthrm p r , sfundthrm q r 
+  sfundthrm (congfst p)   q = proj₁ (sfundthrm p q) 
+  sfundthrm (congsnd p)   q = proj₂ (sfundthrm p q) 
   sfundthrm void[]        p = void 
-  sfundthrm (<,>[] {t = t}{u}{ts}) p = pr (idext t (idextˢ ts p))
-                                          (idext u (idextˢ ts p))
-  sfundthrm (fst[] {t = t}{ts}) p = π₁ (idext t (idextˢ ts p)) 
-  sfundthrm (snd[] {t = t}{ts}) p = π₂ (idext t (idextˢ ts p))
+  sfundthrm (<,>[] {t = t}{u}{ts}) p =
+    idext t (idextˢ ts p) , idext u (idextˢ ts p)
+  sfundthrm (fst[] {t = t}{ts}) p = proj₁ (idext t (idextˢ ts p)) 
+  sfundthrm (snd[] {t = t}{ts}) p = proj₂ (idext t (idextˢ ts p))
   sfundthrm {t' = t} βfst          p = idext t p 
   sfundthrm {t' = u} βsnd          p = idext u p 
   sfundthrm (η<,> {t = t}) p = idext t p 
