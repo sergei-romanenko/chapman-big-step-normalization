@@ -38,7 +38,7 @@ scvmap : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) → SCV v → SCV (vmap f 
 scvmap {σ = ι}     f (nev m) (n , p , q) = 
   nenmap f n ,
       quotⁿ⇓map f p ,
-          ≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n)))
+          ≈trans (onevemb f m) (≈trans (cong[] q ≃refl) (≈sym (onenemb f n)))
 scvmap {σ = σ ⇒ τ} f v       sv = λ f' a sa → 
   helper (compvmap f' f v) (sv (comp f' f) a sa) 
 

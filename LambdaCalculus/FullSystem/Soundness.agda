@@ -141,11 +141,11 @@ mutual
   sfundthrm (η<,> {t = t}) p = idext t p 
   sfundthrm ηvoid         p = tt
 
-  sfundthrmˢ : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ˢ ts' →
+  sfundthrmˢ : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ ts' →
                {vs vs' : Env B Γ} → vs ∼ˢ vs' → evalˢ ts vs ∼ˢ evalˢ ts' vs'
-  sfundthrmˢ {ts = ts} reflˢ         q = idextˢ ts q 
-  sfundthrmˢ (symˢ p)      q = sym∼ˢ (sfundthrmˢ p (sym∼ˢ q)) 
-  sfundthrmˢ (transˢ p p') q = 
+  sfundthrmˢ {ts = ts} ≃refl         q = idextˢ ts q 
+  sfundthrmˢ (≃sym p)      q = sym∼ˢ (sfundthrmˢ p (sym∼ˢ q)) 
+  sfundthrmˢ (≃trans p p') q = 
     trans∼ˢ (sfundthrmˢ p (trans∼ˢ q (sym∼ˢ q)))
              (sfundthrmˢ p' q)  
   sfundthrmˢ (cong< p p')  q = ∼<< (sfundthrmˢ p q) (sfundthrm p' q) 

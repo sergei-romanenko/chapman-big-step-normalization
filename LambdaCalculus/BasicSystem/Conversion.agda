@@ -2,7 +2,7 @@ module BasicSystem.Conversion where
 open import BasicSystem.Syntax
 
 infix 4 _≈_
-infix 4 _≃ˢ_
+infix 4 _≃_
 
 mutual
   data _≈_ : ∀ {Γ σ} → Tm Γ σ → Tm Γ σ → Set where
@@ -13,7 +13,7 @@ mutual
 
     -- congruence closure
     cong[]   : ∀ {Γ Δ σ}{t t' : Tm Δ σ}{ts ts' : Sub Γ Δ} → t ≈ t' →
-               ts ≃ˢ ts' → t [ ts ] ≈ t' [ ts' ]
+               ts ≃ ts' → t [ ts ] ≈ t' [ ts' ]
 
     congλ    : ∀ {Γ σ τ}{t t' : Tm (Γ < σ) τ} → t ≈ t' → λt t ≈ λt t'
     cong$    : ∀ {Γ σ τ}{t t' : Tm Γ (σ ⇒ τ)}{u u' : Tm Γ σ} → t ≈ t' →
@@ -33,26 +33,26 @@ mutual
            λt t $ u ≈ t [ id < u ]
     η    : ∀ {Γ σ τ}{t : Tm Γ (σ ⇒ τ)} → t ≈  λt (t [ pop σ ] $ top)
 
-  data _≃ˢ_ : ∀ {Γ Δ} → Sub Γ Δ → Sub Γ Δ → Set where
+  data _≃_ : ∀ {Γ Δ} → Sub Γ Δ → Sub Γ Δ → Set where
     -- equivalence closure
-    reflˢ  : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ≃ˢ ts
-    symˢ   : ∀ {Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ˢ ts' → ts' ≃ˢ ts
-    transˢ : ∀ {Γ Δ}{ts ts' ts'' : Sub Γ Δ} → ts ≃ˢ ts' → 
-             ts' ≃ˢ ts'' → ts ≃ˢ ts''
+    ≃refl  : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ≃ ts
+    ≃sym   : ∀ {Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ ts' → ts' ≃ ts
+    ≃trans : ∀ {Γ Δ}{ts ts' ts'' : Sub Γ Δ} → ts ≃ ts' → 
+             ts' ≃ ts'' → ts ≃ ts''
   
     -- congruence closure
-    cong<  : ∀ {Γ Δ σ}{ts ts' : Sub Γ Δ}{t t' : Tm Γ σ} → ts ≃ˢ ts' →
-             t ≈ t' → ts < t ≃ˢ ts' < t'
-    cong○  : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ}{us us' : Sub B Γ} → ts ≃ˢ ts' →
-             us ≃ˢ us' → ts ○ us ≃ˢ ts' ○ us'
+    cong<  : ∀ {Γ Δ σ}{ts ts' : Sub Γ Δ}{t t' : Tm Γ σ} → ts ≃ ts' →
+             t ≈ t' → ts < t ≃ ts' < t'
+    cong○  : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ}{us us' : Sub B Γ} → ts ≃ ts' →
+             us ≃ us' → ts ○ us ≃ ts' ○ us'
 
     -- computation rules
-    idcomp  : ∀ {Γ σ} → id ≃ˢ (id {Γ} ○ pop σ) < top
+    idcomp  : ∀ {Γ σ} → id ≃ (id {Γ} ○ pop σ) < top
     popcomp : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → 
-              pop σ ○ (ts < t) ≃ˢ ts
-    leftidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → id ○ ts ≃ˢ ts
-    rightidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ○ id ≃ˢ ts
+              pop σ ○ (ts < t) ≃ ts
+    leftidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → id ○ ts ≃ ts
+    rightidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ○ id ≃ ts
     assoc   : ∀ {A B Γ Δ}{ts : Sub Γ Δ}{us : Sub B Γ}{vs : Sub A B} →
-              (ts ○ us) ○ vs ≃ˢ ts ○ (us ○ vs)
+              (ts ○ us) ○ vs ≃ ts ○ (us ○ vs)
     comp<   : ∀ {B Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ}{us : Sub B Γ} →
-              (ts < t) ○ us ≃ˢ (ts ○ us) < t [ us ]
+              (ts < t) ○ us ≃ (ts ○ us) < t [ us ]

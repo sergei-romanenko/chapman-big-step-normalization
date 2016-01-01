@@ -9,13 +9,13 @@ vid : ∀ {Γ} → Env Γ Γ
 vid {ε}     = ε
 vid {Γ < σ} = emap (skip σ oid) vid << nev (varV vZ)
 
-embvid : ∀ {Γ} → id {Γ} ≃ˢ embˢ vid
-embvid {ε}     = reflˢ 
+embvid : ∀ {Γ} → id {Γ} ≃ embˢ vid
+embvid {ε}     = ≃refl 
 embvid {Γ < σ} = 
-  transˢ idcomp 
-         (cong< (transˢ (transˢ (cong○ (transˢ (symˢ rightidˢ) 
+  ≃trans idcomp 
+         (cong< (≃trans (≃trans (cong○ (≃trans (≃sym rightidˢ) 
                                                (cong○ embvid lemoid)) 
-                                       reflˢ)
+                                       ≃refl)
                                 assoc) 
-                        (symˢ (oeemb (skip σ oid) vid)) )
+                        (≃sym (oeemb (skip σ oid) vid)) )
                 ≈refl) 

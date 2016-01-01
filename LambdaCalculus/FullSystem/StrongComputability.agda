@@ -45,7 +45,7 @@ scvmap : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) → SCV v → SCV (vmap f 
 scvmap {σ = ι} f (nev m)  (n , p , q) = 
   nenmap f n ,
       (quotⁿ⇓map f p ,
-          ≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n))))
+          ≈trans (onevemb f m) (≈trans (cong[] q ≃refl) (≈sym (onenemb f n))))
 scvmap {σ = σ ⇒ τ} f v     sv              = λ f' a sa → 
   helper (compvmap f' f v) (sv (comp f' f) a sa) 
 scvmap {σ = N} f zerov    tt             = tt
@@ -53,19 +53,19 @@ scvmap {σ = N} f (sucv v) sv             = scvmap f v sv
 scvmap {σ = N} f (nev n)  (m , p , q) = 
   nenmap f m ,
       (quotⁿ⇓map f p ,
-          ≈trans (onevemb f n) (≈trans (cong[] q reflˢ) (≈sym (onenemb f m))))
+          ≈trans (onevemb f n) (≈trans (cong[] q ≃refl) (≈sym (onenemb f m))))
 scvmap {σ = One}   f v       tt                       = tt
 scvmap {σ = σ * τ} f v       ((w , p , p' , p'') , (w' , q , q' , q'')) = 
   (vmap f w ,  
           (vfst⇓map f p ,
               scvmap f w p' , 
               ≈trans (≈trans (congfst (ovemb f v)) (≈sym fst[])) 
-                     (≈trans (cong[] p'' reflˢ) (≈sym (ovemb f w))))) ,
+                     (≈trans (cong[] p'' ≃refl) (≈sym (ovemb f w))))) ,
   (vmap f w' ,
           (vsnd⇓map f q ,
               scvmap f w' q' ,
               ≈trans (≈trans (congsnd (ovemb f v)) (≈sym snd[])) 
-                     (≈trans (cong[] q'' reflˢ) (≈sym (ovemb f w')))))
+                     (≈trans (cong[] q'' ≃refl) (≈sym (ovemb f w')))))
 
 scemap : ∀ {B Γ Δ}(f : OPE B Γ)(vs : Env Γ Δ) → 
          SCE vs → SCE (emap f vs)

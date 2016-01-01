@@ -24,7 +24,7 @@ mutual
                   (cong$ 
                     (≈trans
                       (≈trans (cong[] (≈trans (≈sym []id) (cong[] ≈refl lemoid)) 
-                                     reflˢ ) 
+                                     ≃refl ) 
                              [][]) 
                       (≈sym (ovemb (skip σ oid) v))) 
                     ≈refl) 
@@ -49,7 +49,7 @@ mutual
                 quotelemb τ 
                            (qⁿapp (quotⁿ⇓map f p) (proj₁ (proj₂ qla))) 
                            (cong$ (≈trans (onevemb f n) 
-                                         (≈trans (cong[] q reflˢ) 
+                                         (≈trans (cong[] q ≃refl) 
                                                 (≈sym (onenemb f m)))) 
                                   (proj₂ (proj₂ qla))) ,
                 cong$ (≈trans (onevemb f n) (≈sym (onevemb f n))) ≈refl
@@ -126,13 +126,13 @@ mutual
                                   [][] 
                                   (cong[] 
                                     ≈refl 
-                                    (transˢ 
+                                    (≃trans 
                                       comp< 
                                         (cong< 
-                                          (transˢ 
+                                          (≃trans 
                                             assoc 
-                                            (transˢ 
-                                              (cong○ reflˢ popcomp) 
+                                            (≃trans 
+                                              (cong○ ≃refl popcomp) 
                                               rightidˢ)) 
                                           top<)))))) 
                                   ((proj₂ ∘ proj₂) (proj₂ st))) ,
@@ -178,13 +178,13 @@ mutual
   fundthrmˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ)(vs : Env B Γ) → SCE vs →
               Σ (Env B Δ) 
                 λ ws → 
-                  evalˢ ts & vs ⇓ ws × SCE ws × (ts ○ (embˢ vs) ≃ˢ embˢ ws)
+                  evalˢ ts & vs ⇓ ws × SCE ws × (ts ○ (embˢ vs) ≃ embˢ ws)
   fundthrmˢ (pop σ)   (vs << v) (s<< svs sv) = vs , rˢpop , svs , popcomp
   fundthrmˢ (ts < t)  vs        svs          = 
     proj₁ sts << proj₁ st ,
         rˢcons (proj₁ (proj₂ sts)) (proj₁ (proj₂ st)) ,
             s<< ((proj₁ ∘ proj₂) (proj₂ sts)) ((proj₁ ∘ proj₂) (proj₂ st)) ,
-            transˢ comp< (cong< ((proj₂ ∘ proj₂) (proj₂ sts)) ((proj₂ ∘ proj₂) (proj₂ st)))
+            ≃trans comp< (cong< ((proj₂ ∘ proj₂) (proj₂ sts)) ((proj₂ ∘ proj₂) (proj₂ st)))
     where
     sts = fundthrmˢ ts vs svs
     st  = fundthrm  t  vs svs
@@ -193,7 +193,7 @@ mutual
     proj₁ sts ,
         rˢcomp (proj₁ (proj₂ sus)) (proj₁ (proj₂ sts)) ,
             (proj₁ ∘ proj₂) (proj₂ sts) ,
-            transˢ (transˢ assoc (cong○ reflˢ ((proj₂ ∘ proj₂) (proj₂ sus)))) ((proj₂ ∘ proj₂) (proj₂ sts))
+            ≃trans (≃trans assoc (cong○ ≃refl ((proj₂ ∘ proj₂) (proj₂ sus)))) ((proj₂ ∘ proj₂) (proj₂ sts))
     where
     sus = fundthrmˢ us vs svs
     sts = fundthrmˢ ts (proj₁ sus) ((proj₁ ∘ proj₂) (proj₂ sus))

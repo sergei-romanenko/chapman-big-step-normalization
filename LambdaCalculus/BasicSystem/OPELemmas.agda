@@ -73,11 +73,11 @@ quotlemma τ f v =
 oxemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(x : Var Δ σ) →
         embˣ (xmap f x) ≈ embˣ x [ oemb f ]
 oxemb (keep σ f) vZ       = ≈sym top< 
-oxemb (skip σ f) vZ       = ≈trans (cong[] (oxemb f vZ) reflˢ) [][] 
+oxemb (skip σ f) vZ       = ≈trans (cong[] (oxemb f vZ) ≃refl) [][] 
 oxemb (keep .τ f) (vS τ x) = 
-  ≈trans (cong[] (oxemb f x) reflˢ)
-        (≈trans (≈trans [][] (cong[] ≈refl (symˢ popcomp))) (≈sym [][])) 
-oxemb (skip σ  f) (vS τ x) = ≈trans (cong[] (oxemb f (vS τ x)) reflˢ) [][] 
+  ≈trans (cong[] (oxemb f x) ≃refl)
+        (≈trans (≈trans [][] (cong[] ≈refl (≃sym popcomp))) (≈sym [][])) 
+oxemb (skip σ  f) (vS τ x) = ≈trans (cong[] (oxemb f (vS τ x)) ≃refl) [][] 
 oxemb done ()
 
 -- Values
@@ -93,19 +93,19 @@ mutual
   onevemb f (appV n v) = ≈trans (cong$ (onevemb f n) (ovemb f v)) (≈sym $[]) 
 
   oeemb : ∀ {B Γ Δ}(f : OPE B Γ)(vs : Env Γ Δ) →
-           embˢ (emap f vs) ≃ˢ embˢ vs ○ oemb f
-  oeemb f (vs << v) = transˢ (cong< (oeemb f vs) (ovemb f v)) (symˢ comp<) 
+           embˢ (emap f vs) ≃ embˢ vs ○ oemb f
+  oeemb f (vs << v) = ≃trans (cong< (oeemb f vs) (ovemb f v)) (≃sym comp<) 
   oeemb {Γ = Γ < σ} (keep .σ f) ε = 
-    transˢ (transˢ (transˢ (cong○ (oeemb f ε) reflˢ) assoc) 
-                   (cong○ reflˢ (symˢ popcomp))) 
-           (symˢ assoc) 
-  oeemb {Γ = Γ < σ} (skip τ  f) ε = transˢ (cong○ (oeemb f ε) reflˢ) assoc 
-  oeemb {Γ = ε} done       ε = symˢ leftidˢ 
-  oeemb {Γ = ε} (skip σ f) ε = transˢ (cong○ (oeemb f ε) reflˢ) assoc 
+    ≃trans (≃trans (≃trans (cong○ (oeemb f ε) ≃refl) assoc) 
+                   (cong○ ≃refl (≃sym popcomp))) 
+           (≃sym assoc) 
+  oeemb {Γ = Γ < σ} (skip τ  f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
+  oeemb {Γ = ε} done       ε = ≃sym leftidˢ 
+  oeemb {Γ = ε} (skip σ f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
 
-lemoid : ∀ {Γ} → id {Γ} ≃ˢ oemb oid
-lemoid {ε}     = reflˢ 
-lemoid {Γ < σ} = transˢ idcomp (cong< (cong○ (lemoid {Γ}) reflˢ) ≈refl) 
+lemoid : ∀ {Γ} → id {Γ} ≃ oemb oid
+lemoid {ε}     = ≃refl 
+lemoid {Γ < σ} = ≃trans idcomp (cong< (cong○ (lemoid {Γ}) ≃refl) ≈refl) 
 
 -- Normal Forms
 mutual
