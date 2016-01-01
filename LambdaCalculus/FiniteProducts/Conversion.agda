@@ -1,4 +1,6 @@
 module FiniteProducts.Conversion where
+
+open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
 
 infix 4 _≈_

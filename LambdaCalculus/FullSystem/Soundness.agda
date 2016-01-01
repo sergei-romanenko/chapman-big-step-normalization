@@ -35,7 +35,7 @@ mutual
                                           (sym (qⁿmaplem f n')))) 
                           q')   
   squotlemb {σ = N} p = ∼nev p  
-  squotlemb {σ = One}   p = void 
+  squotlemb {σ = One}   p = tt
   squotlemb {σ = σ * τ} p = squotlemb (cong fstN p) , squotlemb (cong sndN p)
 
 sndvar : ∀ {Γ σ}(x : Var Γ σ) → nev (varV x) ∼ nev (varV x)
@@ -74,7 +74,7 @@ mutual
   idext zero             p         = ∼zero 
   idext (suc t)          p         = ∼suc (idext t p)  
   idext (prim z s t)     p         = primlem (idext z p) (idext s p) (idext t p)
-  idext void             p         = void 
+  idext void             p         = tt
   idext < t , u >        p         = idext t p , idext u p
   idext (fst t)          p         = proj₁ (idext t p) 
   idext (snd t)          p         = proj₂ (idext t p) 
@@ -131,7 +131,7 @@ mutual
   sfundthrm (cong<,> p q) r = sfundthrm p r , sfundthrm q r 
   sfundthrm (congfst p)   q = proj₁ (sfundthrm p q) 
   sfundthrm (congsnd p)   q = proj₂ (sfundthrm p q) 
-  sfundthrm void[]        p = void 
+  sfundthrm void[]        p = tt
   sfundthrm (<,>[] {t = t}{u}{ts}) p =
     idext t (idextˢ ts p) , idext u (idextˢ ts p)
   sfundthrm (fst[] {t = t}{ts}) p = proj₁ (idext t (idextˢ ts p)) 
@@ -139,7 +139,7 @@ mutual
   sfundthrm {t' = t} βfst          p = idext t p 
   sfundthrm {t' = u} βsnd          p = idext u p 
   sfundthrm (η<,> {t = t}) p = idext t p 
-  sfundthrm ηvoid         p = void 
+  sfundthrm ηvoid         p = tt
 
   sfundthrmˢ : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ˢ ts' →
                {vs vs' : Env B Γ} → vs ∼ˢ vs' → evalˢ ts vs ∼ˢ evalˢ ts' vs'

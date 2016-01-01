@@ -13,7 +13,7 @@ SCV {Γ} {ι}     (nev n)  = Σ (NeN Γ ι) λ m → quotⁿ n ⇓ m × (embⁿ 
 SCV {Γ} {σ ⇒ τ} v        = ∀ {B}(f : OPE B Γ)(a : Val B σ) → SCV a → 
   Σ (Val B τ) 
     λ w → (vmap f v $$ a ⇓ w) × SCV w × (emb (vmap f v) $ emb a ≈ emb w)    
-SCV {Γ} {N}     zerov    = One
+SCV {Γ} {N}     zerov    = ⊤
 SCV {Γ} {N}     (sucv v) = SCV v 
 SCV {Γ} {N}     (nev n)  = Σ (NeN Γ N) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m) 
 

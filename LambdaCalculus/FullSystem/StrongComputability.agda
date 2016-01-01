@@ -13,10 +13,10 @@ SCV {Γ} {ι}     (nev n)  = Σ (NeN Γ ι) λ m → quotⁿ n ⇓ m × (embⁿ 
 SCV {Γ} {σ ⇒ τ} v        = ∀ {B}(f : OPE B Γ)(a : Val B σ) → SCV a → 
   Σ (Val B τ) 
     λ w → (vmap f v $$ a ⇓ w) × SCV w × (emb (vmap f v) $ emb a ≈ emb w)    
-SCV {Γ} {N}     zerov    = True
+SCV {Γ} {N}     zerov    = ⊤
 SCV {Γ} {N}     (sucv v) = SCV v 
 SCV {Γ} {N}     (nev n)  = Σ (NeN Γ N) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m) 
-SCV {Γ} {One}   _       = True
+SCV {Γ} {One}   _       = ⊤
 SCV {Γ} {σ * τ} p       =
   (Σ (Val Γ σ) λ v → vfst p ⇓ v × SCV v × (fst (emb p) ≈ emb v)) ×
   (Σ (Val Γ τ) λ v → vsnd p ⇓ v × SCV v × (snd (emb p) ≈ emb v))
@@ -48,13 +48,13 @@ scvmap {σ = ι} f (nev m)  (n , p , q) =
           ≈trans (onevemb f m) (≈trans (cong[] q reflˢ) (≈sym (onenemb f n))))
 scvmap {σ = σ ⇒ τ} f v     sv              = λ f' a sa → 
   helper (compvmap f' f v) (sv (comp f' f) a sa) 
-scvmap {σ = N} f zerov    void             = void 
-scvmap {σ = N} f (sucv v) sv               = scvmap f v sv 
+scvmap {σ = N} f zerov    tt             = tt
+scvmap {σ = N} f (sucv v) sv             = scvmap f v sv 
 scvmap {σ = N} f (nev n)  (m , p , q) = 
   nenmap f m ,
       (quotⁿ⇓map f p ,
           ≈trans (onevemb f n) (≈trans (cong[] q reflˢ) (≈sym (onenemb f m))))
-scvmap {σ = One}   f v       void                       = void 
+scvmap {σ = One}   f v       tt                       = tt
 scvmap {σ = σ * τ} f v       ((w , p , p' , p'') , (w' , q , q' , q'')) = 
   (vmap f w ,  
           (vfst⇓map f p ,

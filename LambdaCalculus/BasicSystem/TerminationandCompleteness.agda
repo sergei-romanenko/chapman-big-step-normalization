@@ -17,20 +17,20 @@ mutual
   fundthrm top        (vs << v) (s<< svs sv) = v , rvar , sv ,  top<
   fundthrm (t [ ts ]) vs svs = 
      proj₁ sw , 
-       rsubs (t1 (proj₂ sws)) (t1 (proj₂ sw)) ,
-         t2 (proj₂ sw) ,
-            ≈trans (≈trans [][] (cong[] ≈refl (t3 (proj₂ sws)))) (t3 (proj₂ sw))
+       rsubs (proj₁ (proj₂ sws)) (proj₁ (proj₂ sw)) ,
+         (proj₁ ∘ proj₂) (proj₂ sw) ,
+            ≈trans (≈trans [][] (cong[] ≈refl ((proj₂ ∘ proj₂) (proj₂ sws)))) ((proj₂ ∘ proj₂) (proj₂ sw))
      where
      sws = fundthrmˢ ts vs svs
-     sw  = fundthrm t (proj₁ sws) (t2 (proj₂ sws))
+     sw  = fundthrm t (proj₁ sws) ((proj₁ ∘ proj₂) (proj₂ sws))
   fundthrm (λt t)      vs svs = 
     λv t vs ,
         rlam , 
             (λ {_} f a sa → 
               let st = fundthrm t (emap f vs << a) (s<< (scemap f vs svs) sa) 
               in  proj₁ st , 
-                      r$lam (t1 (proj₂ st)) ,
-                          t2 (proj₂ st) ,
+                      r$lam (proj₁ (proj₂ st)) ,
+                          (proj₁ ∘ proj₂) (proj₂ st) ,
                           ≈trans 
                             (≈trans 
                               (cong$ λ[] ≈refl)
@@ -49,19 +49,19 @@ mutual
                                               (cong○ reflˢ popcomp) 
                                               rightidˢ)) 
                                           top<)))))) 
-                                  (t3 (proj₂ st))) ,
+                                  ((proj₂ ∘ proj₂) (proj₂ st))) ,
             ≈refl
   fundthrm (t $ u)    vs svs = 
     proj₁ stu , 
-        rapp (t1 (proj₂ st)) 
-                  (t1 (proj₂ su)) 
-                  (helper' (sym (oidvmap (proj₁ st))) (t1 (proj₂ stu))) ,
-            t2 (proj₂ stu) ,
-            ≈trans (≈trans $[] ((cong$ (t3 (proj₂ st)) (t3 (proj₂ su))))) (helper'' (sym (oidvmap (proj₁ st))) {(proj₁ (fundthrm u vs svs))}{proj₁ (t2 (proj₂ (fundthrm t vs svs)) oid (proj₁ (fundthrm u vs svs)) (t2 (proj₂ (fundthrm u vs svs))))} (t3 (proj₂ stu)))
+        rapp (proj₁ (proj₂ st)) 
+                  (proj₁ (proj₂ su)) 
+                  (helper' (sym (oidvmap (proj₁ st))) (proj₁ (proj₂ stu))) ,
+            (proj₁ ∘ proj₂) (proj₂ stu) ,
+            ≈trans (≈trans $[] ((cong$ ((proj₂ ∘ proj₂) (proj₂ st)) ((proj₂ ∘ proj₂) (proj₂ su))))) (helper'' (sym (oidvmap (proj₁ st))) {(proj₁ (fundthrm u vs svs))}{proj₁ ((proj₁ ∘ proj₂) (proj₂ (fundthrm t vs svs)) oid (proj₁ (fundthrm u vs svs)) ((proj₁ ∘ proj₂) (proj₂ (fundthrm u vs svs))))} ((proj₂ ∘ proj₂) (proj₂ stu)))
     where
     st  = fundthrm t vs svs
     su  = fundthrm u vs svs
-    stu = t2 (proj₂ st) oid (proj₁ su) (t2 (proj₂ su))
+    stu = (proj₁ ∘ proj₂) (proj₂ st) oid (proj₁ su) ((proj₁ ∘ proj₂) (proj₂ su))
 
   fundthrmˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ)(vs : Env B Γ) → SCE vs →
               Σ (Env B Δ) 
@@ -70,21 +70,21 @@ mutual
   fundthrmˢ (pop σ)   (vs << v) (s<< svs sv) = vs , rˢpop , svs , popcomp
   fundthrmˢ (ts < t)  vs        svs          = 
     proj₁ sts << proj₁ st ,
-        rˢcons (t1 (proj₂ sts)) (t1 (proj₂ st)) ,
-            s<< (t2 (proj₂ sts)) (t2 (proj₂ st)) ,
-            transˢ comp< (cong< (t3 (proj₂ sts)) (t3 (proj₂ st)))
+        rˢcons (proj₁ (proj₂ sts)) (proj₁ (proj₂ st)) ,
+            s<< ((proj₁ ∘ proj₂) (proj₂ sts)) ((proj₁ ∘ proj₂) (proj₂ st)) ,
+            transˢ comp< (cong< ((proj₂ ∘ proj₂) (proj₂ sts)) ((proj₂ ∘ proj₂) (proj₂ st)))
     where
     sts = fundthrmˢ ts vs svs
     st  = fundthrm  t  vs svs
   fundthrmˢ id        vs        svs          = vs , rˢid , svs , leftidˢ
   fundthrmˢ (ts ○ us) vs        svs          = 
     proj₁ sts ,
-        rˢcomp (t1 (proj₂ sus)) (t1 (proj₂ sts)) ,
-            t2 (proj₂ sts) ,
-            transˢ (transˢ assoc (cong○ reflˢ (t3 (proj₂ sus)))) (t3 (proj₂ sts))
+        rˢcomp (proj₁ (proj₂ sus)) (proj₁ (proj₂ sts)) ,
+            (proj₁ ∘ proj₂) (proj₂ sts) ,
+            transˢ (transˢ assoc (cong○ reflˢ ((proj₂ ∘ proj₂) (proj₂ sus)))) ((proj₂ ∘ proj₂) (proj₂ sts))
     where
     sus = fundthrmˢ us vs svs
-    sts = fundthrmˢ ts (proj₁ sus) (t2 (proj₂ sus))
+    sts = fundthrmˢ ts (proj₁ sus) ((proj₁ ∘ proj₂) (proj₂ sus))
 
 mutual
   quotlema : ∀ {Γ} σ {v : Val Γ σ} → 
@@ -92,7 +92,7 @@ mutual
   quotlema ι {nev n} (m , p , q) = ne m , qbase p , q
   quotlema {Γ} (σ ⇒ τ) {v} sv =
     λn (proj₁ qvvZ) ,
-        (qarr (t1 (proj₂ svvZ)) (proj₁ (proj₂ qvvZ))) ,
+        (qarr (proj₁ (proj₂ svvZ)) (proj₁ (proj₂ qvvZ))) ,
             (≈trans 
               η 
               (congλ 
@@ -104,11 +104,11 @@ mutual
                              [][]) 
                       (≈sym (ovemb (skip σ oid) v))) 
                     ≈refl) 
-                  (≈trans (t3 (proj₂ svvZ)) (proj₂ (proj₂ qvvZ))))))
+                  (≈trans ((proj₂ ∘ proj₂) (proj₂ svvZ)) (proj₂ (proj₂ qvvZ))))))
     where
     svZ = quotlemb σ {varV (vZ {Γ})} qⁿvar ≈refl
     svvZ = sv (skip σ oid) (nev (varV vZ)) svZ
-    qvvZ = quotlema τ (t2 (proj₂ svvZ))
+    qvvZ = quotlema τ ((proj₁ ∘ proj₂) (proj₂ svvZ))
 
   quotlemb : ∀ {Γ} σ {n : NeV Γ σ}{m : NeN Γ σ} → 
               quotⁿ n ⇓ m → embⁿ n ≈ nembⁿ m → SCV (nev n)
@@ -134,10 +134,10 @@ scid ε       = sε
 scid (Γ < σ) = s<< (scemap (weak σ) _ (scid Γ)) (scvar vZ) 
 
 normthrm : ∀ {Γ σ}(t : Tm Γ σ) → Σ (Nf Γ σ) λ n → nf t ⇓ n × (t ≈ nemb n)
-normthrm t = proj₁ qt , norm⇓ (t1 (proj₂ ft)) (proj₁ (proj₂ qt)) ,
+normthrm t = proj₁ qt , norm⇓ (proj₁ (proj₂ ft)) (proj₁ (proj₂ qt)) ,
                          ≈trans (≈trans (≈trans (≈sym []id) (cong[] ≈refl embvid))
-                                       (t3 (proj₂ ft))) 
+                                       ((proj₂ ∘ proj₂) (proj₂ ft))) 
                                 (proj₂ (proj₂ qt))
   where
   ft = fundthrm t vid (scid _)
-  qt = quotlema _ (t2 (proj₂ ft))
+  qt = quotlema _ ((proj₁ ∘ proj₂) (proj₂ ft))

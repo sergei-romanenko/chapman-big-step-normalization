@@ -17,7 +17,7 @@ _∼_ {Γ}{ι}     (nev n) (nev n') = quotⁿ n ≡ quotⁿ n'
 _∼_ {Γ}{σ ⇒ τ} v       v'       = ∀ {B}(f : OPE B Γ){a a' : Val B σ} → 
     a ∼ a' → (vmap f v $$ a) ∼ (vmap f v' $$ a')
 _∼_ {Γ} {N}    v       v' = v ∼ⁿ v'
-_∼_ {Γ}{One}   v       v'       = True
+_∼_ {Γ}{One}   v       v'       = ⊤
 _∼_ {Γ}{σ * τ} v       v'       = (vfst v ∼ vfst v') × (vsnd v ∼ vsnd v') 
 
 data _∼ˢ_ {Γ : Con} : ∀ {Δ} → Env Γ Δ → Env Γ Δ → Set where
@@ -48,7 +48,7 @@ helper' refl p = p
   ∼nev (trans (qⁿmaplem f n) 
                (trans (cong (nenmap f) p) 
                        (sym (qⁿmaplem f n')))) 
-∼map {σ = One}   f {v}    {v'}      p        = void 
+∼map {σ = One}   f {v}    {v'}      p        = tt
 ∼map {σ = σ * τ} f {v}    {v'}      (p , q) with ∼map f p | ∼map f q
 ... | p' | q' with vmap f (vfst v) | vmap f (vfst v') | vfstmaplem f v | vfstmaplem f v' | vmap f (vsnd v) | vmap f (vsnd v') | vsndmaplem f v | vsndmaplem f v'
 ... | ._ | ._ | refl | refl | ._ | ._ | refl | refl = p' , q'  
@@ -65,7 +65,7 @@ mutual
   sym∼ {Γ} {N}                     ∼zero    = ∼zero 
   sym∼ {Γ} {N}                     (∼suc p) = ∼suc (sym∼ p)
   sym∼ {Γ} {N}     {nev n}{nev n'} (∼nev p) = ∼nev (sym p)
-  sym∼ {σ = One}                   p        = void 
+  sym∼ {σ = One}                   p        = tt
   sym∼ {σ = σ * τ}                 (p , q) = sym∼ p , sym∼ q 
 
   sym∼ˢ : ∀ {Γ Δ}{vs vs' : Env Γ Δ} → vs ∼ˢ vs' → vs' ∼ˢ vs
@@ -80,7 +80,7 @@ mutual
   trans∼ {Γ} {N} ∼zero ∼zero = ∼zero 
   trans∼ {Γ} {N} (∼suc p) (∼suc p') = ∼suc (trans∼ p p') 
   trans∼ {Γ} {N} (∼nev p) (∼nev p') = ∼nev (trans p p') 
-  trans∼ {σ = One}                            p p' = void 
+  trans∼ {σ = One}                            p p' = tt
   trans∼ {σ = σ * τ}                          (p , p') (q , q') = 
     trans∼ p q , trans∼ p' q'
 
