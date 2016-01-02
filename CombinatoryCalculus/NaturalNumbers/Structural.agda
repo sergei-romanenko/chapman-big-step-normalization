@@ -20,14 +20,21 @@ _⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a 
   with f ⟨∙⟩ n & p | Rⁿ² z f ⟨∙⟩ n & q
 ... | fn , refl | rn , refl = fn ⟨∙⟩ rn & r 
 
-nf⁼ : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
-nf⁼ .K K⇓ = K0 , refl 
-nf⁼ .S S⇓ = S0 , refl
-nf⁼ .(t ∙ u) (A⇓ {x = t} {y = u} p q r) with nf⁼ t p | nf⁼ u q
+eval : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
+eval .K K⇓ = K0 , refl 
+eval .S S⇓ = S0 , refl
+eval .(t ∙ u) (A⇓ {x = t} {y = u} p q r) with eval t p | eval u q
 ... | f , refl | a , refl = f ⟨∙⟩ a & r
-nf⁼ .zero rzero = zeroⁿ , refl 
-nf⁼ .suc rsuc   = sucⁿ , refl 
-nf⁼ .R rR       = Rⁿ , refl 
+eval .zero rzero = zeroⁿ , refl 
+eval .suc rsuc   = sucⁿ , refl 
+eval .R rR       = Rⁿ , refl 
 
-nf : ∀ {α} → Tm α → Nf α
-nf t = proj₁ (nf⁼ t (proj₁ (proj₂ (prop2 t))))
+nf : ∀ {α} (x : Tm α) → Nf α
+nf x with prop2 x
+... | u , x⇓u , scn-u , x≈⌜u⌝ with eval x x⇓u
+... | u′ , u′≡u = u′
+
+complete : ∀ {α} (x : Tm α) → x ≈ ⌜ nf x ⌝
+complete x with prop2 x
+... | u , x⇓u , scn-u , x≈⌜u⌝ with eval x x⇓u
+... | ._ , refl = x≈⌜u⌝

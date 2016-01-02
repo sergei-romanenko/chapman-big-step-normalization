@@ -58,7 +58,7 @@ prop1 (S2 x y) = λ z sz →
 SC : ∀ {α} → Tm α → Set
 SC {α} t = Σ (Nf α) λ n → (t ⇓ n) × SCN n × (t ≈ ⌜ n ⌝)
 
-prop2 : ∀ {α} → (t : Tm α) → SC t
+prop2 : ∀ {α} (x : Tm α) → SC x
 prop2 K       = K0 , K⇓ , prop1 K0 , ≈refl
 prop2 S       = S0 , S⇓ , prop1 S0 , ≈refl
 prop2 (t ∙ u) with prop2 t | prop2 u

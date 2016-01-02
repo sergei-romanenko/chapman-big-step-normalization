@@ -17,15 +17,22 @@ _⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a 
 .fstⁿ      ⟨∙⟩ (prⁿ² x y) & rfstⁿ = x , refl 
 .sndⁿ      ⟨∙⟩ (prⁿ² x y) & rsndⁿ = y , refl 
 
-nf⁼ : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
-nf⁼ .K K⇓ = K0 , refl 
-nf⁼ .S S⇓ = S0 , refl
-nf⁼ ._ (A⇓ {x = t} {y = u} p q r) with nf⁼ t p | nf⁼ u q
+eval : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
+eval .K K⇓ = K0 , refl 
+eval .S S⇓ = S0 , refl
+eval ._ (A⇓ {x = t} {y = u} p q r) with eval t p | eval u q
 ... | f , refl | a , refl = f ⟨∙⟩ a & r
-nf⁼ .void rvoid = voidⁿ , refl 
-nf⁼ .pr rpr = prⁿ , refl 
-nf⁼ .fst  rfst = fstⁿ , refl 
-nf⁼ .snd  rsnd = sndⁿ , refl 
+eval .void rvoid = voidⁿ , refl 
+eval .pr rpr = prⁿ , refl 
+eval .fst  rfst = fstⁿ , refl 
+eval .snd  rsnd = sndⁿ , refl 
 
-nf : ∀ {α} → Tm α → Nf α
-nf t = proj₁ (nf⁼ t (proj₁ (proj₂ (prop2 t))))
+nf : ∀ {α} (x : Tm α) → Nf α
+nf x with prop2 x
+... | u , x⇓u , scn-u , x≈⌜u⌝ with eval x x⇓u
+... | u′ , u′≡u = u′
+
+complete : ∀ {α} (x : Tm α) → x ≈ ⌜ nf x ⌝
+complete x with prop2 x
+... | u , x⇓u , scn-u , x≈⌜u⌝ with eval x x⇓u
+... | ._ , refl = x≈⌜u⌝

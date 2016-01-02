@@ -19,15 +19,22 @@ _⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a 
 .(Cⁿ² l r) ⟨∙⟩ .(inlⁿ¹ x) & rCⁿ²ˡ {l = l}{r = r}{x = x} p = l ⟨∙⟩ x & p
 .(Cⁿ² l r) ⟨∙⟩ .(inrⁿ¹ x) & rCⁿ²ʳ {l = l}{r = r}{x = x} p = r ⟨∙⟩ x & p
 
-nf⁼ : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
-nf⁼ .K K⇓ = K0 , refl 
-nf⁼ .S S⇓ = S0 , refl
-nf⁼ ._ (A⇓ {x = x} {y = y} p q r) with nf⁼ x p | nf⁼ y q
+eval : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
+eval .K K⇓ = K0 , refl 
+eval .S S⇓ = S0 , refl
+eval ._ (A⇓ {x = x} {y = y} p q r) with eval x p | eval y q
 ... | f , refl | a , refl = f ⟨∙⟩ a & r
-nf⁼ .NE rNE = NEⁿ , refl 
-nf⁼ .inl rinl = inlⁿ , refl
-nf⁼ .inr rinr = inrⁿ , refl
-nf⁼ .C rC = Cⁿ , refl 
+eval .NE rNE = NEⁿ , refl 
+eval .inl rinl = inlⁿ , refl
+eval .inr rinr = inrⁿ , refl
+eval .C rC = Cⁿ , refl 
 
-nf : ∀ {α} → Tm α → Nf α
-nf t = proj₁ (nf⁼ t (proj₁ (proj₂ (prop2 t))))
+nf : ∀ {α} (x : Tm α) → Nf α
+nf x with prop2 x
+... | u , x⇓u , scn-u , x≈⌜u⌝ with eval x x⇓u
+... | u′ , u′≡u = u′
+
+complete : ∀ {α} (x : Tm α) → x ≈ ⌜ nf x ⌝
+complete x with prop2 x
+... | u , x⇓u , scn-u , x≈⌜u⌝ with eval x x⇓u
+... | ._ , refl = x≈⌜u⌝
