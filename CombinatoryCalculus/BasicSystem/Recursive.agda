@@ -1,17 +1,25 @@
-{-# OPTIONS  --no-termination-check #-}
-
 module BasicSystem.Recursive where
+
 open import BasicSystem.Syntax
 
--- Recursive normaliser
-_∙∙_ : ∀ {σ τ} → Nf (σ ⇒ τ) → Nf σ → Nf τ
-Kⁿ      ∙∙ x       = Kⁿ¹ x
-Kⁿ¹ x   ∙∙ y       = x
-Sⁿ      ∙∙ x       = Sⁿ¹ x
-Sⁿ¹ x   ∙∙ y       = Sⁿ² x y
-Sⁿ² x y ∙∙ z       = (x ∙∙ z) ∙∙ (y ∙∙ z)
+--
+-- Recursive normaliser.
+--
 
-nf : {σ : Ty} → Tm σ → Nf σ
-nf K = Kⁿ
-nf S = Sⁿ
-nf (t ∙ u) = nf t ∙∙ nf u
+infixl 5 _⟨∙⟩_
+
+{-# TERMINATING #-}
+
+_⟨∙⟩_ : ∀ {α β} → Nf (α ⇒ β) → Nf α → Nf β
+
+K0 ⟨∙⟩ x = K1 x
+K1 x ⟨∙⟩ y = x
+S0 ⟨∙⟩ x = S1 x
+S1 x ⟨∙⟩ y = S2 x y
+S2 x y ⟨∙⟩ z = (x ⟨∙⟩ z) ⟨∙⟩ (y ⟨∙⟩ z)
+
+nf : {α : Ty} → Tm α → Nf α
+nf K = K0
+nf S = S0
+nf (t ∙ u) = nf t ⟨∙⟩ nf u
+

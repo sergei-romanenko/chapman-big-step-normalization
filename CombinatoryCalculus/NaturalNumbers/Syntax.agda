@@ -10,53 +10,53 @@ infixr 50 _⇒_
 
 -- Terms
 data Tm : Ty → Set where
-  K    : ∀ {σ τ} → Tm (σ ⇒ τ ⇒ σ)
-  S    : ∀ {σ τ ρ} → Tm ((σ ⇒ τ ⇒ ρ) ⇒ (σ ⇒ τ) ⇒ σ ⇒ ρ)
-  _∙_  : ∀ {σ τ} → Tm (σ ⇒ τ) → Tm σ → Tm τ
+  K : ∀ {α β} → Tm (α ⇒ β ⇒ α)
+  S : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
+  _∙_ : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
   zero : Tm N
   suc  : Tm (N ⇒ N)
-  R    : ∀ {σ} → Tm (σ ⇒ (N ⇒ σ ⇒ σ) ⇒ N ⇒ σ)
+  R    : ∀ {α} → Tm (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
 
 infixl 50 _∙_
 
 -- Definitional Equality
-data _≈_ : ∀ {σ} → Tm σ → Tm σ → Set where
-  ≈refl   : ∀ {σ}{t : Tm σ} → t ≈ t
-  ≈sym    : ∀ {σ}{t t' : Tm σ} → t ≈ t' → t' ≈ t
-  ≈trans  : ∀ {σ}{t t' t'' : Tm σ} → t ≈ t' → t' ≈ t'' → t ≈ t''
-  ≈K     : ∀ {σ τ}{x : Tm σ}{y : Tm τ} → K ∙ x ∙ y ≈ x
-  ≈S     : ∀ {σ τ ρ}{x : Tm (σ ⇒ τ ⇒ ρ)}{y : Tm (σ ⇒ τ)}{z : Tm σ} →
+data _≈_ : ∀ {α} → Tm α → Tm α → Set where
+  ≈refl  : ∀ {α}{t : Tm α} → t ≈ t
+  ≈sym   : ∀ {α}{t t' : Tm α} → t ≈ t' → t' ≈ t
+  ≈trans : ∀ {α}{t t' t'' : Tm α} → t ≈ t' → t' ≈ t'' → t ≈ t''
+  ≈K     : ∀ {α β}{x : Tm α}{y : Tm β} → K ∙ x ∙ y ≈ x
+  ≈S     : ∀ {α β γ}{x : Tm (α ⇒ β ⇒ γ)}{y : Tm (α ⇒ β)}{z : Tm α} →
            S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
-  ≈∙-cong     : ∀ {σ}{τ}{t t' : Tm (σ ⇒ τ)}{u u' : Tm σ} → t ≈ t' → u ≈ u' →
+  ≈cong∙     : ∀ {α}{β}{t t' : Tm (α ⇒ β)}{u u' : Tm α} → t ≈ t' → u ≈ u' →
            t ∙ u ≈ t' ∙ u'
-  ≈Rzero : ∀ {σ}{z : Tm σ}{s : Tm (N ⇒ σ ⇒ σ)} → R ∙ z ∙ s ∙ zero ≈ z
-  ≈Rsuc  : ∀ {σ}{z : Tm σ}{s : Tm (N ⇒ σ ⇒ σ)}{n : Tm N} → 
+  ≈Rzero : ∀ {α}{z : Tm α}{s : Tm (N ⇒ α ⇒ α)} → R ∙ z ∙ s ∙ zero ≈ z
+  ≈Rsuc  : ∀ {α}{z : Tm α}{s : Tm (N ⇒ α ⇒ α)}{n : Tm N} → 
            R ∙ z ∙ s ∙ (suc ∙ n) ≈ s ∙ n ∙ (R ∙ z ∙ s ∙ n)
 
 -- Normal forms
 data Nf : Ty → Set where
-  Kⁿ    : ∀ {σ τ} → Nf (σ ⇒ τ ⇒ σ)
-  Kⁿ¹   : ∀ {σ τ} → Nf σ → Nf (τ ⇒ σ)
-  Sⁿ    : ∀ {σ τ ρ} → Nf ((σ ⇒ τ ⇒ ρ) ⇒ (σ ⇒ τ) ⇒ σ ⇒ ρ)
-  Sⁿ¹   : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf ((σ ⇒ τ) ⇒ σ ⇒ ρ)
-  Sⁿ²   : ∀ {σ τ ρ} → Nf (σ ⇒ τ ⇒ ρ) → Nf (σ ⇒ τ) → Nf (σ ⇒ ρ)
+  K0 : ∀ {α β} → Nf (α ⇒ β ⇒ α)
+  K1 : ∀ {α β} → Nf α → Nf (β ⇒ α)
+  S0 : ∀ {α β γ} → Nf ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
+  S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
+  S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
   zeroⁿ : Nf N
   sucⁿ  : Nf (N ⇒ N)
   sucⁿ¹ : Nf N → Nf N
-  Rⁿ    : ∀ {σ} → Nf (σ ⇒ (N ⇒ σ ⇒ σ) ⇒ N ⇒ σ)
-  Rⁿ¹   : ∀ {σ} → Nf σ → Nf ((N ⇒ σ ⇒ σ) ⇒ N ⇒ σ)
-  Rⁿ²   : ∀ {σ} → Nf σ → Nf (N ⇒ σ ⇒ σ) → Nf (N ⇒ σ)
+  Rⁿ    : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  Rⁿ¹   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  Rⁿ²   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
 
 -- Inclusion of normal forms in terms
-⌜_⌝ : ∀ {σ} → Nf σ → Tm σ
-⌜ Kⁿ      ⌝ = K
-⌜ Kⁿ¹ x   ⌝ = K ∙ ⌜ x ⌝
-⌜ Sⁿ      ⌝ = S
-⌜ Sⁿ¹ x   ⌝ = S ∙ ⌜ x ⌝
-⌜ Sⁿ² x y ⌝ = S ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
-⌜ zeroⁿ   ⌝ = zero
-⌜ sucⁿ    ⌝ = suc
+⌜_⌝ : ∀ {α} → Nf α → Tm α
+⌜ K0 ⌝ = K
+⌜ K1 x ⌝ = K ∙ ⌜ x ⌝
+⌜ S0 ⌝ = S
+⌜ S1 x ⌝ = S ∙ ⌜ x ⌝
+⌜ S2 x y ⌝ = S ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
+⌜ zeroⁿ ⌝ = zero
+⌜ sucⁿ ⌝ = suc
 ⌜ sucⁿ¹ n ⌝ = suc ∙ ⌜ n ⌝
-⌜ Rⁿ      ⌝ = R
-⌜ Rⁿ¹ z   ⌝ = R ∙ ⌜ z ⌝
+⌜ Rⁿ ⌝ = R
+⌜ Rⁿ¹ z ⌝ = R ∙ ⌜ z ⌝
 ⌜ Rⁿ² z f ⌝ = R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝

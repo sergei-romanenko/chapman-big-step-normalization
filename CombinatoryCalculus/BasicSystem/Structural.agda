@@ -4,24 +4,24 @@ open import BasicSystem.Syntax
 open import BasicSystem.BigStep
 open import BasicSystem.StrongComp
 
-_∙∙⁼_&_ : ∀ {σ τ}(f : Nf (σ ⇒ τ))(a : Nf σ){n} → f ∙ⁿ a ⇓ n →
-          Σ (Nf τ) λ n' → n' ≡ n
-.Kⁿ        ∙∙⁼ x & rKⁿ          = Kⁿ¹ x , refl 
-.(Kⁿ¹ x)   ∙∙⁼ y & rKⁿ¹ {x = x} = x , refl  
-.Sⁿ        ∙∙⁼ x & rSⁿ          = Sⁿ¹ x , refl  
-.(Sⁿ¹ x)   ∙∙⁼ y & rSⁿ¹ {x = x} = Sⁿ² x y , refl  
-.(Sⁿ² x y) ∙∙⁼ z & rSⁿ² {x = x}{y = y} p q r with x ∙∙⁼ z & p | y ∙∙⁼ z & q
-... | u , refl | v , refl = u ∙∙⁼ v & r 
+_⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a ⇓ n →
+          Σ (Nf β) λ n' → n' ≡ n
+.K0        ⟨∙⟩ x & K0⇓          = K1 x , refl 
+.(K1 u)   ⟨∙⟩ y & K1⇓ {u = u} = u , refl  
+.S0        ⟨∙⟩ x & S0⇓          = S1 x , refl  
+.(S1 u)   ⟨∙⟩ y & S1⇓ {u = u} = S2 u y , refl  
+.(S2 u v) ⟨∙⟩ w & S2⇓ {u = u} {v = v} p q r with u ⟨∙⟩ w & p | v ⟨∙⟩ w & q
+... | u′ , refl | v′ , refl = u′ ⟨∙⟩ v′ & r 
 
-nf⁼ : ∀ {σ}(t : Tm σ){n} → t ⇓ n → Σ (Nf σ) λ n' → n' ≡ n
-nf⁼ .K rK = Kⁿ , refl 
-nf⁼ .S rS = Sⁿ , refl
-nf⁼ .(t ∙ u) (r∙ {t = t} p {u = u} q r) with nf⁼ t p | nf⁼ u q
-... | f , refl | a , refl = f ∙∙⁼ a & r
+nf⁼ : ∀ {α} (x : Tm α) {u} (x⇓u : x ⇓ u) → ∃ λ u′ → u′ ≡ u
+nf⁼ .K K⇓ = K0 , refl
+nf⁼ .S S⇓ = S0 , refl
+nf⁼ ._ (A⇓ {x = x} {y = y} x⇓u y⇓v ⇓w) with nf⁼ x x⇓u | nf⁼ y y⇓v
+... | u , refl | v , refl = u ⟨∙⟩ v & ⇓w
 
-nf : ∀ {σ} → Tm σ → Nf σ
+nf : ∀ {α} → Tm α → Nf α
 nf t = proj₁ (nf⁼ t (proj₁ (proj₂ (prop2 t))))
 
-complete : ∀ {σ}(t : Tm σ) → t ≈ ⌜ nf t ⌝ 
+complete : ∀ {α}(t : Tm α) → t ≈ ⌜ nf t ⌝ 
 complete t with nf⁼ t (proj₁ (proj₂ (prop2 t)))
 ... | (._ , refl) = (proj₂ ∘ proj₂) (proj₂(prop2 t)) 

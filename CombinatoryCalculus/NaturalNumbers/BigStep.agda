@@ -1,31 +1,42 @@
 module NaturalNumbers.BigStep where
 open import NaturalNumbers.Syntax
 
--- Big step semantics (the graph of the recursive function)
-data _∙ⁿ_⇓_ : {σ τ : Ty} → Nf (σ ⇒ τ) → Nf σ → Nf τ → Set where
-  rKⁿ   : {σ τ : Ty}{x : Nf σ} → Kⁿ {σ} {τ} ∙ⁿ x ⇓ Kⁿ¹ x
-  rKⁿ¹  : {σ τ : Ty}{x : Nf σ} → {y : Nf τ} → Kⁿ¹ x ∙ⁿ y ⇓ x
-  rSⁿ   : {σ τ ρ : Ty} {x : Nf (σ ⇒ τ ⇒ ρ)} → Sⁿ ∙ⁿ x ⇓ Sⁿ¹ x
-  rSⁿ¹  : {σ τ ρ : Ty}{x : Nf (σ ⇒ τ ⇒ ρ)}{y : Nf (σ ⇒ τ)} → 
-          Sⁿ¹ x ∙ⁿ y ⇓ Sⁿ² x y
-  rSⁿ²  : {σ τ ρ : Ty}{x : Nf (σ ⇒ τ ⇒ ρ)}{y : Nf (σ ⇒ τ)}{z : Nf σ}
-          {u : Nf (τ ⇒ ρ)} → x ∙ⁿ z ⇓ u → {v : Nf τ} → y ∙ⁿ z ⇓ v → 
-          {w : Nf ρ} → u ∙ⁿ v ⇓ w → Sⁿ² x y ∙ⁿ z ⇓ w 
-  rsucⁿ : {n : Nf N} → sucⁿ ∙ⁿ n ⇓ sucⁿ¹ n
-  rRⁿ   : {σ : Ty}{z : Nf σ} → Rⁿ ∙ⁿ z ⇓ Rⁿ¹ z
-  rRⁿ¹  : {σ : Ty}{z : Nf σ}{f : Nf (N ⇒ σ ⇒ σ)} → Rⁿ¹ z ∙ⁿ f ⇓ Rⁿ² z f
-  rRⁿ²z : {σ : Ty}{z : Nf σ}{f : Nf (N ⇒ σ ⇒ σ)} → 
-          Rⁿ² z f ∙ⁿ zeroⁿ ⇓ z
-  rRⁿ²f : {σ : Ty}{z : Nf σ}{f : Nf (N ⇒ σ ⇒ σ)}{n : Nf N}
-          {fn : Nf (σ ⇒ σ)} → f ∙ⁿ n ⇓ fn → 
-          {rn : Nf σ} → Rⁿ² z f ∙ⁿ n ⇓ rn → 
-          {rsn : Nf σ} → fn ∙ⁿ rn ⇓ rsn → Rⁿ² z f ∙ⁿ sucⁿ¹ n ⇓ rsn
+--
+-- Big step semantics (the graph of the recursive function).
+--
 
-data _⇓_ : {σ : Ty} → Tm σ → Nf σ → Set where
-  rK    : {σ τ : Ty} → K {σ} {τ} ⇓ Kⁿ
-  rS    : {σ τ ρ : Ty} → S {σ} {τ} {ρ} ⇓ Sⁿ
-  r∙    : ∀ {σ τ}{t : Tm (σ ⇒ τ)}{f} → t ⇓ f → {u : Tm σ}
-          {a : Nf σ} → u ⇓ a → {v : Nf τ} → f ∙ⁿ a ⇓ v  → (t ∙ u) ⇓ v
+infix 4 _⇓_ _⟨∙⟩_⇓_
+
+data _⟨∙⟩_⇓_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) (w : Nf β) → Set where
+  K0⇓ : ∀ {α β u} →
+    K0 {α} {β} ⟨∙⟩ u ⇓ K1 u
+  K1⇓ : ∀ {α β u v} →
+    K1 {α} {β} u ⟨∙⟩ v ⇓ u
+  S0⇓ : ∀ {α β γ u} →
+    S0 {α} {β} {γ} ⟨∙⟩ u ⇓ S1 u
+  S1⇓ : ∀ {α β γ u v} →
+    S1 {α} {β} {γ} u ⟨∙⟩ v ⇓ S2 u v
+  S2⇓ : ∀ {α β γ u v w w′ w′′ w′′′}
+    (p : u ⟨∙⟩ w ⇓ w′) (q : v ⟨∙⟩ w ⇓ w′′) (r : w′ ⟨∙⟩ w′′ ⇓ w′′′) →
+    S2 {α} {β} {γ} u v ⟨∙⟩ w ⇓ w′′′
+  rsucⁿ : {n : Nf N} → sucⁿ ⟨∙⟩ n ⇓ sucⁿ¹ n
+  rRⁿ   : {α : Ty}{z : Nf α} → Rⁿ ⟨∙⟩ z ⇓ Rⁿ¹ z
+  rRⁿ¹  : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → Rⁿ¹ z ⟨∙⟩ f ⇓ Rⁿ² z f
+  rRⁿ²z : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → 
+          Rⁿ² z f ⟨∙⟩ zeroⁿ ⇓ z
+  rRⁿ²f : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)}{n : Nf N}
+          {fn : Nf (α ⇒ α)} → f ⟨∙⟩ n ⇓ fn → 
+          {rn : Nf α} → Rⁿ² z f ⟨∙⟩ n ⇓ rn → 
+          {rsn : Nf α} → fn ⟨∙⟩ rn ⇓ rsn → Rⁿ² z f ⟨∙⟩ sucⁿ¹ n ⇓ rsn
+
+data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where 
+  K⇓ : ∀ {α β} →
+    K {α} {β} ⇓ K0
+  S⇓ : ∀ {α β γ} →
+    S {α} {β} {γ} ⇓ S0
+  A⇓ : ∀ {α β} {x : Tm (α ⇒ β)} {y : Tm α} {u v w}
+    (x⇓u : x ⇓ u) (y⇓v : y ⇓ v) (⇓w : u ⟨∙⟩ v ⇓ w)  →
+    x ∙ y ⇓ w
   rzero : zero ⇓ zeroⁿ
   rsuc  : suc ⇓ sucⁿ
-  rR    : ∀ {σ} → R {σ} ⇓ Rⁿ
+  rR    : ∀ {α} → R {α} ⇓ Rⁿ
