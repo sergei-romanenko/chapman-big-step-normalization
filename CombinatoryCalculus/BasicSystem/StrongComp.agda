@@ -1,4 +1,5 @@
 module BasicSystem.StrongComp where
+
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
 open import BasicSystem.BigStep
@@ -9,13 +10,13 @@ SCN {⋆}     n = ⊤
 SCN {α ⇒ β} f = ∀ a → SCN a → 
   Σ (Nf β) λ n →  (f ⟨∙⟩ a ⇓ n) × SCN n × (⌜ f ⌝ ∙ ⌜ a ⌝ ≈ ⌜ n ⌝)
 
--- there is a shorter proof of prop1 but the termination checker doesn't 
+-- there is a shorter proof of all-scn but the termination checker doesn't 
 -- like it
-prop1 : ∀ {α} → (n : Nf α) → SCN n
-prop1 K0      = λ x sx → K1 x ,
+all-scn : ∀ {α} → (n : Nf α) → SCN n
+all-scn K0      = λ x sx → K1 x ,
                            K0⇓ , (λ y sy → x , K1⇓ , sx , ≈K) , ≈refl
-prop1 (K1 x) = λ y sy → x , (K1⇓ , prop1 x , ≈K) 
-prop1 S0      = λ x sx → S1 x ,
+all-scn (K1 x) = λ y sy → x , (K1⇓ , all-scn x , ≈K) 
+all-scn S0      = λ x sx → S1 x ,
                            S0⇓ , 
                                    (λ y sy → S2 x y ,
                                                  S1⇓ ,
@@ -30,8 +31,8 @@ prop1 S0      = λ x sx → S1 x ,
                     (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                       ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))) , ≈refl) ,
   ≈refl
-prop1 (S1 x)   = λ y sy → S2 x y , (S1⇓ , (λ z sz → 
-  let sx = prop1 x
+all-scn (S1 x)   = λ y sy → S2 x y , (S1⇓ , (λ z sz → 
+  let sx = all-scn x
       pxz = sx z sz
       pyz = sy z sz
       pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
@@ -42,9 +43,9 @@ prop1 (S1 x)   = λ y sy → S2 x y , (S1⇓ , (λ z sz →
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                             ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))) ,
   ≈refl)  
-prop1 (S2 x y) = λ z sz →
-  let sx = prop1 x
-      sy = prop1 y
+all-scn (S2 x y) = λ z sz →
+  let sx = all-scn x
+      sy = all-scn y
       pxz = sx z sz
       pyz = sy z sz
       pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
@@ -58,10 +59,10 @@ prop1 (S2 x y) = λ z sz →
 SC : ∀ {α} → Tm α → Set
 SC {α} t = Σ (Nf α) λ n → (t ⇓ n) × SCN n × (t ≈ ⌜ n ⌝)
 
-prop2 : ∀ {α} (x : Tm α) → SC x
-prop2 K       = K0 , K⇓ , prop1 K0 , ≈refl
-prop2 S       = S0 , S⇓ , prop1 S0 , ≈refl
-prop2 (t ∙ u) with prop2 t | prop2 u
-prop2 (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
-prop2 (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
+all-sc : ∀ {α} (x : Tm α) → SC x
+all-sc K       = K0 , K⇓ , all-scn K0 , ≈refl
+all-sc S       = S0 , S⇓ , all-scn S0 , ≈refl
+all-sc (t ∙ u) with all-sc t | all-sc u
+all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
+all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
   = v , A⇓ rf ra rv , sv , ≈trans (≈cong∙ cf ca) cv

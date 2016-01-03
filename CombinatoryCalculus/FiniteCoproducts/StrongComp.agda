@@ -1,4 +1,5 @@
 module FiniteCoproducts.StrongComp where
+
 open import FiniteCoproducts.Utils
 open import FiniteCoproducts.Syntax
 open import FiniteCoproducts.BigStep
@@ -28,11 +29,11 @@ SCC l r (inrⁿ¹ x) sl sr sx =
 ZE : ⊥ → {X : Set} → X
 ZE ()
 
-prop1 : ∀ {α} → (n : Nf α) → SCN n
-prop1 K0        = λ x sx → K1 x ,
+all-scn : ∀ {α} → (n : Nf α) → SCN n
+all-scn K0        = λ x sx → K1 x ,
                                (K0⇓ , (λ y sy → x , (K1⇓ , sx , ≈K)) , ≈refl)
-prop1 (K1 x)   = λ y sy → x , (K1⇓ , prop1 x , ≈K) 
-prop1 S0        = λ x sx → S1 x ,
+all-scn (K1 x)   = λ y sy → x , (K1⇓ , all-scn x , ≈K) 
+all-scn S0        = λ x sx → S1 x ,
                                (S0⇓ ,
                                    (λ y sy → S2 x y ,
                                                  (S1⇓ ,
@@ -47,8 +48,8 @@ prop1 S0        = λ x sx → S1 x ,
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                             ((proj₂ ∘ proj₂) (proj₂ pxzyz))))) , ≈refl)) ,
   ≈refl)
-prop1 (S1 x)   = λ y sy → S2 x y , (S1⇓ , (λ z sz → 
-  let sx = prop1 x
+all-scn (S1 x)   = λ y sy → S2 x y , (S1⇓ , (λ z sz → 
+  let sx = all-scn x
       pxz = sx z sz
       pyz = sy z sz
       pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
@@ -59,9 +60,9 @@ prop1 (S1 x)   = λ y sy → S2 x y , (S1⇓ , (λ z sz →
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                             ((proj₂ ∘ proj₂) (proj₂ pxzyz))))) ,
   ≈refl)  
-prop1 (S2 x y) = λ z sz →
-  let sx = prop1 x
-      sy = prop1 y
+all-scn (S2 x y) = λ z sz →
+  let sx = all-scn x
+      sy = all-scn y
       pxz = sx z sz
       pyz = sy z sz
       pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
@@ -71,35 +72,35 @@ prop1 (S2 x y) = λ z sz →
               ≈trans ≈S 
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                             ((proj₂ ∘ proj₂) (proj₂ pxzyz))))
-prop1 NEⁿ = λ z sz → ZE sz 
-prop1 (inlⁿ¹ x)  = prop1 x 
-prop1 (inrⁿ¹ x)  = prop1 x 
-prop1 inlⁿ = λ x sx → inlⁿ¹ x , rinl , sx , ≈refl
-prop1 inrⁿ = λ x sx → inrⁿ¹ x , rinr , sx , ≈refl
+all-scn NEⁿ = λ z sz → ZE sz 
+all-scn (inlⁿ¹ x)  = all-scn x 
+all-scn (inrⁿ¹ x)  = all-scn x 
+all-scn inlⁿ = λ x sx → inlⁿ¹ x , rinl , sx , ≈refl
+all-scn inrⁿ = λ x sx → inrⁿ¹ x , rinr , sx , ≈refl
 
-prop1 Cⁿ        = λ l sl → 
+all-scn Cⁿ        = λ l sl → 
   Cⁿ¹ l ,
       (rCⁿ ,
           (λ r sr → Cⁿ² l r , (rCⁿ¹ , (λ c sc → SCC l r c sl sr sc) , ≈refl)) ,
           ≈refl) 
-prop1 (Cⁿ¹ l)   = λ r sr → 
-  Cⁿ² l r , (rCⁿ¹ , (λ c sc → SCC l r c (prop1 l) sr sc) , ≈refl) 
-prop1 (Cⁿ² l r) = λ c sc → SCC l r c (prop1 l) (prop1 r) sc 
+all-scn (Cⁿ¹ l)   = λ r sr → 
+  Cⁿ² l r , (rCⁿ¹ , (λ c sc → SCC l r c (all-scn l) sr sc) , ≈refl) 
+all-scn (Cⁿ² l r) = λ c sc → SCC l r c (all-scn l) (all-scn r) sc 
 
 SC : ∀ {α} → Tm α → Set
 SC {α} t = Σ (Nf α) λ n → (t ⇓ n) × SCN n × (t ≈ ⌜ n ⌝)
 
-prop2 : ∀ {α} → (t : Tm α) → SC t
-prop2 K       = K0 , K⇓ , prop1 K0 , ≈refl
-prop2 S       = S0 , S⇓ , prop1 S0 , ≈refl
-prop2 (t ∙ u) with prop2 t          | prop2 u
-prop2 (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
-prop2 (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
+all-sc : ∀ {α} → (t : Tm α) → SC t
+all-sc K       = K0 , K⇓ , all-scn K0 , ≈refl
+all-sc S       = S0 , S⇓ , all-scn S0 , ≈refl
+all-sc (t ∙ u) with all-sc t          | all-sc u
+all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
+all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
   = v , (A⇓ rf ra rv , sv , ≈trans (≈cong∙ cf ca) cv)
-prop2 NE      = NEⁿ , rNE , (λ z sz → ZE sz) , ≈refl 
-prop2 inl = inlⁿ , rinl , (λ x sx → inlⁿ¹ x , rinl , sx , ≈refl) , ≈refl
-prop2 inr = inrⁿ , rinr , (λ x sx → inrⁿ¹ x , rinr , sx , ≈refl) , ≈refl
-prop2 C       = 
+all-sc NE      = NEⁿ , rNE , (λ z sz → ZE sz) , ≈refl 
+all-sc inl = inlⁿ , rinl , (λ x sx → inlⁿ¹ x , rinl , sx , ≈refl) , ≈refl
+all-sc inr = inrⁿ , rinr , (λ x sx → inrⁿ¹ x , rinr , sx , ≈refl) , ≈refl
+all-sc C       = 
   Cⁿ ,
       rC ,
           (λ l sl → Cⁿ¹ l ,

@@ -1,4 +1,5 @@
 module FullSystem.StrongComp where
+
 open import FullSystem.Utils
 open import FullSystem.Syntax
 open import FullSystem.BigStep
@@ -53,11 +54,11 @@ SCR z f (sucⁿ¹ n) sz sf  =
 ZE : ⊥ → {X : Set} → X
 ZE ()
 
-prop1 : ∀ {α} → (n : Nf α) → SCN n
-prop1 K0        = λ x sx → K1 x ,
+all-scn : ∀ {α} → (n : Nf α) → SCN n
+all-scn K0        = λ x sx → K1 x ,
                                K0⇓ , (λ y sy → x , K1⇓ , sx , ≈K) , ≈refl
-prop1 (K1 x)   = λ y sy → x , K1⇓ , prop1 x , ≈K
-prop1 S0        = λ x sx → S1 x ,
+all-scn (K1 x)   = λ y sy → x , K1⇓ , all-scn x , ≈K
+all-scn S0        = λ x sx → S1 x ,
                                S0⇓ ,
                                    (λ y sy → S2 x y ,
                                                  (S1⇓ ,
@@ -72,8 +73,8 @@ prop1 S0        = λ x sx → S1 x ,
                       (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                               ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))) , ≈refl)) ,
   ≈refl
-prop1 (S1 x)   = λ y sy → S2 x y , S1⇓ , (λ z sz → 
-  let sx = prop1 x
+all-scn (S1 x)   = λ y sy → S2 x y , S1⇓ , (λ z sz → 
+  let sx = all-scn x
       pxz = sx z sz
       pyz = sy z sz
       pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
@@ -84,9 +85,9 @@ prop1 (S1 x)   = λ y sy → S2 x y , S1⇓ , (λ z sz →
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                              ((proj₂ ∘ proj₂) (proj₂ pxzyz)))) ,
   ≈refl
-prop1 (S2 x y) = λ z sz →
-  let sx = prop1 x
-      sy = prop1 y
+all-scn (S2 x y) = λ z sz →
+  let sx = all-scn x
+      sy = all-scn y
       pxz = sx z sz
       pyz = sy z sz
       pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
@@ -96,8 +97,8 @@ prop1 (S2 x y) = λ z sz →
               ≈trans ≈S 
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                              ((proj₂ ∘ proj₂) (proj₂ pxzyz)))
-prop1 voidⁿ      = record {} 
-prop1 prⁿ        = λ x sx → 
+all-scn voidⁿ      = record {} 
+all-scn prⁿ        = λ x sx → 
   prⁿ¹ x ,
       rprⁿ ,
           (λ y sy → prⁿ² x y ,
@@ -106,34 +107,34 @@ prop1 prⁿ        = λ x sx →
                                 (y , rsndⁿ , sy , ≈snd)) ,
                             ≈refl) ,
           ≈refl
-prop1 (prⁿ¹ x)   = λ y sy → 
+all-scn (prⁿ¹ x)   = λ y sy → 
   prⁿ² x y ,
       rprⁿ¹ ,
-          ((x , rfstⁿ , prop1 x , ≈fst) ,
+          ((x , rfstⁿ , all-scn x , ≈fst) ,
               (y , rsndⁿ , sy , ≈snd)) ,
           ≈refl
-prop1 (prⁿ² x y) =
-  (x , rfstⁿ , prop1 x , ≈fst) , (y , rsndⁿ , prop1 y , ≈snd)
-prop1 fstⁿ      = λ _ → proj₁
-prop1 sndⁿ      = λ _ → proj₂
-prop1 NEⁿ = λ z sz → ZE sz 
-prop1 (inlⁿ¹ x)  = prop1 x 
-prop1 (inrⁿ¹ x)  = prop1 x 
-prop1 inlⁿ = λ x sx → inlⁿ¹ x , rinl , sx , ≈refl
-prop1 inrⁿ = λ x sx → inrⁿ¹ x , rinr , sx , ≈refl
+all-scn (prⁿ² x y) =
+  (x , rfstⁿ , all-scn x , ≈fst) , (y , rsndⁿ , all-scn y , ≈snd)
+all-scn fstⁿ      = λ _ → proj₁
+all-scn sndⁿ      = λ _ → proj₂
+all-scn NEⁿ = λ z sz → ZE sz 
+all-scn (inlⁿ¹ x)  = all-scn x 
+all-scn (inrⁿ¹ x)  = all-scn x 
+all-scn inlⁿ = λ x sx → inlⁿ¹ x , rinl , sx , ≈refl
+all-scn inrⁿ = λ x sx → inrⁿ¹ x , rinr , sx , ≈refl
 
-prop1 Cⁿ        = λ l sl → 
+all-scn Cⁿ        = λ l sl → 
   Cⁿ¹ l ,
       rCⁿ ,
           (λ r sr → Cⁿ² l r , rCⁿ¹ , (λ c sc → SCC l r c sl sr sc) , ≈refl) ,
           ≈refl
-prop1 (Cⁿ¹ l)   = λ r sr → 
-  Cⁿ² l r , rCⁿ¹ , (λ c sc → SCC l r c (prop1 l) sr sc) , ≈refl
-prop1 (Cⁿ² l r) = λ c sc → SCC l r c (prop1 l) (prop1 r) sc 
-prop1 zeroⁿ = record {} 
-prop1 sucⁿ = λ n _ → sucⁿ¹ n , rsucⁿ , record {} , ≈refl
-prop1 (sucⁿ¹ n) = record {} 
-prop1 Rⁿ = λ z sz → 
+all-scn (Cⁿ¹ l)   = λ r sr → 
+  Cⁿ² l r , rCⁿ¹ , (λ c sc → SCC l r c (all-scn l) sr sc) , ≈refl
+all-scn (Cⁿ² l r) = λ c sc → SCC l r c (all-scn l) (all-scn r) sc 
+all-scn zeroⁿ = record {} 
+all-scn sucⁿ = λ n _ → sucⁿ¹ n , rsucⁿ , record {} , ≈refl
+all-scn (sucⁿ¹ n) = record {} 
+all-scn Rⁿ = λ z sz → 
   Rⁿ¹ z , 
       (rRⁿ ,
           (λ f sf → Rⁿ² z f ,
@@ -141,25 +142,25 @@ prop1 Rⁿ = λ z sz →
                               (λ n _ → SCR z f n sz sf) ,
                               ≈refl) ,
           ≈refl)  
-prop1 (Rⁿ¹ z) = λ f sf → 
+all-scn (Rⁿ¹ z) = λ f sf → 
   Rⁿ² z f ,
       rRⁿ¹ ,
-          (λ n _ → SCR z f n (prop1 z) sf) ,
+          (λ n _ → SCR z f n (all-scn z) sf) ,
           ≈refl
-prop1 (Rⁿ² z f) = λ n _ → SCR z f n (prop1 z) (prop1 f) 
+all-scn (Rⁿ² z f) = λ n _ → SCR z f n (all-scn z) (all-scn f) 
 
 SC : ∀ {α} → Tm α → Set
 SC {α} t = Σ (Nf α) λ n → (t ⇓ n) × SCN n × (t ≈ ⌜ n ⌝)
 
-prop2 : ∀ {α} → (t : Tm α) → SC t
-prop2 K       = K0 , K⇓ , prop1 K0 , ≈refl
-prop2 S       = S0 , S⇓ , prop1 S0 , ≈refl
-prop2 (t ∙ u) with prop2 t          | prop2 u
-prop2 (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
-prop2 (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
+all-sc : ∀ {α} → (t : Tm α) → SC t
+all-sc K       = K0 , K⇓ , all-scn K0 , ≈refl
+all-sc S       = S0 , S⇓ , all-scn S0 , ≈refl
+all-sc (t ∙ u) with all-sc t          | all-sc u
+all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
+all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
   = v , A⇓ rf ra rv , sv , ≈trans (≈cong∙ cf ca) cv
-prop2 void    = voidⁿ , rvoid , record {} , ≈refl
-prop2 pr      = 
+all-sc void    = voidⁿ , rvoid , record {} , ≈refl
+all-sc pr      = 
   prⁿ ,
       rpr ,
           (λ x sx → prⁿ¹ x ,
@@ -171,12 +172,12 @@ prop2 pr      =
                                               ≈refl) ,
                             ≈refl) ,
           ≈refl
-prop2 fst     = fstⁿ , rfst , (λ _ → proj₁) , ≈refl
-prop2 snd     = sndⁿ , rsnd , (λ _ → proj₂) , ≈refl
-prop2 NE      = NEⁿ , rNE , (λ z sz → ZE sz) , ≈refl
-prop2 inl = inlⁿ , rinl , (λ x sx → inlⁿ¹ x , rinl , sx , ≈refl) , ≈refl
-prop2 inr = inrⁿ , rinr , (λ x sx → inrⁿ¹ x , rinr , sx , ≈refl) , ≈refl
-prop2 C       = 
+all-sc fst     = fstⁿ , rfst , (λ _ → proj₁) , ≈refl
+all-sc snd     = sndⁿ , rsnd , (λ _ → proj₂) , ≈refl
+all-sc NE      = NEⁿ , rNE , (λ z sz → ZE sz) , ≈refl
+all-sc inl = inlⁿ , rinl , (λ x sx → inlⁿ¹ x , rinl , sx , ≈refl) , ≈refl
+all-sc inr = inrⁿ , rinr , (λ x sx → inrⁿ¹ x , rinr , sx , ≈refl) , ≈refl
+all-sc C       = 
   Cⁿ ,
       rC ,
           (λ l sl → Cⁿ¹ l ,
@@ -187,14 +188,14 @@ prop2 C       =
                                               ≈refl)) ,
                             ≈refl)) ,
          ≈refl
-prop2 zero    = zeroⁿ , rzero , record {} , ≈refl
-prop2 suc     = 
+all-sc zero    = zeroⁿ , rzero , record {} , ≈refl
+all-sc suc     = 
   sucⁿ ,
       rsuc ,
           (λ n sn → sucⁿ¹ n ,
                         rsucⁿ , record {} , ≈refl) ,
           ≈refl
-prop2 R       = 
+all-sc R       = 
   Rⁿ ,
       rR ,  
           (λ z sz → Rⁿ¹ z ,
