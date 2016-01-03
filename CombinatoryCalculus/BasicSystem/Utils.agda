@@ -8,3 +8,5 @@ open import Function public
 open import Relation.Binary.PropositionalEquality as P
   renaming ([_] to ≡[_]) public
 
+open import Relation.Binary
+  using (Setoid) public

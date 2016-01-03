@@ -1,5 +1,9 @@
 module BasicSystem.Syntax where
 
+import Relation.Binary.EqReasoning as EqReasoning
+
+open import BasicSystem.Utils
+
 --
 -- Types.
 --
@@ -40,6 +44,22 @@ data _≈_ : ∀ {α} → Tm α → Tm α → Set where
              S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
   ≈cong∙ : ∀ {α β} {x y : Tm (α ⇒ β)} {x′ y′ : Tm α} →
              x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
+
+--
+-- Setoid reasoning.
+--
+
+≈setoid : {α : Ty} → Setoid _ _
+
+≈setoid {α} = record
+  { Carrier = Tm α
+  ; _≈_ = _≈_
+  ; isEquivalence = record
+    { refl = ≈refl
+    ; sym = ≈sym
+    ; trans = ≈trans } }
+
+module ≈-Reasoning {α : Ty} = EqReasoning (≈setoid {α})
 
 --
 -- Normal forms.
