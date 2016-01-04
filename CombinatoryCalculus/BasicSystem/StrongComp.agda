@@ -74,7 +74,6 @@ all-scn (S1 u) =
 all-scn (S2 u v) =
   all-scn-S3 u (all-scn u) v (all-scn v)
 
-
 --
 -- "Strong computability" on terms.
 --

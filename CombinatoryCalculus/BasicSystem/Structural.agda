@@ -17,6 +17,7 @@ nf x with all-sc x
 
 --
 -- Completeness: terms are convertible to their normal forms.
+--
 
 complete : ∀ {α} (x : Tm α) → x ≈ ⌜ nf x ⌝
 

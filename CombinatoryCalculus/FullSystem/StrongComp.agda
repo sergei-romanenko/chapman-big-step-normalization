@@ -16,21 +16,21 @@ SCN {α * β} p =
   (Σ (Nf α) λ n → (fstⁿ ⟨∙⟩ p ⇓ n) × SCN n × (fst ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
   ×
   (Σ (Nf β) λ n → (sndⁿ ⟨∙⟩ p ⇓ n) × SCN n × (snd ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
-SCN {α + β} (inlⁿ¹ x) = SCN x
-SCN {α + β} (inrⁿ¹ x) = SCN x
+SCN {α + β} (Inl1 x) = SCN x
+SCN {α + β} (Inr1 x) = SCN x
 
 
-SCC : ∀ {α β γ}(l : Nf (α ⇒ γ))(r : Nf (β ⇒ γ))(c : Nf (α + β)) →
+all-scn-C3 : ∀ {α β γ}(l : Nf (α ⇒ γ))(r : Nf (β ⇒ γ))(c : Nf (α + β)) →
       SCN l → SCN r → SCN c → 
       Σ (Nf γ) 
-         λ n → (Cⁿ² l r ⟨∙⟩ c ⇓ n) × SCN n × (C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝ ∙ ⌜ c ⌝ ≈ ⌜ n ⌝)
-SCC l r (inlⁿ¹ x) sl sr sx = 
+         λ n → (C2 l r ⟨∙⟩ c ⇓ n) × SCN n × (C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝ ∙ ⌜ c ⌝ ≈ ⌜ n ⌝)
+all-scn-C3 l r (Inl1 x) sl sr sx = 
   proj₁ lx
-    , rCⁿ²ˡ (proj₁ (proj₂ lx)) , (proj₁ ∘ proj₂) (proj₂ lx) , ≈trans Cl ((proj₂ ∘ proj₂) (proj₂ lx))
+    , C2L⇓ (proj₁ (proj₂ lx)) , (proj₁ ∘ proj₂) (proj₂ lx) , ≈trans Cl ((proj₂ ∘ proj₂) (proj₂ lx))
   where lx = sl x sx
-SCC l r (inrⁿ¹ x) sl sr sx = 
+all-scn-C3 l r (Inr1 x) sl sr sx = 
   proj₁ rx
-    , rCⁿ²ʳ (proj₁ (proj₂ rx)) , (proj₁ ∘ proj₂) (proj₂ rx) , ≈trans Cr ((proj₂ ∘ proj₂) (proj₂ rx))
+    , C2R⇓ (proj₁ (proj₂ rx)) , (proj₁ ∘ proj₂) (proj₂ rx) , ≈trans Cr ((proj₂ ∘ proj₂) (proj₂ rx))
   where rx = sr x sx
 
 SCR : ∀ {α}(z : Nf α)(f : Nf (N ⇒ α ⇒ α))(n : Nf N) →
@@ -117,20 +117,20 @@ all-scn (prⁿ² x y) =
   (x , rfstⁿ , all-scn x , ≈fst) , (y , rsndⁿ , all-scn y , ≈snd)
 all-scn fstⁿ      = λ _ → proj₁
 all-scn sndⁿ      = λ _ → proj₂
-all-scn NEⁿ = λ z sz → ZE sz 
-all-scn (inlⁿ¹ x)  = all-scn x 
-all-scn (inrⁿ¹ x)  = all-scn x 
-all-scn inlⁿ = λ x sx → inlⁿ¹ x , rinl , sx , ≈refl
-all-scn inrⁿ = λ x sx → inrⁿ¹ x , rinr , sx , ≈refl
+all-scn NE0 = λ z sz → ZE sz 
+all-scn (Inl1 x)  = all-scn x 
+all-scn (Inr1 x)  = all-scn x 
+all-scn Inl0 = λ x sx → Inl1 x , Inl0⇓ , sx , ≈refl
+all-scn Inr0 = λ x sx → Inr1 x , Inr0⇓ , sx , ≈refl
 
-all-scn Cⁿ        = λ l sl → 
-  Cⁿ¹ l ,
-      rCⁿ ,
-          (λ r sr → Cⁿ² l r , rCⁿ¹ , (λ c sc → SCC l r c sl sr sc) , ≈refl) ,
+all-scn C0        = λ l sl → 
+  C1 l ,
+      C0⇓ ,
+          (λ r sr → C2 l r , C1⇓ , (λ c sc → all-scn-C3 l r c sl sr sc) , ≈refl) ,
           ≈refl
-all-scn (Cⁿ¹ l)   = λ r sr → 
-  Cⁿ² l r , rCⁿ¹ , (λ c sc → SCC l r c (all-scn l) sr sc) , ≈refl
-all-scn (Cⁿ² l r) = λ c sc → SCC l r c (all-scn l) (all-scn r) sc 
+all-scn (C1 l)   = λ r sr → 
+  C2 l r , C1⇓ , (λ c sc → all-scn-C3 l r c (all-scn l) sr sc) , ≈refl
+all-scn (C2 l r) = λ c sc → all-scn-C3 l r c (all-scn l) (all-scn r) sc 
 all-scn zeroⁿ = record {} 
 all-scn sucⁿ = λ n _ → sucⁿ¹ n , rsucⁿ , record {} , ≈refl
 all-scn (sucⁿ¹ n) = record {} 
@@ -174,17 +174,17 @@ all-sc pr      =
           ≈refl
 all-sc fst     = fstⁿ , rfst , (λ _ → proj₁) , ≈refl
 all-sc snd     = sndⁿ , rsnd , (λ _ → proj₂) , ≈refl
-all-sc NE      = NEⁿ , rNE , (λ z sz → ZE sz) , ≈refl
-all-sc inl = inlⁿ , rinl , (λ x sx → inlⁿ¹ x , rinl , sx , ≈refl) , ≈refl
-all-sc inr = inrⁿ , rinr , (λ x sx → inrⁿ¹ x , rinr , sx , ≈refl) , ≈refl
+all-sc NE      = NE0 , NE⇓ , (λ z sz → ZE sz) , ≈refl
+all-sc Inl = Inl0 , Inl⇓ , (λ x sx → Inl1 x , Inl0⇓ , sx , ≈refl) , ≈refl
+all-sc Inr = Inr0 , Inr⇓ , (λ x sx → Inr1 x , Inr0⇓ , sx , ≈refl) , ≈refl
 all-sc C       = 
-  Cⁿ ,
-      rC ,
-          (λ l sl → Cⁿ¹ l ,
-                        (rCⁿ ,
-                            (λ r sr → Cⁿ² l r ,
-                                          (rCⁿ¹ ,
-                                              (λ c sc → SCC l r c sl sr sc) ,
+  C0 ,
+      C⇓ ,
+          (λ l sl → C1 l ,
+                        (C0⇓ ,
+                            (λ r sr → C2 l r ,
+                                          (C1⇓ ,
+                                              (λ c sc → all-scn-C3 l r c sl sr sc) ,
                                               ≈refl)) ,
                             ≈refl)) ,
          ≈refl

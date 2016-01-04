@@ -22,8 +22,8 @@ data Tm : Ty → Set where
   fst  : ∀ {α β} → Tm ((α * β) ⇒ α)
   snd  : ∀ {α β} → Tm ((α * β) ⇒ β)
   NE   : ∀ {α} → Tm (Zero ⇒ α) 
-  inl  : ∀ {α β} → Tm (α ⇒ (α + β))
-  inr  : ∀ {α β} → Tm (β ⇒ (α + β))
+  Inl  : ∀ {α β} → Tm (α ⇒ (α + β))
+  Inr  : ∀ {α β} → Tm (β ⇒ (α + β))
   C : ∀ {α β γ} → Tm ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
   zero : Tm N
   suc  : Tm (N ⇒ N)
@@ -43,8 +43,8 @@ data _≈_ : ∀ {α} → Tm α → Tm α → Set where
           t ∙ u ≈ t' ∙ u'
   ≈fst : ∀ {α β}{t : Tm α}{u : Tm β} → fst ∙ (pr ∙ t ∙ u) ≈ t
   ≈snd : ∀ {α β}{t : Tm α}{u : Tm β} → snd ∙ (pr ∙ t ∙ u) ≈ u
-  Cl : ∀ {α β γ}{l : Tm (α ⇒ γ)}{r : Tm (β ⇒ γ)}{c : Tm α} → C ∙ l ∙ r ∙ (inl ∙ c) ≈ l ∙ c
-  Cr : ∀ {α β γ}{l : Tm (α ⇒ γ)}{r : Tm (β ⇒ γ)}{c : Tm β} → C ∙ l ∙ r ∙ (inr ∙ c) ≈ r ∙ c
+  Cl : ∀ {α β γ}{l : Tm (α ⇒ γ)}{r : Tm (β ⇒ γ)}{c : Tm α} → C ∙ l ∙ r ∙ (Inl ∙ c) ≈ l ∙ c
+  Cr : ∀ {α β γ}{l : Tm (α ⇒ γ)}{r : Tm (β ⇒ γ)}{c : Tm β} → C ∙ l ∙ r ∙ (Inr ∙ c) ≈ r ∙ c
   ≈Rzero : ∀ {α}{z : Tm α}{s : Tm (N ⇒ α ⇒ α)} → R ∙ z ∙ s ∙ zero ≈ z
   ≈Rsuc  : ∀ {α}{z : Tm α}{s : Tm (N ⇒ α ⇒ α)}{n : Tm N} → 
            R ∙ z ∙ s ∙ (suc ∙ n) ≈ s ∙ n ∙ (R ∙ z ∙ s ∙ n)
@@ -62,14 +62,14 @@ data Nf : Ty → Set where
   prⁿ²  : ∀ {α β} → Nf α → Nf β → Nf (α * β)
   fstⁿ  : ∀ {α β} → Nf ((α * β) ⇒ α)
   sndⁿ  : ∀ {α β} → Nf ((α * β) ⇒ β)
-  NEⁿ  : ∀ {α} → Nf (Zero ⇒ α)
-  inlⁿ  : ∀ {α β} → Nf (α ⇒ (α + β))
-  inlⁿ¹ : ∀ {α β} → Nf α → Nf (α + β)
-  inrⁿ  : ∀ {α β} → Nf (β ⇒ (α + β))
-  inrⁿ¹ : ∀ {α β} → Nf β → Nf (α + β)
-  Cⁿ : ∀ {α β γ} → Nf ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
-  Cⁿ¹ : ∀ {α β γ} → Nf (α ⇒ γ) → Nf ((β ⇒ γ) ⇒ (α + β) ⇒ γ)
-  Cⁿ² : ∀ {α β γ} → Nf (α ⇒ γ) → Nf (β ⇒ γ) → Nf ((α + β) ⇒ γ)
+  NE0  : ∀ {α} → Nf (Zero ⇒ α)
+  Inl0  : ∀ {α β} → Nf (α ⇒ (α + β))
+  Inl1 : ∀ {α β} → Nf α → Nf (α + β)
+  Inr0  : ∀ {α β} → Nf (β ⇒ (α + β))
+  Inr1 : ∀ {α β} → Nf β → Nf (α + β)
+  C0 : ∀ {α β γ} → Nf ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
+  C1 : ∀ {α β γ} → Nf (α ⇒ γ) → Nf ((β ⇒ γ) ⇒ (α + β) ⇒ γ)
+  C2 : ∀ {α β γ} → Nf (α ⇒ γ) → Nf (β ⇒ γ) → Nf ((α + β) ⇒ γ)
   zeroⁿ : Nf N
   sucⁿ  : Nf (N ⇒ N)
   sucⁿ¹ : Nf N → Nf N
@@ -90,14 +90,14 @@ data Nf : Ty → Set where
 ⌜ prⁿ² x y ⌝ = pr ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
 ⌜ fstⁿ ⌝ = fst
 ⌜ sndⁿ ⌝ = snd 
-⌜ NEⁿ ⌝ = NE
-⌜ inlⁿ¹ x ⌝ = inl ∙ ⌜ x ⌝
-⌜ inlⁿ ⌝ = inl
-⌜ inrⁿ¹ x ⌝ = inr ∙ ⌜ x ⌝
-⌜ inrⁿ ⌝ = inr
-⌜ Cⁿ ⌝ = C
-⌜ Cⁿ¹ l ⌝ = C ∙ ⌜ l ⌝
-⌜ Cⁿ² l r ⌝ = C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝
+⌜ NE0 ⌝ = NE
+⌜ Inl1 x ⌝ = Inl ∙ ⌜ x ⌝
+⌜ Inl0 ⌝ = Inl
+⌜ Inr1 x ⌝ = Inr ∙ ⌜ x ⌝
+⌜ Inr0 ⌝ = Inr
+⌜ C0 ⌝ = C
+⌜ C1 l ⌝ = C ∙ ⌜ l ⌝
+⌜ C2 l r ⌝ = C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝
 ⌜ zeroⁿ ⌝ = zero
 ⌜ sucⁿ ⌝ = suc
 ⌜ sucⁿ¹ n ⌝ = suc ∙ ⌜ n ⌝
