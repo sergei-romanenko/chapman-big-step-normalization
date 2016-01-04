@@ -11,9 +11,9 @@ SCN {One}     n = ⊤
 SCN {α ⇒ β} f = ∀ a → SCN a → 
   Σ (Nf β) λ n →  (f ⟨∙⟩ a ⇓ n) × SCN n × (⌜ f ⌝ ∙ ⌜ a ⌝ ≈ ⌜ n ⌝)
 SCN {α * β} p = 
-  (Σ (Nf α) λ n → (fstⁿ ⟨∙⟩ p ⇓ n) × SCN n × (fst ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
+  (Σ (Nf α) λ n → (Fst0 ⟨∙⟩ p ⇓ n) × SCN n × (Fst ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
   ×
-  (Σ (Nf β) λ n → (sndⁿ ⟨∙⟩ p ⇓ n) × SCN n × (snd ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
+  (Σ (Nf β) λ n → (Snd0 ⟨∙⟩ p ⇓ n) × SCN n × (Snd ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
 
 
 -- there is a shorter proof of all-scn but the termination checker doesn't 
@@ -61,21 +61,21 @@ all-scn (S2 x y) = λ z sz →
               (≈trans ≈S 
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                             ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))        
-all-scn voidⁿ      = record {} 
-all-scn prⁿ        = λ x sx → 
-  prⁿ¹ x ,
-    (rprⁿ ,
+all-scn Void0      = record {} 
+all-scn Pr0        = λ x sx → 
+  Pr1 x ,
+    (Pr0⇓ ,
       (λ y sy →
-        prⁿ² x y ,
-          (rprⁿ¹ , ((x , rfstⁿ , sx , ≈fst) , (y , rsndⁿ , sy , ≈snd)) , ≈refl))
+        Pr2 x y ,
+          (Pr1⇓ , ((x , Fst0⇓ , sx , ≈Fst) , (y , Snd0⇓ , sy , ≈Snd)) , ≈refl))
         , ≈refl)
-all-scn (prⁿ¹ x)   = λ y sy → 
-  prⁿ² x y ,
-    (rprⁿ¹ , ((x , rfstⁿ , all-scn x , ≈fst) , (y , rsndⁿ , sy , ≈snd)) , ≈refl) 
-all-scn (prⁿ² x y) =
-  (x , rfstⁿ , all-scn x , ≈fst) , (y , rsndⁿ , all-scn y , ≈snd)
-all-scn fstⁿ      = λ _ → proj₁
-all-scn sndⁿ      = λ _ → proj₂
+all-scn (Pr1 x)   = λ y sy → 
+  Pr2 x y ,
+    (Pr1⇓ , ((x , Fst0⇓ , all-scn x , ≈Fst) , (y , Snd0⇓ , sy , ≈Snd)) , ≈refl) 
+all-scn (Pr2 x y) =
+  (x , Fst0⇓ , all-scn x , ≈Fst) , (y , Snd0⇓ , all-scn y , ≈Snd)
+all-scn Fst0      = λ _ → proj₁
+all-scn Snd0      = λ _ → proj₂
 
 SC : ∀ {α} → Tm α → Set
 SC {α} t = Σ (Nf α) λ n → (t ⇓ n) × SCN n × (t ≈ ⌜ n ⌝)
@@ -87,17 +87,17 @@ all-sc (t ∙ u) with all-sc t          | all-sc u
 all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
 all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
   = v , ((A⇓ rf ra rv) , sv , (≈trans (≈cong∙ cf ca) cv))
-all-sc void    = voidⁿ , (rvoid , (record {}) , ≈refl) 
-all-sc pr      = 
-  prⁿ ,
-    (rpr , 
-      (λ x sx → prⁿ¹ x ,
-         (rprⁿ ,
-           (λ y sy → prⁿ² x y ,
-              (rprⁿ¹ ,
-                ((x , rfstⁿ , sx , ≈fst) , (y , rsndⁿ , sy , ≈snd)) ,
+all-sc Void    = Void0 , (Void⇓ , (record {}) , ≈refl) 
+all-sc Pr      = 
+  Pr0 ,
+    (Pr⇓ , 
+      (λ x sx → Pr1 x ,
+         (Pr0⇓ ,
+           (λ y sy → Pr2 x y ,
+              (Pr1⇓ ,
+                ((x , Fst0⇓ , sx , ≈Fst) , (y , Snd0⇓ , sy , ≈Snd)) ,
                 ≈refl)) ,
            ≈refl)) ,
       ≈refl) 
-all-sc fst     = fstⁿ , (rfst , (λ _ → proj₁) , ≈refl) 
-all-sc snd     = sndⁿ , (rsnd , (λ _ → proj₂) , ≈refl) 
+all-sc Fst     = Fst0 , (Fst⇓ , (λ _ → proj₁) , ≈refl) 
+all-sc Snd     = Snd0 , (Snd⇓ , (λ _ → proj₂) , ≈refl) 

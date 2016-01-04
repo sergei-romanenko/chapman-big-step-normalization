@@ -78,7 +78,7 @@ data Nf : Ty → Set where
 
 ⌜_⌝ : ∀ {α} → Nf α → Tm α
 ⌜ K0 ⌝ = K
-⌜ K1 x ⌝ = K ∙ ⌜ x ⌝
+⌜ K1 u ⌝ = K ∙ ⌜ u ⌝
 ⌜ S0 ⌝ = S
-⌜ S1 x ⌝ = S ∙ ⌜ x ⌝
-⌜ S2 x y ⌝ = S ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
+⌜ S1 u ⌝ = S ∙ ⌜ u ⌝
+⌜ S2 u v ⌝ = S ∙ ⌜ u ⌝ ∙ ⌜ v ⌝

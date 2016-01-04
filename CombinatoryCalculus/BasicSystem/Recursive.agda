@@ -11,13 +11,13 @@ infixl 5 _⟨∙⟩_
 
 {-# TERMINATING #-}
 
-_⟨∙⟩_ : ∀ {α β} → Nf (α ⇒ β) → Nf α → Nf β
+_⟨∙⟩_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) → Nf β
 
-K0 ⟨∙⟩ x = K1 x
-K1 x ⟨∙⟩ y = x
-S0 ⟨∙⟩ x = S1 x
-S1 x ⟨∙⟩ y = S2 x y
-S2 x y ⟨∙⟩ z = (x ⟨∙⟩ z) ⟨∙⟩ (y ⟨∙⟩ z)
+K0 ⟨∙⟩ u = K1 u
+K1 u ⟨∙⟩ v = u
+S0 ⟨∙⟩ u = S1 u
+S1 u ⟨∙⟩ v = S2 u v
+S2 u v ⟨∙⟩ w = (u ⟨∙⟩ w) ⟨∙⟩ (v ⟨∙⟩ w)
 
 ⟦_⟧ : ∀ {α} (x : Tm α) → Nf α
 
@@ -30,7 +30,7 @@ S2 x y ⟨∙⟩ z = (x ⟨∙⟩ z) ⟨∙⟩ (y ⟨∙⟩ z)
 -- But Agda's termination checker is unable to prove this fact. :-(
 --
 
-⟦⟧-sound : ∀ {α}{x y : Tm α} → x ≈ y → ⟦ x ⟧ ≡ ⟦ y ⟧
+⟦⟧-sound : ∀ {α} {x y : Tm α} → x ≈ y → ⟦ x ⟧ ≡ ⟦ y ⟧
 
 ⟦⟧-sound ≈refl = refl
 ⟦⟧-sound (≈sym y≈x) =

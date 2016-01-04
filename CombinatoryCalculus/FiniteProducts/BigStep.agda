@@ -21,10 +21,14 @@ data _⟨∙⟩_⇓_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) (w : Nf β) 
   S2⇓ : ∀ {α β γ u v w w′ w′′ w′′′}
     (p : u ⟨∙⟩ w ⇓ w′) (q : v ⟨∙⟩ w ⇓ w′′) (r : w′ ⟨∙⟩ w′′ ⇓ w′′′) →
     S2 {α} {β} {γ} u v ⟨∙⟩ w ⇓ w′′′
-  rprⁿ  : ∀ {α β}{x : Nf α} → prⁿ {β = β} ⟨∙⟩ x ⇓ prⁿ¹ x
-  rprⁿ¹ : ∀ {α β}{x : Nf α}{y : Nf β} → prⁿ¹ x ⟨∙⟩ y ⇓ prⁿ² x y
-  rfstⁿ : ∀ {α β}{x : Nf α}{y : Nf β} → fstⁿ ⟨∙⟩ prⁿ² x y ⇓ x
-  rsndⁿ : ∀ {α β}{x : Nf α}{y : Nf β} → sndⁿ ⟨∙⟩ prⁿ² x y ⇓ y
+  Pr0⇓ : ∀ {α β u} →
+    Pr0 {α} {β} ⟨∙⟩ u ⇓ Pr1 u
+  Pr1⇓ : ∀ {α β u v} →
+    Pr1 {α} {β} u ⟨∙⟩ v ⇓ Pr2 u v
+  Fst0⇓ : ∀ {α β u v} →
+    Fst0 {α} {β} ⟨∙⟩ Pr2 u v ⇓ u
+  Snd0⇓ : ∀ {α β u v} →
+    Snd0 {α} {β} ⟨∙⟩ Pr2 u v ⇓ v
 
 data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where 
   K⇓ : ∀ {α β} →
@@ -34,34 +38,40 @@ data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where
   A⇓ : ∀ {α β} {x : Tm (α ⇒ β)} {y : Tm α} {u v w}
     (x⇓u : x ⇓ u) (y⇓v : y ⇓ v) (⇓w : u ⟨∙⟩ v ⇓ w)  →
     x ∙ y ⇓ w
-  rvoid : void ⇓ voidⁿ
-  rpr  : ∀ {α β} → pr {α} {β} ⇓ prⁿ
-  rfst : ∀ {α β} → fst {α} {β} ⇓ fstⁿ
-  rsnd : ∀ {α β} → snd {α} {β} ⇓ sndⁿ
+  Void⇓ :
+    Void ⇓ Void0
+  Pr⇓ : ∀ {α β} →
+    Pr {α} {β} ⇓ Pr0
+  Fst⇓ : ∀ {α β} →
+    Fst {α} {β} ⇓ Fst0
+  Snd⇓ : ∀ {α β} →
+    Snd {α} {β} ⇓ Snd0
 
 --
 -- Structurally recursive normalizer.
 --
 
-_⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a ⇓ n →
-          Σ (Nf β) λ n' → n' ≡ n
-.K0        ⟨∙⟩ x & K0⇓            = K1 x , refl 
-.(K1 x)   ⟨∙⟩ y & K1⇓ {u = x}   = x ,  refl  
-.S0        ⟨∙⟩ x & S0⇓            = S1 x , refl  
-.(S1 x)   ⟨∙⟩ y & S1⇓ {u = x}   = S2 x y , refl  
-.(S2 x y) ⟨∙⟩ z & S2⇓ {u = x}{v = y} p q r with x ⟨∙⟩ z & p | y ⟨∙⟩ z & q
-... | u , refl | v , refl = u ⟨∙⟩ v & r 
-.prⁿ       ⟨∙⟩ x & rprⁿ           = prⁿ¹ x , refl  
-.(prⁿ¹ x)  ⟨∙⟩ y & rprⁿ¹ {x = x}  = prⁿ² x y , refl  
-.fstⁿ      ⟨∙⟩ (prⁿ² x y) & rfstⁿ = x , refl 
-.sndⁿ      ⟨∙⟩ (prⁿ² x y) & rsndⁿ = y , refl 
+_⟨∙⟩_&_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α)
+  {w} (uv⇓ : u ⟨∙⟩ v ⇓ w) → ∃ λ w′ → w′ ≡ w
 
-eval : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
-eval .K K⇓ = K0 , refl 
-eval .S S⇓ = S0 , refl
-eval ._ (A⇓ {x = t} {y = u} p q r) with eval t p | eval u q
-... | f , refl | a , refl = f ⟨∙⟩ a & r
-eval .void rvoid = voidⁿ , refl 
-eval .pr rpr = prⁿ , refl 
-eval .fst  rfst = fstⁿ , refl 
-eval .snd  rsnd = sndⁿ , refl 
+K0 ⟨∙⟩ v & K0⇓ = K1 v , refl
+K1 u ⟨∙⟩ v & K1⇓ = u , refl
+S0 ⟨∙⟩ v & S0⇓ = S1 v , refl
+S1 u ⟨∙⟩ v & S1⇓ = S2 u v , refl
+S2 u v ⟨∙⟩ w & S2⇓ uw⇓ vw⇓ uwvw⇓ with u ⟨∙⟩ w & uw⇓ | v ⟨∙⟩ w & vw⇓
+... | u′ , refl | v′ , refl = u′ ⟨∙⟩ v′ & uwvw⇓
+Pr0 ⟨∙⟩ v & Pr0⇓ = Pr1 v , refl
+Pr1 u ⟨∙⟩ v & Pr1⇓ = Pr2 u v , refl
+Fst0 ⟨∙⟩ Pr2 u v & Fst0⇓ = u , refl
+Snd0 ⟨∙⟩ Pr2 u v & Snd0⇓ = v , refl
+
+eval : ∀ {α} (x : Tm α) {u} (x⇓ : x ⇓ u) → ∃ λ u′ → u′ ≡ u
+
+eval K K⇓ = K0 , refl
+eval S S⇓ = S0 , refl
+eval (x ∙ y) (A⇓ x⇓ y⇓ ⇓w) with eval x x⇓ | eval y y⇓
+... | u , refl | v , refl = u ⟨∙⟩ v & ⇓w
+eval Void Void⇓ = Void0 , refl
+eval Pr Pr⇓ = Pr0 , refl
+eval Fst Fst⇓ = Fst0 , refl
+eval Snd Snd⇓ = Snd0 , refl

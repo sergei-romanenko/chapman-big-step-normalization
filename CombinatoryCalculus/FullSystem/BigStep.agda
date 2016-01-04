@@ -21,10 +21,10 @@ data _⟨∙⟩_⇓_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) (w : Nf β) 
   S2⇓ : ∀ {α β γ u v w w′ w′′ w′′′}
     (p : u ⟨∙⟩ w ⇓ w′) (q : v ⟨∙⟩ w ⇓ w′′) (r : w′ ⟨∙⟩ w′′ ⇓ w′′′) →
     S2 {α} {β} {γ} u v ⟨∙⟩ w ⇓ w′′′
-  rprⁿ  : ∀ {α β}{x : Nf α} → prⁿ {β = β} ⟨∙⟩ x ⇓ prⁿ¹ x
-  rprⁿ¹ : ∀ {α β}{x : Nf α}{y : Nf β} → prⁿ¹ x ⟨∙⟩ y ⇓ prⁿ² x y
-  rfstⁿ : ∀ {α β}{x : Nf α}{y : Nf β} → fstⁿ ⟨∙⟩ prⁿ² x y ⇓ x
-  rsndⁿ : ∀ {α β}{x : Nf α}{y : Nf β} → sndⁿ ⟨∙⟩ prⁿ² x y ⇓ y
+  Pr0⇓  : ∀ {α β}{x : Nf α} → Pr0 {β = β} ⟨∙⟩ x ⇓ Pr1 x
+  Pr1⇓ : ∀ {α β}{x : Nf α}{y : Nf β} → Pr1 x ⟨∙⟩ y ⇓ Pr2 x y
+  Fst0⇓ : ∀ {α β}{x : Nf α}{y : Nf β} → Fst0 ⟨∙⟩ Pr2 x y ⇓ x
+  Snd0⇓ : ∀ {α β}{x : Nf α}{y : Nf β} → Snd0 ⟨∙⟩ Pr2 x y ⇓ y
   C0⇓    : ∀ {α β γ}{l : Nf (α ⇒ γ)} → C0 {β = β}  ⟨∙⟩ l ⇓ C1 l
   C1⇓   : ∀ {α β γ}{l : Nf (α ⇒ γ)}{r : Nf (β ⇒ γ)} → 
            C1 l ⟨∙⟩ r ⇓ C2 l r
@@ -52,10 +52,10 @@ data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where
   A⇓ : ∀ {α β} {x : Tm (α ⇒ β)} {y : Tm α} {u v w}
     (x⇓u : x ⇓ u) (y⇓v : y ⇓ v) (⇓w : u ⟨∙⟩ v ⇓ w)  →
     x ∙ y ⇓ w
-  rvoid : void ⇓ voidⁿ
-  rpr   : ∀ {α β} → pr {α} {β} ⇓ prⁿ
-  rfst  : ∀ {α β} → fst {α} {β} ⇓ fstⁿ
-  rsnd  : ∀ {α β} → snd {α} {β} ⇓ sndⁿ
+  Void⇓ : Void ⇓ Void0
+  Pr⇓   : ∀ {α β} → Pr {α} {β} ⇓ Pr0
+  Fst⇓  : ∀ {α β} → Fst {α} {β} ⇓ Fst0
+  Snd⇓  : ∀ {α β} → Snd {α} {β} ⇓ Snd0
   NE⇓  : ∀ {α} → NE {α} ⇓ NE0
   Inl⇓ : ∀ {α β} → Inl {α}{β} ⇓ Inl0
   Inr⇓ : ∀ {α β} → Inr {α}{β} ⇓ Inr0
@@ -76,10 +76,10 @@ _⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a 
 .(S1 x)   ⟨∙⟩ y & S1⇓ {u = x}   = S2 x y , refl  
 .(S2 x y) ⟨∙⟩ z & S2⇓ {u = x}{v = y} p q r with x ⟨∙⟩ z & p | y ⟨∙⟩ z & q
 ... | u , refl | v , refl = u ⟨∙⟩ v & r 
-.prⁿ       ⟨∙⟩ x & rprⁿ           = prⁿ¹ x , refl  
-.(prⁿ¹ x)  ⟨∙⟩ y & rprⁿ¹ {x = x}  = prⁿ² x y , refl  
-.fstⁿ      ⟨∙⟩ (prⁿ² x y) & rfstⁿ = x , refl 
-.sndⁿ      ⟨∙⟩ (prⁿ² x y) & rsndⁿ = y , refl 
+.Pr0       ⟨∙⟩ x & Pr0⇓           = Pr1 x , refl  
+.(Pr1 x)  ⟨∙⟩ y & Pr1⇓ {x = x}  = Pr2 x y , refl  
+.Fst0      ⟨∙⟩ (Pr2 x y) & Fst0⇓ = x , refl 
+.Snd0      ⟨∙⟩ (Pr2 x y) & Snd0⇓ = y , refl 
 .Inl0      ⟨∙⟩ x & Inl0⇓          = Inl1 x , refl
 .Inr0      ⟨∙⟩ x & Inr0⇓          = Inr1 x , refl
 .C0        ⟨∙⟩ l  & C0⇓          = C1 l , refl  
@@ -99,10 +99,10 @@ eval .K K⇓ = K0 , refl
 eval .S S⇓ = S0 , refl
 eval .(t ∙ u) (A⇓ {x = t} {y = u} p q r) with eval t p | eval u q
 ... | f , refl | a , refl = f ⟨∙⟩ a & r
-eval .void rvoid = voidⁿ , refl 
-eval .pr rpr = prⁿ , refl 
-eval .fst  rfst = fstⁿ , refl 
-eval .snd  rsnd = sndⁿ , refl 
+eval .Void Void⇓ = Void0 , refl 
+eval .Pr Pr⇓ = Pr0 , refl 
+eval .Fst  Fst⇓ = Fst0 , refl 
+eval .Snd  Snd⇓ = Snd0 , refl 
 eval .NE NE⇓ = NE0 , refl 
 eval .Inl Inl⇓ = Inl0 , refl
 eval .Inr Inr⇓ = Inr0 , refl

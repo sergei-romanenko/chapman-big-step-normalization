@@ -9,6 +9,7 @@ open import BasicSystem.Utils
 --
 
 infixr 5 _⇒_
+infixr 1 _+_
 
 data Ty : Set where
   ⋆    : Ty
@@ -52,10 +53,10 @@ data _≈_ : ∀ {α} → Tm α → Tm α → Set where
              S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
   ≈cong∙ : ∀ {α β} {x y : Tm (α ⇒ β)} {x′ y′ : Tm α} →
              x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
-  Cl : ∀ {α β γ} {l : Tm (α ⇒ γ)} {r : Tm (β ⇒ γ)} {c : Tm α} →
-         C ∙ l ∙ r ∙ (Inl ∙ c) ≈ l ∙ c
-  Cr : ∀ {α β γ} {l : Tm (α ⇒ γ)} {r : Tm (β ⇒ γ)} {c : Tm β} →
-         C ∙ l ∙ r ∙ (Inr ∙ c) ≈ r ∙ c
+  Cl : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm α} →
+         C ∙ x ∙ y ∙ (Inl ∙ z) ≈ x ∙ z
+  Cr : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm β} →
+         C ∙ x ∙ y ∙ (Inr ∙ z) ≈ y ∙ z
 
 --
 -- Setoid reasoning.
@@ -98,15 +99,15 @@ data Nf : Ty → Set where
 
 ⌜_⌝ : ∀ {α} → Nf α → Tm α
 ⌜ K0 ⌝ = K
-⌜ K1 x ⌝ = K ∙ ⌜ x ⌝
+⌜ K1 u ⌝ = K ∙ ⌜ u ⌝
 ⌜ S0 ⌝ = S
-⌜ S1 x ⌝ = S ∙ ⌜ x ⌝
-⌜ S2 x y ⌝ = S ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
+⌜ S1 u ⌝ = S ∙ ⌜ u ⌝
+⌜ S2 u v ⌝ = S ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
 ⌜ NE0 ⌝ = NE
 ⌜ Inl0 ⌝ = Inl
-⌜ Inl1 x ⌝ = Inl ∙ ⌜ x ⌝
+⌜ Inl1 u ⌝ = Inl ∙ ⌜ u ⌝
 ⌜ Inr0 ⌝ = Inr
-⌜ Inr1 x ⌝ = Inr ∙ ⌜ x ⌝
+⌜ Inr1 u ⌝ = Inr ∙ ⌜ u ⌝
 ⌜ C0 ⌝ = C
-⌜ C1 l ⌝ = C ∙ ⌜ l ⌝
-⌜ C2 l r ⌝ = C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝
+⌜ C1 u ⌝ = C ∙ ⌜ u ⌝
+⌜ C2 u v ⌝ = C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝

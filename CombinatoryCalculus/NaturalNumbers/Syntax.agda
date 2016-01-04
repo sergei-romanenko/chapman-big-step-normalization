@@ -1,14 +1,26 @@
 module NaturalNumbers.Syntax where
 
--- Types
+import Relation.Binary.EqReasoning as EqReasoning
+
+open import NaturalNumbers.Utils
+
+--
+-- Types.
+--
+
+infixr 5 _⇒_
+
 data Ty : Set where
   ⋆ : Ty
   N : Ty
   _⇒_ : Ty → Ty → Ty
 
-infixr 50 _⇒_
+--
+-- Typed terms.
+--
 
--- Terms
+infixl 5 _∙_
+
 data Tm : Ty → Set where
   K : ∀ {α β} → Tm (α ⇒ β ⇒ α)
   S : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
@@ -17,23 +29,50 @@ data Tm : Ty → Set where
   suc  : Tm (N ⇒ N)
   R    : ∀ {α} → Tm (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
 
-infixl 50 _∙_
+--
+-- Convertibility.
+--
 
--- Definitional Equality
+infix 4 _≈_
+
 data _≈_ : ∀ {α} → Tm α → Tm α → Set where
-  ≈refl  : ∀ {α}{t : Tm α} → t ≈ t
-  ≈sym   : ∀ {α}{t t' : Tm α} → t ≈ t' → t' ≈ t
-  ≈trans : ∀ {α}{t t' t'' : Tm α} → t ≈ t' → t' ≈ t'' → t ≈ t''
-  ≈K     : ∀ {α β}{x : Tm α}{y : Tm β} → K ∙ x ∙ y ≈ x
-  ≈S     : ∀ {α β γ}{x : Tm (α ⇒ β ⇒ γ)}{y : Tm (α ⇒ β)}{z : Tm α} →
-           S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
-  ≈cong∙     : ∀ {α}{β}{t t' : Tm (α ⇒ β)}{u u' : Tm α} → t ≈ t' → u ≈ u' →
-           t ∙ u ≈ t' ∙ u'
-  ≈Rzero : ∀ {α}{z : Tm α}{s : Tm (N ⇒ α ⇒ α)} → R ∙ z ∙ s ∙ zero ≈ z
-  ≈Rsuc  : ∀ {α}{z : Tm α}{s : Tm (N ⇒ α ⇒ α)}{n : Tm N} → 
-           R ∙ z ∙ s ∙ (suc ∙ n) ≈ s ∙ n ∙ (R ∙ z ∙ s ∙ n)
+  ≈refl  : ∀ {α} {x : Tm α} →
+             x ≈ x
+  ≈sym   : ∀ {α} {x y : Tm α} →
+             x ≈ y → y ≈ x
+  ≈trans : ∀ {α} {x y z : Tm α} →
+             x ≈ y → y ≈ z → x ≈ z
+  ≈K     : ∀ {α β} {x : Tm α} {y : Tm β} →
+             K ∙ x ∙ y ≈ x
+  ≈S     : ∀ {α β γ} {x : Tm (α ⇒ β ⇒ γ)} {y : Tm (α ⇒ β)}{z : Tm α} →
+             S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
+  ≈cong∙ : ∀ {α β} {x y : Tm (α ⇒ β)} {x′ y′ : Tm α} →
+             x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
+  ≈Rzero : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
+             R ∙ x ∙ y ∙ zero ≈ x
+  ≈Rsuc  : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
+             R ∙ x ∙ y ∙ (suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
 
--- Normal forms
+--
+-- Setoid reasoning.
+--
+
+≈setoid : {α : Ty} → Setoid _ _
+
+≈setoid {α} = record
+  { Carrier = Tm α
+  ; _≈_ = _≈_
+  ; isEquivalence = record
+    { refl = ≈refl
+    ; sym = ≈sym
+    ; trans = ≈trans } }
+
+module ≈-Reasoning {α : Ty} = EqReasoning (≈setoid {α})
+
+--
+-- Normal forms.
+-- 
+
 data Nf : Ty → Set where
   K0 : ∀ {α β} → Nf (α ⇒ β ⇒ α)
   K1 : ∀ {α β} → Nf α → Nf (β ⇒ α)
@@ -47,16 +86,19 @@ data Nf : Ty → Set where
   Rⁿ¹   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
   Rⁿ²   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
 
+--
 -- Inclusion of normal forms in terms
+--
+
 ⌜_⌝ : ∀ {α} → Nf α → Tm α
 ⌜ K0 ⌝ = K
-⌜ K1 x ⌝ = K ∙ ⌜ x ⌝
+⌜ K1 u ⌝ = K ∙ ⌜ u ⌝
 ⌜ S0 ⌝ = S
-⌜ S1 x ⌝ = S ∙ ⌜ x ⌝
-⌜ S2 x y ⌝ = S ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
+⌜ S1 u ⌝ = S ∙ ⌜ u ⌝
+⌜ S2 u v ⌝ = S ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
 ⌜ zeroⁿ ⌝ = zero
 ⌜ sucⁿ ⌝ = suc
-⌜ sucⁿ¹ n ⌝ = suc ∙ ⌜ n ⌝
+⌜ sucⁿ¹ u ⌝ = suc ∙ ⌜ u ⌝
 ⌜ Rⁿ ⌝ = R
-⌜ Rⁿ¹ z ⌝ = R ∙ ⌜ z ⌝
-⌜ Rⁿ² z f ⌝ = R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝
+⌜ Rⁿ¹ u ⌝ = R ∙ ⌜ u ⌝
+⌜ Rⁿ² u v ⌝ = R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝

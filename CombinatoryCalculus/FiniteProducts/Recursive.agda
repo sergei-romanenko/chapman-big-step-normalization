@@ -12,31 +12,41 @@ infixl 5 _⟨∙⟩_
 {-# TERMINATING #-}
 
 _⟨∙⟩_ : ∀ {α β} → Nf (α ⇒ β) → Nf α → Nf β
-K0 ⟨∙⟩ x = K1 x
-K1 x ⟨∙⟩ y = x
-S0 ⟨∙⟩ x = S1 x
-S1 x ⟨∙⟩ y = S2 x y
-S2 x y ⟨∙⟩ z = (x ⟨∙⟩ z) ⟨∙⟩ (y ⟨∙⟩ z)
-prⁿ     ⟨∙⟩ x        = prⁿ¹ x
-prⁿ¹ x  ⟨∙⟩ y        = prⁿ² x y 
-fstⁿ    ⟨∙⟩ prⁿ² x y = x
-sndⁿ    ⟨∙⟩ prⁿ² x y = y 
+K0 ⟨∙⟩ u = K1 u
+K1 u ⟨∙⟩ v = u
+S0 ⟨∙⟩ u = S1 u
+S1 u ⟨∙⟩ v = S2 u v
+S2 u v ⟨∙⟩ w = (u ⟨∙⟩ w) ⟨∙⟩ (v ⟨∙⟩ w)
+Pr0 ⟨∙⟩ x = Pr1 x
+Pr1 u ⟨∙⟩ v = Pr2 u v 
+Fst0 ⟨∙⟩ Pr2 u v = u
+Snd0 ⟨∙⟩ Pr2 u v = v 
 
-nf : {α : Ty} → Tm α → Nf α
-nf K = K0
-nf S = S0
-nf (t ∙ u) = nf t ⟨∙⟩ nf u
-nf void = voidⁿ
-nf pr = prⁿ
-nf fst = fstⁿ
-nf snd = sndⁿ
+⟦_⟧ : ∀ {α} (x : Tm α) → Nf α
 
-sound : ∀ {α}{t u : Tm α} → t ≈ u → nf t ≡ nf u
-sound ≈refl        = refl 
-sound (≈sym p)     = sym (sound p) 
-sound (≈trans p q) = trans (sound p) (sound q) 
-sound ≈K          = refl 
-sound ≈S          = refl 
-sound (≈cong∙ p q)    = cong₂ _⟨∙⟩_ (sound p) (sound q)
-sound ≈fst        = refl
-sound ≈snd        = refl 
+⟦ K ⟧ = K0
+⟦ S ⟧ = S0
+⟦ x ∙ y ⟧ = ⟦ x ⟧ ⟨∙⟩ ⟦ y ⟧
+⟦ Void ⟧ = Void0
+⟦ Pr ⟧ = Pr0
+⟦ Fst ⟧ = Fst0
+⟦ Snd ⟧ = Snd0
+
+--
+-- The following "proof" is correct on condition that _⟨∙⟩_ is total.
+-- But Agda's termination checker is unable to prove this fact. :-(
+--
+
+⟦⟧-sound : ∀ {α} {x y : Tm α} → x ≈ y → ⟦ x ⟧ ≡ ⟦ y ⟧
+
+⟦⟧-sound ≈refl = refl
+⟦⟧-sound (≈sym y≈x) =
+  sym (⟦⟧-sound y≈x)
+⟦⟧-sound (≈trans x≈y x≈z) =
+  trans (⟦⟧-sound x≈y) (⟦⟧-sound x≈z)
+⟦⟧-sound ≈K = refl
+⟦⟧-sound ≈S = refl
+⟦⟧-sound (≈cong∙ x≈x′ y≈y′) =
+  cong₂ _⟨∙⟩_ (⟦⟧-sound x≈x′) (⟦⟧-sound y≈y′)
+⟦⟧-sound ≈Fst = refl
+⟦⟧-sound ≈Snd = refl
