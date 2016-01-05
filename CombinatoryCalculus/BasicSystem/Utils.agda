@@ -1,6 +1,6 @@
 module BasicSystem.Utils where
 
-open import Data.Unit using (⊤) public
+open import Data.Unit using (⊤; tt) public
 open import Data.Product public
 
 open import Function public
