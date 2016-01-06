@@ -4,205 +4,271 @@ open import FullSystem.Utils
 open import FullSystem.Syntax
 open import FullSystem.BigStep
 
--- Strong Computability
-SCN : ∀ {α} → Nf α → Set
-SCN {⋆}    n = ⊤
-SCN {α ⇒ β} f = ∀ a → SCN a → 
-  Σ (Nf β) λ n → (f ⟨∙⟩ a ⇓ n) × SCN n × (⌜ f ⌝ ∙ ⌜ a ⌝ ≈ ⌜ n ⌝)
-SCN {U}  n = ⊤
-SCN {α * β} p = 
-  (Σ (Nf α) λ n → (Fst0 ⟨∙⟩ p ⇓ n) × SCN n × (Fst ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
+--
+-- "Strong computability" on normal forms.
+--
+
+SCN : ∀ {α} (u : Nf α) → Set
+
+SCN {⋆} u = ⊤
+SCN {α ⇒ β} u =
+  ∀ v → SCN v → ∃ λ w → (u ⟨∙⟩ v ⇓ w) × (⌜ u ⌝ ∙ ⌜ v ⌝ ≈ ⌜ w ⌝) × SCN w
+SCN {U} u = ⊤
+SCN {α * β} u =
+  (∃ λ w → (Fst0 ⟨∙⟩ u ⇓ w) × (Fst ∙ ⌜ u ⌝ ≈ ⌜ w ⌝) × SCN w)
   ×
-  (Σ (Nf β) λ n → (Snd0 ⟨∙⟩ p ⇓ n) × SCN n × (Snd ∙ ⌜ p ⌝ ≈ ⌜ n ⌝))
-SCN {Z} n = ⊥
-SCN {α + β} (Inl1 x) = SCN x
-SCN {α + β} (Inr1 x) = SCN x
-SCN {N}    n = ⊤
+  (∃ λ w → (Snd0 ⟨∙⟩ u ⇓ w) × (Snd ∙ ⌜ u ⌝ ≈ ⌜ w ⌝) × SCN w)
+SCN {Z} u = ⊥
+SCN {α + β} (Inl1 u) = SCN u
+SCN {α + β} (Inr1 u) = SCN u
+SCN {N} u = ⊤
 
+--
+-- All normal forms are strongly computable!
+--    ∀ {α} (u : Nf α) → SCN u
+--
 
-all-scn-C3 : ∀ {α β γ}(l : Nf (α ⇒ γ))(r : Nf (β ⇒ γ))(c : Nf (α + β)) →
-      SCN l → SCN r → SCN c → 
-      Σ (Nf γ) 
-         λ n → (C2 l r ⟨∙⟩ c ⇓ n) × SCN n × (C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝ ∙ ⌜ c ⌝ ≈ ⌜ n ⌝)
-all-scn-C3 l r (Inl1 x) sl sr sx = 
-  proj₁ lx
-    , C2L⇓ (proj₁ (proj₂ lx)) , (proj₁ ∘ proj₂) (proj₂ lx) , ≈trans ≈Cl ((proj₂ ∘ proj₂) (proj₂ lx))
-  where lx = sl x sx
-all-scn-C3 l r (Inr1 x) sl sr sx = 
-  proj₁ rx
-    , C2R⇓ (proj₁ (proj₂ rx)) , (proj₁ ∘ proj₂) (proj₂ rx) , ≈trans ≈Cr ((proj₂ ∘ proj₂) (proj₂ rx))
-  where rx = sr x sx
+all-scn-K1 : ∀ {α β} u (p : SCN u) → SCN (K1 {α} {β} u)
+all-scn-K1 u p v q =
+  u , K1⇓ , ≈K , p
 
-SCR : ∀ {α}(z : Nf α)(f : Nf (N ⇒ α ⇒ α))(n : Nf N) →
-      SCN z → SCN f → 
-      Σ (Nf α) 
-        λ n' → (R2 z f ⟨∙⟩ n ⇓ n') × 
-               SCN n' ×
-               (R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝ ∙ ⌜ n ⌝ ≈ ⌜ n' ⌝)  
-SCR z f Zero0 sz sf = z , R2Z⇓ , sz , ≈Rz
-SCR z f (Suc1 n) sz sf  = 
-  proj₁ fnrn ,
-      R2S⇓ (proj₁ (proj₂ fn)) (proj₁ (proj₂ rn)) (proj₁ (proj₂ fnrn)) ,
-          (proj₁ ∘ proj₂) (proj₂ fnrn) ,
-          ≈trans ≈Rs (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ fn)) ((proj₂ ∘ proj₂) (proj₂ rn)))
-                                ((proj₂ ∘ proj₂) (proj₂ fnrn)))
+all-scn-K0 : ∀ {α β} → SCN (K0 {α} {β})
+all-scn-K0 u p =
+  K1 u , K0⇓ , ≈refl , all-scn-K1 u p
+
+all-scn-S2 : ∀ {α β γ} u (p : SCN u) v (q : SCN v) →
+  SCN (S2 {α} {β} {γ} u v)
+all-scn-S2 u p v q w r with p w r | q w r
+... | w₁ , ⇓w₁ , ≈w₁ , r₁ | w₂ , ⇓w₂ , ≈w₂ , r₂ with r₁ w₂ r₂
+... | w₃ , ⇓w₃ , ≈w₃ , r₃ =
+  w₃ , S2⇓ ⇓w₁ ⇓w₂ ⇓w₃ , ≈⌜w₃⌝ , r₃
   where
-  fn = sf n (record {})
-  rn = SCR z f n sz sf
-  fnrn = (proj₁ ∘ proj₂) (proj₂ fn) (proj₁ rn) ((proj₁ ∘ proj₂) (proj₂ rn)) 
+  open ≈-Reasoning
+  ≈⌜w₃⌝ : S ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ ⌜ w ⌝ ≈ ⌜ w₃ ⌝
+  ≈⌜w₃⌝ = begin
+    S ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ ⌜ w ⌝
+      ≈⟨ ≈S ⟩
+    (⌜ u ⌝ ∙ ⌜ w ⌝) ∙ (⌜ v ⌝ ∙ ⌜ w ⌝)
+      ≈⟨ ≈cong∙ ≈w₁ ≈w₂ ⟩
+    ⌜ w₁ ⌝ ∙ ⌜ w₂ ⌝
+      ≈⟨ ≈w₃ ⟩
+    ⌜ w₃ ⌝
+    ∎
 
-ZE : ⊥ → {X : Set} → X
-ZE ()
+all-scn-S1 : ∀ {α β γ} u (p : SCN u) → SCN (S1 {α} {β} {γ} u)
+all-scn-S1 u p v q =
+  S2 u v , S1⇓ , ≈refl , all-scn-S2 u p v q
 
-all-scn : ∀ {α} → (n : Nf α) → SCN n
-all-scn K0        = λ x sx → K1 x ,
-                               K0⇓ , (λ y sy → x , K1⇓ , sx , ≈K) , ≈refl
-all-scn (K1 x)   = λ y sy → x , K1⇓ , all-scn x , ≈K
-all-scn S0        = λ x sx → S1 x ,
-                               S0⇓ ,
-                                   (λ y sy → S2 x y ,
-                                                 (S1⇓ ,
-                                                     (λ z sz → 
-  let pxz = sx z sz
-      pyz = sy z sz
-      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
-  in proj₁ pxzyz ,
-          (S2⇓ (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
-              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
-              (≈trans ≈S 
-                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
-                              ((proj₂ ∘ proj₂) (proj₂ pxzyz)))))) , ≈refl)) ,
-  ≈refl
-all-scn (S1 x)   = λ y sy → S2 x y , S1⇓ , (λ z sz → 
-  let sx = all-scn x
-      pxz = sx z sz
-      pyz = sy z sz
-      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
-  in proj₁ pxzyz ,
-          S2⇓ (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
-              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
-              ≈trans ≈S 
-                     (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
-                             ((proj₂ ∘ proj₂) (proj₂ pxzyz)))) ,
-  ≈refl
-all-scn (S2 x y) = λ z sz →
-  let sx = all-scn x
-      sy = all-scn y
-      pxz = sx z sz
-      pyz = sy z sz
-      pxzyz = (proj₁ ∘ proj₂) (proj₂ pxz) (proj₁ pyz) ((proj₁ ∘ proj₂) (proj₂ pyz)) 
-  in proj₁ pxzyz ,
-          S2⇓ (proj₁ (proj₂ pxz)) (proj₁ (proj₂ pyz)) (proj₁ (proj₂ pxzyz)) ,
-              (proj₁ ∘ proj₂) (proj₂ pxzyz) ,
-              ≈trans ≈S 
-                     (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
-                             ((proj₂ ∘ proj₂) (proj₂ pxzyz)))
-all-scn Void0      = record {} 
-all-scn Pr0        = λ x sx → 
-  Pr1 x ,
-      Pr0⇓ ,
-          (λ y sy → Pr2 x y ,
-                        Pr1⇓ ,
-                            ((x , Fst0⇓ , sx , ≈Fst) ,
-                                (y , Snd0⇓ , sy , ≈Snd)) ,
-                            ≈refl) ,
-          ≈refl
-all-scn (Pr1 x)   = λ y sy → 
-  Pr2 x y ,
-      Pr1⇓ ,
-          ((x , Fst0⇓ , all-scn x , ≈Fst) ,
-              (y , Snd0⇓ , sy , ≈Snd)) ,
-          ≈refl
-all-scn (Pr2 x y) =
-  (x , Fst0⇓ , all-scn x , ≈Fst) , (y , Snd0⇓ , all-scn y , ≈Snd)
-all-scn Fst0      = λ _ → proj₁
-all-scn Snd0      = λ _ → proj₂
-all-scn NE0 = λ z sz → ZE sz 
-all-scn (Inl1 x)  = all-scn x 
-all-scn (Inr1 x)  = all-scn x 
-all-scn Inl0 = λ x sx → Inl1 x , Inl0⇓ , sx , ≈refl
-all-scn Inr0 = λ x sx → Inr1 x , Inr0⇓ , sx , ≈refl
+all-scn-S0 : ∀ {α β γ} → SCN (S0 {α} {β} {γ})
+all-scn-S0 u p =
+  S1 u , S0⇓ , ≈refl , all-scn-S1 u p
 
-all-scn C0        = λ l sl → 
-  C1 l ,
-      C0⇓ ,
-          (λ r sr → C2 l r , C1⇓ , (λ c sc → all-scn-C3 l r c sl sr sc) , ≈refl) ,
-          ≈refl
-all-scn (C1 l)   = λ r sr → 
-  C2 l r , C1⇓ , (λ c sc → all-scn-C3 l r c (all-scn l) sr sc) , ≈refl
-all-scn (C2 l r) = λ c sc → all-scn-C3 l r c (all-scn l) (all-scn r) sc 
-all-scn Zero0 = record {} 
-all-scn Suc0 = λ n _ → Suc1 n , Suc0⇓ , record {} , ≈refl
-all-scn (Suc1 n) = record {} 
-all-scn R0 = λ z sz → 
-  R1 z , 
-      (R0⇓ ,
-          (λ f sf → R2 z f ,
-                          R1⇓ ,
-                              (λ n _ → SCR z f n sz sf) ,
-                              ≈refl) ,
-          ≈refl)  
-all-scn (R1 z) = λ f sf → 
-  R2 z f ,
-      R1⇓ ,
-          (λ n _ → SCR z f n (all-scn z) sf) ,
-          ≈refl
-all-scn (R2 z f) = λ n _ → SCR z f n (all-scn z) (all-scn f) 
+all-scn-Pr2 : ∀ {α β} u (p : SCN u) v (q : SCN v) →
+  SCN (Pr2 {α} {β} u v)
+all-scn-Pr2 u p v q =
+  (u , Fst0⇓ , ≈Fst , p) , (v , Snd0⇓ , ≈Snd , q)
 
-SC : ∀ {α} → Tm α → Set
-SC {α} t = Σ (Nf α) λ n → (t ⇓ n) × SCN n × (t ≈ ⌜ n ⌝)
+all-scn-Pr1 : ∀ {α β} u (p : SCN u) → SCN (Pr1 {α} {β} u)
+all-scn-Pr1 u p v q =
+  Pr2 u v , Pr1⇓ , ≈refl , all-scn-Pr2 u p v q
 
-all-sc : ∀ {α} → (t : Tm α) → SC t
-all-sc K       = K0 , K⇓ , all-scn K0 , ≈refl
-all-sc S       = S0 , S⇓ , all-scn S0 , ≈refl
-all-sc (t ∙ u) with all-sc t          | all-sc u
-all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
-all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
-  = v , A⇓ rf ra rv , sv , ≈trans (≈cong∙ cf ca) cv
-all-sc Void    = Void0 , Void⇓ , record {} , ≈refl
-all-sc Pr      = 
-  Pr0 ,
-      Pr⇓ ,
-          (λ x sx → Pr1 x ,
-                        Pr0⇓ ,
-                            (λ y sy → Pr2 x y ,
-                                          Pr1⇓ ,
-                                              ((x , Fst0⇓ , sx , ≈Fst) ,
-                                                (y , Snd0⇓ , sy , ≈Snd)) ,
-                                              ≈refl) ,
-                            ≈refl) ,
-          ≈refl
-all-sc Fst     = Fst0 , Fst⇓ , (λ _ → proj₁) , ≈refl
-all-sc Snd     = Snd0 , Snd⇓ , (λ _ → proj₂) , ≈refl
-all-sc NE      = NE0 , NE⇓ , (λ z sz → ZE sz) , ≈refl
-all-sc Inl = Inl0 , Inl⇓ , (λ x sx → Inl1 x , Inl0⇓ , sx , ≈refl) , ≈refl
-all-sc Inr = Inr0 , Inr⇓ , (λ x sx → Inr1 x , Inr0⇓ , sx , ≈refl) , ≈refl
-all-sc C       = 
-  C0 ,
-      C⇓ ,
-          (λ l sl → C1 l ,
-                        (C0⇓ ,
-                            (λ r sr → C2 l r ,
-                                          (C1⇓ ,
-                                              (λ c sc → all-scn-C3 l r c sl sr sc) ,
-                                              ≈refl)) ,
-                            ≈refl)) ,
-         ≈refl
-all-sc Zero    = Zero0 , Zero⇓ , record {} , ≈refl
-all-sc Suc     = 
-  Suc0 ,
-      Suc⇓ ,
-          (λ n sn → Suc1 n ,
-                        Suc0⇓ , record {} , ≈refl) ,
-          ≈refl
-all-sc R       = 
-  R0 ,
-      R⇓ ,  
-          (λ z sz → R1 z ,
-                        R0⇓ ,
-                            (λ f sf → R2 z f ,
-                                          (R1⇓ ,
-                                              (λ n _ → SCR z f n sz sf) ,
-                                              ≈refl)) ,
-                            ≈refl) ,
-          ≈refl
+all-scn-Pr0 : ∀ {α β} → SCN (Pr0 {α} {β})
+all-scn-Pr0 u p =
+  Pr1 u , Pr0⇓ , ≈refl , all-scn-Pr1 u p
+
+all-scn-Fst0 : ∀ {α β} → SCN (Fst0 {α} {β})
+all-scn-Fst0 u p = proj₁ p
+
+all-scn-Snd0 : ∀ {α β} → SCN (Snd0 {α} {β})
+all-scn-Snd0 u p = proj₂ p
+
+all-scn-Inl0 : ∀ {α β} → SCN (Inl0 {α} {β})
+all-scn-Inl0 u p =
+  Inl1 u , Inl0⇓ , ≈refl , p
+
+all-scn-Inr0 : ∀ {α β} → SCN (Inr0 {α} {β})
+all-scn-Inr0 u p =
+  Inr1 u , Inr0⇓ , ≈refl , p
+
+all-scn-C2 : ∀ {α β γ} u (p : SCN u) v (q : SCN v) →
+  SCN (C2 {α} {β} {γ} u v)
+all-scn-C2 u p v q (Inl1 w) r with p w r
+... | w′ , ⇓w′ , ∙≈⌜w′⌝ , r′ = w′ , C2l⇓ ⇓w′ , C≈⌜w′⌝ , r′
+  where
+  open ≈-Reasoning
+  C≈⌜w′⌝ : C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inl ∙ ⌜ w ⌝) ≈ ⌜ w′ ⌝
+  C≈⌜w′⌝ = begin
+    C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inl ∙ ⌜ w ⌝)
+      ≈⟨ ≈Cl ⟩
+    ⌜ u ⌝ ∙ ⌜ w ⌝
+      ≈⟨ ∙≈⌜w′⌝ ⟩
+    ⌜ w′ ⌝
+    ∎
+all-scn-C2 u p v q (Inr1 w) r with q w r
+... | w′ , ⇓w′ , ∙≈⌜w′⌝ , r′ = w′ , C2r⇓ ⇓w′ , C≈⌜w′⌝ , r′
+  where
+  open ≈-Reasoning
+  C≈⌜w′⌝ : C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inr ∙ ⌜ w ⌝) ≈ ⌜ w′ ⌝
+  C≈⌜w′⌝ = begin
+    C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inr ∙ ⌜ w ⌝)
+      ≈⟨ ≈Cr ⟩
+    ⌜ v ⌝ ∙ ⌜ w ⌝
+      ≈⟨ ∙≈⌜w′⌝ ⟩
+    ⌜ w′ ⌝
+    ∎
+
+all-scn-C1 : ∀ {α β γ} u (p : SCN u) → SCN (C1 {α} {β} {γ} u)
+all-scn-C1 u p v q =
+  C2 u v , C1⇓ , ≈refl , all-scn-C2 u p v q
+
+all-scn-C0 : ∀ {α β γ} → SCN (C0 {α} {β} {γ})
+all-scn-C0 u p =
+  C1 u , C0⇓ , ≈refl , all-scn-C1 u p
+
+all-scn-Suc0 : ∀ (u : Nf N) → ⊤ →
+  ∃ (λ w → Suc0 ⟨∙⟩ u ⇓ w × Suc ∙ ⌜ u ⌝ ≈ ⌜ w ⌝ × ⊤)
+all-scn-Suc0 u tt =
+  Suc1 u , Suc0⇓ , ≈refl , tt
+
+all-scn-R2 : ∀ {α} u (p : SCN {α} u) v (q : SCN v) →
+  SCN (R2 u v)
+all-scn-R2 u p v q Zero0 tt =
+  u , R2z⇓ , ≈Rz , p
+all-scn-R2 {α} u p v q (Suc1 w) tt
+  with q w tt | all-scn-R2 u p v q w tt
+... | w′ , ⇓w′ , ≈w′ , r′ | w′′ , ⇓w′′ , ≈w′′ , r′′
+  with r′ w′′ r′′
+... | w′′′ , ⇓w′′′ , ≈w′′′ , r′′′
+  = w′′′ , R2s⇓ ⇓w′ ⇓w′′ ⇓w′′′ , ≈⌜w′′′⌝ , r′′′
+  where
+  open ≈-Reasoning
+  ≈⌜w′′′⌝ :  R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Suc ∙ ⌜ w ⌝) ≈ ⌜ w′′′ ⌝
+  ≈⌜w′′′⌝ = begin
+    R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Suc ∙ ⌜ w ⌝)
+      ≈⟨ ≈Rs ⟩
+    (⌜ v ⌝ ∙ ⌜ w ⌝) ∙ (R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ ⌜ w ⌝)
+      ≈⟨ ≈cong∙ ≈w′ ≈w′′ ⟩
+    ⌜ w′ ⌝ ∙ ⌜ w′′ ⌝
+      ≈⟨ ≈w′′′ ⟩
+    ⌜ w′′′ ⌝
+    ∎
+
+all-scn-R1 : ∀ {α} u (p : SCN {α} u) →
+  SCN (R1 u)
+all-scn-R1 u p v q =
+  R2 u v , R1⇓ , ≈refl , all-scn-R2 u p v q
+
+all-scn-R0 : ∀ {α} →
+  SCN (R0 {α})
+all-scn-R0 u p =
+  R1 u , R0⇓ , ≈refl , all-scn-R1 u p
+
+-- ∀ {α} (u : Nf α) → SCN u
+
+all-scn : ∀ {α} (u : Nf α) → SCN u
+
+all-scn K0 =
+  all-scn-K0
+all-scn (K1 u) =
+  all-scn-K1 u (all-scn u)
+all-scn S0 =
+  all-scn-S0
+all-scn (S1 u) =
+  all-scn-S1 u (all-scn u)
+all-scn (S2 u v) =
+  all-scn-S2 u (all-scn u) v (all-scn v)
+all-scn Void0 =
+  tt
+all-scn Pr0 =
+  all-scn-Pr0
+all-scn (Pr1 u) =
+  all-scn-Pr1 u (all-scn u)
+all-scn (Pr2 u v) =
+  all-scn-Pr2 u (all-scn u) v (all-scn v)
+all-scn Fst0 =
+  all-scn-Fst0
+all-scn Snd0 =
+  all-scn-Snd0
+all-scn NE0 u =
+  λ ()
+all-scn Inl0 u =
+  all-scn-Inl0 u
+all-scn (Inl1 u) =
+  all-scn u
+all-scn Inr0 u =
+  all-scn-Inr0 u
+all-scn (Inr1 u) =
+  all-scn u
+all-scn C0 u =
+  all-scn-C0 u
+all-scn (C1 u) v =
+  all-scn-C1 u (all-scn u) v
+all-scn (C2 u v) w =
+  all-scn-C2 u (all-scn u) v (all-scn v) w
+all-scn Zero0 =
+  tt
+all-scn Suc0 =
+  all-scn-Suc0
+all-scn (Suc1 u) =
+  tt
+all-scn R0 =
+  all-scn-R0
+all-scn (R1 u) =
+  all-scn-R1 u (all-scn u)
+all-scn (R2 u v) =
+  all-scn-R2 u (all-scn u) v (all-scn v)
+
+--
+-- "Strong computability" on terms.
+--
+
+SC : ∀ {α} (x : Tm α) → Set
+SC x = ∃ λ u → (x ⇓ u) × (x ≈ ⌜ u ⌝) × SCN u
+
+--
+-- All terms are strongly computable!
+--    ∀ {α} (x : Tm α) → SC u
+--
+
+all-sc : ∀ {α} (x : Tm α) → SC x
+
+all-sc K =
+  K0 , K⇓ , ≈refl , all-scn-K0
+all-sc S =
+  S0 , S⇓ , ≈refl , all-scn-S0
+all-sc (x ∙ y) with all-sc x | all-sc y
+... | u , ⇓u , ≈⌜u⌝ , p | v , ⇓v , ≈⌜v⌝ , q with p v q
+... | w , ⇓w , ≈⌜w⌝ , r =
+  w , A⇓ ⇓u ⇓v ⇓w , x∙y≈⌜w⌝ , r
+  where
+  x∙y≈⌜w⌝ :  x ∙ y ≈ ⌜ w ⌝
+  x∙y≈⌜w⌝ = begin
+    x ∙ y
+      ≈⟨ ≈cong∙ ≈⌜u⌝ ≈⌜v⌝  ⟩
+    ⌜ u ⌝ ∙ ⌜ v ⌝
+      ≈⟨ ≈⌜w⌝ ⟩
+    ⌜ w ⌝
+    ∎
+    where open ≈-Reasoning
+all-sc Void =
+  Void0 , Void⇓ , ≈refl , tt
+all-sc Pr =
+  Pr0 , Pr⇓ , ≈refl , all-scn-Pr0
+all-sc Fst =
+  Fst0 , Fst⇓ , ≈refl , all-scn-Fst0
+all-sc Snd =
+  Snd0 , Snd⇓ , ≈refl , all-scn-Snd0
+all-sc NE =
+  NE0 , NE⇓ , ≈refl , (λ u → λ ())
+all-sc Inl =
+  Inl0 , Inl⇓ , ≈refl , all-scn-Inl0
+all-sc Inr =
+  Inr0 , Inr⇓ , ≈refl , all-scn-Inr0
+all-sc C =
+  C0 , C⇓ , ≈refl , all-scn-C0
+all-sc Zero =
+  Zero0 , Zero⇓ , ≈refl , tt
+all-sc Suc =
+  Suc0 , Suc⇓ , ≈refl , all-scn-Suc0
+all-sc R =
+  R0 , R⇓ , ≈refl , all-scn-R0

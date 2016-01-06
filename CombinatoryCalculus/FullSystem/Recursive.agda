@@ -11,55 +11,66 @@ infixl 5 _⟨∙⟩_
 
 {-# TERMINATING #-}
 
-_⟨∙⟩_ : ∀ {α β} → Nf (α ⇒ β) → Nf α → Nf β
-K0 ⟨∙⟩ x = K1 x
-K1 x ⟨∙⟩ y = x
-S0 ⟨∙⟩ x = S1 x
-S1 x ⟨∙⟩ y = S2 x y
-S2 x y ⟨∙⟩ z = (x ⟨∙⟩ z) ⟨∙⟩ (y ⟨∙⟩ z)
-Pr0     ⟨∙⟩ x        = Pr1 x
-Pr1 x  ⟨∙⟩ y        = Pr2 x y 
-Fst0    ⟨∙⟩ Pr2 x y = x
-Snd0    ⟨∙⟩ Pr2 x y = y 
-NE0     ⟨∙⟩ ()
-Inl0    ⟨∙⟩ x       = Inl1 x
-Inr0    ⟨∙⟩ x       = Inr1 x
-C0      ⟨∙⟩ l       = C1 l
-C1 l   ⟨∙⟩ r       = C2 l r
-C2 l r ⟨∙⟩ Inl1 x  = l ⟨∙⟩ x
-C2 l r ⟨∙⟩ Inr1 x  = r ⟨∙⟩ x
-Suc0    ⟨∙⟩ n       = Suc1 n
-R0      ⟨∙⟩ z       = R1 z
-R1 z   ⟨∙⟩ f       = R2 z f
-R2 z f ⟨∙⟩ Zero0   = z
-R2 z f ⟨∙⟩ Suc1 n  = (f ⟨∙⟩ n) ⟨∙⟩ (R2 z f ⟨∙⟩ n)
+_⟨∙⟩_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) → Nf β
 
-nf : {α : Ty} → Tm α → Nf α
-nf K = K0
-nf S = S0
-nf (t ∙ u) = nf t ⟨∙⟩ nf u
-nf Void = Void0
-nf Pr = Pr0
-nf Fst = Fst0
-nf Snd = Snd0
-nf NE      = NE0
-nf Inl     = Inl0
-nf Inr     = Inr0
-nf C       = C0
-nf Zero = Zero0
-nf Suc  = Suc0
-nf R    = R0
+K0 ⟨∙⟩ u = K1 u
+K1 u ⟨∙⟩ v = u
+S0 ⟨∙⟩ u = S1 u
+S1 u ⟨∙⟩ v = S2 u v
+S2 u v ⟨∙⟩ w = (u ⟨∙⟩ w) ⟨∙⟩ (v ⟨∙⟩ w)
+Pr0 ⟨∙⟩ u = Pr1 u
+Pr1 u ⟨∙⟩ v = Pr2 u v 
+Fst0 ⟨∙⟩ Pr2 u v = u
+Snd0 ⟨∙⟩ Pr2 u v = v 
+NE0 ⟨∙⟩ ()
+Inl0 ⟨∙⟩ u = Inl1 u
+Inr0 ⟨∙⟩ u = Inr1 u
+C0 ⟨∙⟩ u = C1 u
+C1 u ⟨∙⟩ v = C2 u v
+C2 u v ⟨∙⟩ Inl1 w = u ⟨∙⟩ w
+C2 u v ⟨∙⟩ Inr1 w = v ⟨∙⟩ w
+Suc0 ⟨∙⟩ u = Suc1 u
+R0 ⟨∙⟩ u = R1 u
+R1 u ⟨∙⟩ v = R2 u v
+R2 u v ⟨∙⟩ Zero0   = u
+R2 u v ⟨∙⟩ Suc1 w  = (v ⟨∙⟩ w) ⟨∙⟩ (R2 u v ⟨∙⟩ w)
 
-sound : ∀ {α}{t u : Tm α} → t ≈ u → nf t ≡ nf u
-sound ≈refl        = refl 
-sound (≈sym p)     = sym (sound p) 
-sound (≈trans p q) = trans (sound p) (sound q) 
-sound ≈K          = refl 
-sound ≈S          = refl 
-sound (≈cong∙ p q)    = cong₂ _⟨∙⟩_ (sound p) (sound q)
-sound ≈Fst        = refl
-sound ≈Snd        = refl 
-sound ≈Cl         = refl 
-sound ≈Cr         = refl 
-sound ≈Rz         = refl 
-sound ≈Rs       = refl 
+⟦_⟧ : ∀ {α} (x : Tm α) → Nf α
+
+⟦ K ⟧ = K0
+⟦ S ⟧ = S0
+⟦ x ∙ y ⟧ = ⟦ x ⟧ ⟨∙⟩ ⟦ y ⟧
+⟦ Void ⟧ = Void0
+⟦ Pr ⟧ = Pr0
+⟦ Fst ⟧ = Fst0
+⟦ Snd ⟧ = Snd0
+⟦ NE ⟧ = NE0
+⟦ Inl ⟧ = Inl0
+⟦ Inr ⟧ = Inr0
+⟦ C ⟧ = C0
+⟦ Zero ⟧ = Zero0
+⟦ Suc ⟧ = Suc0
+⟦ R ⟧ = R0
+
+--
+-- The following "proof" is correct on condition that _⟨∙⟩_ is total.
+-- But Agda's termination checker is unable to prove this fact. :-(
+--
+
+⟦⟧-sound : ∀ {α} {x y : Tm α} → x ≈ y → ⟦ x ⟧ ≡ ⟦ y ⟧
+
+⟦⟧-sound ≈refl = refl
+⟦⟧-sound (≈sym y≈x) =
+  sym (⟦⟧-sound y≈x)
+⟦⟧-sound (≈trans x≈y x≈z) =
+  trans (⟦⟧-sound x≈y) (⟦⟧-sound x≈z)
+⟦⟧-sound ≈K = refl
+⟦⟧-sound ≈S = refl
+⟦⟧-sound (≈cong∙ x≈x′ y≈y′) =
+  cong₂ _⟨∙⟩_ (⟦⟧-sound x≈x′) (⟦⟧-sound y≈y′)
+⟦⟧-sound ≈Fst = refl
+⟦⟧-sound ≈Snd = refl
+⟦⟧-sound ≈Cl = refl
+⟦⟧-sound ≈Cr = refl
+⟦⟧-sound ≈Rz = refl
+⟦⟧-sound ≈Rs = refl

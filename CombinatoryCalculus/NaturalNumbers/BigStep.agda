@@ -27,9 +27,9 @@ data _⟨∙⟩_⇓_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) (w : Nf β) 
     R0 {α} ⟨∙⟩ u ⇓ R1 u
   R1⇓ : ∀ {α u v} →
     R1 {α} u ⟨∙⟩ v ⇓ R2 u v
-  R2Z⇓ : ∀ {α u v} → 
+  R2z⇓ : ∀ {α u v} → 
     R2 {α} u v ⟨∙⟩ Zero0 ⇓ u
-  R2S⇓ : ∀ {α u v w w′ w′′ w′′′} →
+  R2s⇓ : ∀ {α u v w w′ w′′ w′′′} →
     v ⟨∙⟩ w ⇓ w′ → 
     R2 u v ⟨∙⟩ w ⇓ w′′ → 
     w′ ⟨∙⟩ w′′ ⇓ w′′′ →
@@ -66,8 +66,8 @@ S2 u v ⟨∙⟩ w & S2⇓ uw⇓ vw⇓ uwvw⇓ with u ⟨∙⟩ w & uw⇓ | v �
 Suc0 ⟨∙⟩ u & Suc0⇓ = Suc1 u , refl
 R0 ⟨∙⟩ u & R0⇓ = R1 u , refl
 R1 u ⟨∙⟩ v & R1⇓ = R2 u v , refl
-R2 u v ⟨∙⟩ Zero0 & R2Z⇓ = u , refl
-R2 u v ⟨∙⟩ Suc1 w & R2S⇓ ⇓w′ ⇓w′′ ⇓w′′′
+R2 u v ⟨∙⟩ Zero0 & R2z⇓ = u , refl
+R2 u v ⟨∙⟩ Suc1 w & R2s⇓ ⇓w′ ⇓w′′ ⇓w′′′
   with v ⟨∙⟩ w & ⇓w′ | R2 u v  ⟨∙⟩ w & ⇓w′′
 ... | w′ , refl | w′′ , refl = w′ ⟨∙⟩ w′′ & ⇓w′′′
 

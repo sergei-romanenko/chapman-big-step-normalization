@@ -91,7 +91,7 @@ data Nf : Ty → Set where
   Snd0 : ∀ {α β} → Nf ((α * β) ⇒ β)
 
 --
--- Inclusion of normal forms in terms
+-- Inclusion of normal forms in terms.
 --
 
 ⌜_⌝ : ∀ {α} → Nf α → Tm α

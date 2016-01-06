@@ -13,18 +13,18 @@ infixl 5 _⟨∙⟩_
 
 _⟨∙⟩_ : ∀ {α β} → Nf (α ⇒ β) → Nf α → Nf β
 
-K0 ⟨∙⟩ x = K1 x
-K1 x ⟨∙⟩ y = x
-S0 ⟨∙⟩ x = S1 x
-S1 x ⟨∙⟩ y = S2 x y
-S2 x y ⟨∙⟩ z = (x ⟨∙⟩ z) ⟨∙⟩ (y ⟨∙⟩ z)
+K0 ⟨∙⟩ u = K1 u
+K1 u ⟨∙⟩ v = u
+S0 ⟨∙⟩ u = S1 u
+S1 u ⟨∙⟩ v = S2 u v
+S2 u v ⟨∙⟩ w = (u ⟨∙⟩ w) ⟨∙⟩ (v ⟨∙⟩ w)
 NE0 ⟨∙⟩ ()
-Inl0 ⟨∙⟩ x = Inl1 x
-Inr0 ⟨∙⟩ x = Inr1 x
-C0 ⟨∙⟩ l = C1 l
-C1 l ⟨∙⟩ r = C2 l r
-C2 l r ⟨∙⟩ Inl1 x = l ⟨∙⟩ x
-C2 l r ⟨∙⟩ Inr1 x = r ⟨∙⟩ x
+Inl0 ⟨∙⟩ u = Inl1 u
+Inr0 ⟨∙⟩ u = Inr1 u
+C0 ⟨∙⟩ u = C1 u
+C1 u ⟨∙⟩ v = C2 u v
+C2 u v ⟨∙⟩ Inl1 w = u ⟨∙⟩ w
+C2 u v ⟨∙⟩ Inr1 w = v ⟨∙⟩ w
 
 ⟦_⟧ : ∀ {α} (x : Tm α) → Nf α
 

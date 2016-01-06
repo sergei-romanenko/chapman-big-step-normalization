@@ -25,10 +25,10 @@ data _⟨∙⟩_⇓_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) (w : Nf β) 
     C0 {α} {β} {γ} ⟨∙⟩ u ⇓ C1 u
   C1⇓ : ∀ {α β γ u v} → 
     C1 {α} {β} {γ} u ⟨∙⟩ v ⇓ C2 u v
-  C2L⇓ : ∀ {α β γ u v w w′} →
+  C2l⇓ : ∀ {α β γ u v w w′} →
     u ⟨∙⟩ w ⇓ w′ →
     C2 {α} {β} {γ} u v ⟨∙⟩ Inl1 w ⇓ w′
-  C2R⇓ : ∀ {α β γ u v w w′} →
+  C2r⇓ : ∀ {α β γ u v w w′} →
     v ⟨∙⟩ w ⇓ w′ →
     C2 {α} {β} {γ} u v ⟨∙⟩ Inr1 w ⇓ w′ 
   Inl0⇓ : ∀ {α β u} →
@@ -71,8 +71,8 @@ Inl0 ⟨∙⟩ u & Inl0⇓ = Inl1 u , refl
 Inr0 ⟨∙⟩ u & Inr0⇓ = Inr1 u , refl
 C0 ⟨∙⟩ u & C0⇓ = C1 u , refl
 C1 u ⟨∙⟩ v & C1⇓ = C2 u v , refl
-C2 u v ⟨∙⟩ Inl1 w & C2L⇓ ⇓w′ = u ⟨∙⟩ w & ⇓w′
-C2 u v ⟨∙⟩ Inr1 w & C2R⇓ ⇓w′ = v ⟨∙⟩ w & ⇓w′
+C2 u v ⟨∙⟩ Inl1 w & C2l⇓ ⇓w′ = u ⟨∙⟩ w & ⇓w′
+C2 u v ⟨∙⟩ Inr1 w & C2r⇓ ⇓w′ = v ⟨∙⟩ w & ⇓w′
 
 eval : ∀ {α} (x : Tm α) {u} (x⇓ : x ⇓ u) → ∃ λ u′ → u′ ≡ u
 eval K K⇓ = K0 , refl

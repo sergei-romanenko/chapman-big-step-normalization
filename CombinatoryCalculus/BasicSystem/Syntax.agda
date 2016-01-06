@@ -73,7 +73,7 @@ data Nf : Ty → Set where
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
 
 --
--- Inclusion of normal forms in terms
+-- Inclusion of normal forms in terms.
 --
 
 ⌜_⌝ : ∀ {α} → Nf α → Tm α

@@ -28,9 +28,9 @@ data Ty : Set where
 infixl 5 _∙_
 
 data Tm : Ty → Set where
-  K : ∀ {α β} → Tm (α ⇒ β ⇒ α)
-  S : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
-  _∙_ : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
+  K    : ∀ {α β} → Tm (α ⇒ β ⇒ α)
+  S    : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
+  _∙_  : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
   Void : Tm U
   Pr   : ∀ {α β} → Tm (α ⇒ β ⇒ (α * β))
   Fst  : ∀ {α β} → Tm ((α * β) ⇒ α)
@@ -38,7 +38,7 @@ data Tm : Ty → Set where
   NE   : ∀ {α} → Tm (Z ⇒ α) 
   Inl  : ∀ {α β} → Tm (α ⇒ (α + β))
   Inr  : ∀ {α β} → Tm (β ⇒ (α + β))
-  C : ∀ {α β γ} → Tm ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
+  C    : ∀ {α β γ} → Tm ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
   Zero : Tm N
   Suc  : Tm (N ⇒ N)
   R    : ∀ {α} → Tm (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
@@ -91,8 +91,10 @@ data _≈_ : ∀ {α} → Tm α → Tm α → Set where
 
 module ≈-Reasoning {α : Ty} = EqReasoning (≈setoid {α})
 
+--
+-- Normal forms.
+-- 
 
--- Normal forms
 data Nf : Ty → Set where
   K0 : ∀ {α β} → Nf (α ⇒ β ⇒ α)
   K1 : ∀ {α β} → Nf α → Nf (β ⇒ α)
@@ -100,50 +102,53 @@ data Nf : Ty → Set where
   S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
   Void0 : Nf U
-  Pr0   : ∀ {α β} → Nf (α ⇒ β ⇒ (α * β))
+  Pr0  : ∀ {α β} → Nf (α ⇒ β ⇒ (α * β))
   Pr1  : ∀ {α β} → Nf α → Nf (β ⇒ (α * β))
   Pr2  : ∀ {α β} → Nf α → Nf β → Nf (α * β)
-  Fst0  : ∀ {α β} → Nf ((α * β) ⇒ α)
-  Snd0  : ∀ {α β} → Nf ((α * β) ⇒ β)
+  Fst0 : ∀ {α β} → Nf ((α * β) ⇒ α)
+  Snd0 : ∀ {α β} → Nf ((α * β) ⇒ β)
   NE0  : ∀ {α} → Nf (Z ⇒ α)
-  Inl0  : ∀ {α β} → Nf (α ⇒ (α + β))
+  Inl0 : ∀ {α β} → Nf (α ⇒ (α + β))
   Inl1 : ∀ {α β} → Nf α → Nf (α + β)
-  Inr0  : ∀ {α β} → Nf (β ⇒ (α + β))
+  Inr0 : ∀ {α β} → Nf (β ⇒ (α + β))
   Inr1 : ∀ {α β} → Nf β → Nf (α + β)
   C0 : ∀ {α β γ} → Nf ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
   C1 : ∀ {α β γ} → Nf (α ⇒ γ) → Nf ((β ⇒ γ) ⇒ (α + β) ⇒ γ)
   C2 : ∀ {α β γ} → Nf (α ⇒ γ) → Nf (β ⇒ γ) → Nf ((α + β) ⇒ γ)
   Zero0 : Nf N
   Suc0  : Nf (N ⇒ N)
-  Suc1 : Nf N → Nf N
-  R0    : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  R1   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  R2   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
+  Suc1  : Nf N → Nf N
+  R0 : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R1 : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R2 : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
 
--- Inclusion of normal forms in terms
+--
+-- Inclusion of normal forms in terms.
+--
+
 ⌜_⌝ : ∀ {α} → Nf α → Tm α
 ⌜ K0 ⌝ = K
-⌜ K1 x ⌝ = K ∙ ⌜ x ⌝
+⌜ K1 u ⌝ = K ∙ ⌜ u ⌝
 ⌜ S0 ⌝ = S
-⌜ S1 x ⌝ = S ∙ ⌜ x ⌝
-⌜ S2 x y ⌝ = S ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
-⌜ Void0 ⌝ = Void
+⌜ S1 u ⌝ = S ∙ ⌜ u ⌝
+⌜ S2 u v ⌝ = S ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
+⌜ Void0    ⌝ = Void
 ⌜ Pr0 ⌝ = Pr 
-⌜ Pr1 x ⌝ = Pr ∙ ⌜ x ⌝
-⌜ Pr2 x y ⌝ = Pr ∙ ⌜ x ⌝ ∙ ⌜ y ⌝
+⌜ Pr1 u ⌝ = Pr ∙ ⌜ u ⌝
+⌜ Pr2 u v ⌝ = Pr ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
 ⌜ Fst0 ⌝ = Fst
 ⌜ Snd0 ⌝ = Snd 
 ⌜ NE0 ⌝ = NE
-⌜ Inl1 x ⌝ = Inl ∙ ⌜ x ⌝
 ⌜ Inl0 ⌝ = Inl
-⌜ Inr1 x ⌝ = Inr ∙ ⌜ x ⌝
+⌜ Inl1 u ⌝ = Inl ∙ ⌜ u ⌝
 ⌜ Inr0 ⌝ = Inr
+⌜ Inr1 u ⌝ = Inr ∙ ⌜ u ⌝
 ⌜ C0 ⌝ = C
-⌜ C1 l ⌝ = C ∙ ⌜ l ⌝
-⌜ C2 l r ⌝ = C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝
+⌜ C1 u ⌝ = C ∙ ⌜ u ⌝
+⌜ C2 u v ⌝ = C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
 ⌜ Zero0 ⌝ = Zero
 ⌜ Suc0 ⌝ = Suc
-⌜ Suc1 n ⌝ = Suc ∙ ⌜ n ⌝
+⌜ Suc1 u ⌝ = Suc ∙ ⌜ u ⌝
 ⌜ R0 ⌝ = R
-⌜ R1 z ⌝ = R ∙ ⌜ z ⌝
-⌜ R2 z f ⌝ = R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝
+⌜ R1 u ⌝ = R ∙ ⌜ u ⌝
+⌜ R2 u v ⌝ = R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝

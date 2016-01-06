@@ -22,9 +22,9 @@ data Ty : Set where
 infixl 5 _∙_
 
 data Tm : Ty → Set where
-  K : ∀ {α β} → Tm (α ⇒ β ⇒ α)
-  S : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
-  _∙_ : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
+  K    : ∀ {α β} → Tm (α ⇒ β ⇒ α)
+  S    : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
+  _∙_  : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
   Zero : Tm N
   Suc  : Tm (N ⇒ N)
   R    : ∀ {α} → Tm (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
@@ -80,14 +80,14 @@ data Nf : Ty → Set where
   S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
   Zero0 : Nf N
-  Suc0 : Nf (N ⇒ N)
-  Suc1 : Nf N → Nf N
+  Suc0  : Nf (N ⇒ N)
+  Suc1  : Nf N → Nf N
   R0 : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
   R1 : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
   R2 : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
 
 --
--- Inclusion of normal forms in terms
+-- Inclusion of normal forms in terms.
 --
 
 ⌜_⌝ : ∀ {α} → Nf α → Tm α

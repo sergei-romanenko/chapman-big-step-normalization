@@ -21,28 +21,41 @@ data _⟨∙⟩_⇓_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) (w : Nf β) 
   S2⇓ : ∀ {α β γ u v w w′ w′′ w′′′}
     (p : u ⟨∙⟩ w ⇓ w′) (q : v ⟨∙⟩ w ⇓ w′′) (r : w′ ⟨∙⟩ w′′ ⇓ w′′′) →
     S2 {α} {β} {γ} u v ⟨∙⟩ w ⇓ w′′′
-  Pr0⇓  : ∀ {α β}{x : Nf α} → Pr0 {β = β} ⟨∙⟩ x ⇓ Pr1 x
-  Pr1⇓ : ∀ {α β}{x : Nf α}{y : Nf β} → Pr1 x ⟨∙⟩ y ⇓ Pr2 x y
-  Fst0⇓ : ∀ {α β}{x : Nf α}{y : Nf β} → Fst0 ⟨∙⟩ Pr2 x y ⇓ x
-  Snd0⇓ : ∀ {α β}{x : Nf α}{y : Nf β} → Snd0 ⟨∙⟩ Pr2 x y ⇓ y
-  C0⇓    : ∀ {α β γ}{l : Nf (α ⇒ γ)} → C0 {β = β}  ⟨∙⟩ l ⇓ C1 l
-  C1⇓   : ∀ {α β γ}{l : Nf (α ⇒ γ)}{r : Nf (β ⇒ γ)} → 
-           C1 l ⟨∙⟩ r ⇓ C2 l r
-  C2L⇓  : {α β γ : Ty}{l : Nf (α ⇒ γ)}{r : Nf (β ⇒ γ)}{x : Nf α}{y : Nf γ} →
-           l ⟨∙⟩ x ⇓ y → C2 l r ⟨∙⟩ Inl1 x ⇓ y 
-  C2R⇓  : {α β γ : Ty}{l : Nf (α ⇒ γ)}{r : Nf (β ⇒ γ)}{x : Nf β}{y : Nf γ} →
-           r ⟨∙⟩ x ⇓ y → C2 l r ⟨∙⟩ Inr1 x ⇓ y 
-  Inl0⇓ : ∀ {α β}{x : Nf α} → Inl0 {β = β} ⟨∙⟩ x ⇓ Inl1 x
-  Inr0⇓ : ∀ {α β}{x : Nf β} → Inr0 {α = α} ⟨∙⟩ x ⇓ Inr1 x
-  Suc0⇓ : {n : Nf N} → Suc0 ⟨∙⟩ n ⇓ Suc1 n
-  R0⇓  : {α : Ty}{z : Nf α} → R0 ⟨∙⟩ z ⇓ R1 z
-  R1⇓  : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → R1 z ⟨∙⟩ f ⇓ R2 z f
-  R2Z⇓ : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → 
-          R2 z f ⟨∙⟩ Zero0 ⇓ z
-  R2S⇓ : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)}{n : Nf N}
-          {fn : Nf (α ⇒ α)} → f ⟨∙⟩ n ⇓ fn → 
-          {rn : Nf α} → R2 z f ⟨∙⟩ n ⇓ rn → 
-          {rsn : Nf α} → fn ⟨∙⟩ rn ⇓ rsn → R2 z f ⟨∙⟩ Suc1 n ⇓ rsn
+  Pr0⇓ : ∀ {α β u} →
+    Pr0 {α} {β} ⟨∙⟩ u ⇓ Pr1 u
+  Pr1⇓ : ∀ {α β u v} →
+    Pr1 {α} {β} u ⟨∙⟩ v ⇓ Pr2 u v
+  Fst0⇓ : ∀ {α β u v} →
+    Fst0 {α} {β} ⟨∙⟩ Pr2 u v ⇓ u
+  Snd0⇓ : ∀ {α β u v} →
+    Snd0 {α} {β} ⟨∙⟩ Pr2 u v ⇓ v
+  C0⇓ : ∀ {α β γ u} →
+    C0 {α} {β} {γ} ⟨∙⟩ u ⇓ C1 u
+  C1⇓ : ∀ {α β γ u v} → 
+    C1 {α} {β} {γ} u ⟨∙⟩ v ⇓ C2 u v
+  C2l⇓ : ∀ {α β γ u v w w′} →
+    u ⟨∙⟩ w ⇓ w′ →
+    C2 {α} {β} {γ} u v ⟨∙⟩ Inl1 w ⇓ w′
+  C2r⇓ : ∀ {α β γ u v w w′} →
+    v ⟨∙⟩ w ⇓ w′ →
+    C2 {α} {β} {γ} u v ⟨∙⟩ Inr1 w ⇓ w′ 
+  Inl0⇓ : ∀ {α β u} →
+    Inl0 {α} {β} ⟨∙⟩ u ⇓ Inl1 u
+  Inr0⇓ : ∀ {α β u} →
+    Inr0 {α} {β} ⟨∙⟩ u ⇓ Inr1 u
+  Suc0⇓ : ∀ {u} →
+    Suc0 ⟨∙⟩ u ⇓ Suc1 u
+  R0⇓ : ∀ {α u} →
+    R0 {α} ⟨∙⟩ u ⇓ R1 u
+  R1⇓ : ∀ {α u v} →
+    R1 {α} u ⟨∙⟩ v ⇓ R2 u v
+  R2z⇓ : ∀ {α u v} → 
+    R2 {α} u v ⟨∙⟩ Zero0 ⇓ u
+  R2s⇓ : ∀ {α u v w w′ w′′ w′′′} →
+    v ⟨∙⟩ w ⇓ w′ → 
+    R2 u v ⟨∙⟩ w ⇓ w′′ → 
+    w′ ⟨∙⟩ w′′ ⇓ w′′′ →
+    R2 {α} u v ⟨∙⟩ Suc1 w ⇓ w′′′
 
 data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where 
   K⇓ : ∀ {α β} →
@@ -52,61 +65,75 @@ data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where
   A⇓ : ∀ {α β} {x : Tm (α ⇒ β)} {y : Tm α} {u v w}
     (x⇓u : x ⇓ u) (y⇓v : y ⇓ v) (⇓w : u ⟨∙⟩ v ⇓ w)  →
     x ∙ y ⇓ w
-  Void⇓ : Void ⇓ Void0
-  Pr⇓   : ∀ {α β} → Pr {α} {β} ⇓ Pr0
-  Fst⇓  : ∀ {α β} → Fst {α} {β} ⇓ Fst0
-  Snd⇓  : ∀ {α β} → Snd {α} {β} ⇓ Snd0
-  NE⇓  : ∀ {α} → NE {α} ⇓ NE0
-  Inl⇓ : ∀ {α β} → Inl {α}{β} ⇓ Inl0
-  Inr⇓ : ∀ {α β} → Inr {α}{β} ⇓ Inr0
-  C⇓   : ∀ {α β γ} → C {α} {β} {γ} ⇓ C0
-  Zero⇓ : Zero ⇓ Zero0
-  Suc⇓  : Suc ⇓ Suc0
-  R⇓    : ∀ {α} → R {α} ⇓ R0
+  Void⇓ :
+    Void ⇓ Void0
+  Pr⇓ : ∀ {α β} →
+    Pr {α} {β} ⇓ Pr0
+  Fst⇓ : ∀ {α β} →
+    Fst {α} {β} ⇓ Fst0
+  Snd⇓ : ∀ {α β} →
+    Snd {α} {β} ⇓ Snd0
+  NE⇓ : ∀ {α} →
+    NE {α} ⇓ NE0
+  Inl⇓ : ∀ {α β} →
+    Inl {α} {β} ⇓ Inl0
+  Inr⇓ : ∀ {α β} →
+    Inr {α} {β} ⇓ Inr0
+  C⇓ : ∀ {α β γ} →
+    C {α} {β} {γ} ⇓ C0
+  Zero⇓ :
+    Zero ⇓ Zero0
+  Suc⇓ :
+    Suc ⇓ Suc0
+  R⇓ : ∀ {α} →
+    R {α} ⇓ R0
 
 --
 -- Structurally recursive normalizer.
 --
 
-_⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a ⇓ n →
-          Σ (Nf β) λ n' → n' ≡ n
-.K0        ⟨∙⟩ x & K0⇓            = K1 x , refl 
-.(K1 x)   ⟨∙⟩ y & K1⇓ {u = x}   = x ,  refl  
-.S0        ⟨∙⟩ x & S0⇓            = S1 x , refl  
-.(S1 x)   ⟨∙⟩ y & S1⇓ {u = x}   = S2 x y , refl  
-.(S2 x y) ⟨∙⟩ z & S2⇓ {u = x}{v = y} p q r with x ⟨∙⟩ z & p | y ⟨∙⟩ z & q
-... | u , refl | v , refl = u ⟨∙⟩ v & r 
-.Pr0       ⟨∙⟩ x & Pr0⇓           = Pr1 x , refl  
-.(Pr1 x)  ⟨∙⟩ y & Pr1⇓ {x = x}  = Pr2 x y , refl  
-.Fst0      ⟨∙⟩ (Pr2 x y) & Fst0⇓ = x , refl 
-.Snd0      ⟨∙⟩ (Pr2 x y) & Snd0⇓ = y , refl 
-.Inl0      ⟨∙⟩ x & Inl0⇓          = Inl1 x , refl
-.Inr0      ⟨∙⟩ x & Inr0⇓          = Inr1 x , refl
-.C0        ⟨∙⟩ l  & C0⇓          = C1 l , refl  
-.(C1 l)   ⟨∙⟩ r  & C1⇓ {l = l} = C2 l r , refl  
-.(C2 l r) ⟨∙⟩ .(Inl1 x) & C2L⇓ {l = l}{r = r}{x = x} p = l ⟨∙⟩ x & p
-.(C2 l r) ⟨∙⟩ .(Inr1 x) & C2R⇓ {l = l}{r = r}{x = x} p = r ⟨∙⟩ x & p
-.Suc0      ⟨∙⟩ n & Suc0⇓        = Suc1 n , refl  
-.R0        ⟨∙⟩ z & R0⇓          = R1 z , refl  
-.(R1 z)   ⟨∙⟩ f & R1⇓ {z = z} = R2 z f , refl 
-.(R2 z f) ⟨∙⟩ .Zero0     & R2Z⇓ {z = z}{f = f} = z , refl 
-.(R2 z f) ⟨∙⟩ .(Suc1 n) & R2S⇓ {z = z}{f = f}{n = n} p q r
-  with f ⟨∙⟩ n & p | R2 z f ⟨∙⟩ n & q
-... | fn , refl | rn , refl = fn ⟨∙⟩ rn & r 
+_⟨∙⟩_&_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α)
+  {w} (uv⇓ : u ⟨∙⟩ v ⇓ w) → ∃ λ w′ → w′ ≡ w
 
-eval : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
-eval .K K⇓ = K0 , refl 
-eval .S S⇓ = S0 , refl
-eval .(t ∙ u) (A⇓ {x = t} {y = u} p q r) with eval t p | eval u q
-... | f , refl | a , refl = f ⟨∙⟩ a & r
-eval .Void Void⇓ = Void0 , refl 
-eval .Pr Pr⇓ = Pr0 , refl 
-eval .Fst  Fst⇓ = Fst0 , refl 
-eval .Snd  Snd⇓ = Snd0 , refl 
-eval .NE NE⇓ = NE0 , refl 
-eval .Inl Inl⇓ = Inl0 , refl
-eval .Inr Inr⇓ = Inr0 , refl
-eval .C C⇓ = C0 , refl 
-eval .Zero Zero⇓ = Zero0 , refl 
-eval .Suc Suc⇓   = Suc0 , refl 
-eval .R R⇓       = R0 , refl 
+K0 ⟨∙⟩ v & K0⇓ = K1 v , refl
+K1 u ⟨∙⟩ v & K1⇓ = u , refl
+S0 ⟨∙⟩ v & S0⇓ = S1 v , refl
+S1 u ⟨∙⟩ v & S1⇓ = S2 u v , refl
+S2 u v ⟨∙⟩ w & S2⇓ uw⇓ vw⇓ uwvw⇓ with u ⟨∙⟩ w & uw⇓ | v ⟨∙⟩ w & vw⇓
+... | u′ , refl | v′ , refl = u′ ⟨∙⟩ v′ & uwvw⇓
+Pr0 ⟨∙⟩ v & Pr0⇓ = Pr1 v , refl
+Pr1 u ⟨∙⟩ v & Pr1⇓ = Pr2 u v , refl
+Fst0 ⟨∙⟩ Pr2 u v & Fst0⇓ = u , refl
+Snd0 ⟨∙⟩ Pr2 u v & Snd0⇓ = v , refl
+NE0 ⟨∙⟩ u & ()
+Inl0 ⟨∙⟩ u & Inl0⇓ = Inl1 u , refl
+Inr0 ⟨∙⟩ u & Inr0⇓ = Inr1 u , refl
+C0 ⟨∙⟩ u & C0⇓ = C1 u , refl
+C1 u ⟨∙⟩ v & C1⇓ = C2 u v , refl
+C2 u v ⟨∙⟩ Inl1 w & C2l⇓ ⇓w′ = u ⟨∙⟩ w & ⇓w′
+C2 u v ⟨∙⟩ Inr1 w & C2r⇓ ⇓w′ = v ⟨∙⟩ w & ⇓w′
+Suc0 ⟨∙⟩ u & Suc0⇓ = Suc1 u , refl
+R0 ⟨∙⟩ u & R0⇓ = R1 u , refl
+R1 u ⟨∙⟩ v & R1⇓ = R2 u v , refl
+R2 u v ⟨∙⟩ Zero0 & R2z⇓ = u , refl
+R2 u v ⟨∙⟩ Suc1 w & R2s⇓ ⇓w′ ⇓w′′ ⇓w′′′
+  with v ⟨∙⟩ w & ⇓w′ | R2 u v  ⟨∙⟩ w & ⇓w′′
+... | w′ , refl | w′′ , refl = w′ ⟨∙⟩ w′′ & ⇓w′′′
+
+eval : ∀ {α} (x : Tm α) {u} (x⇓ : x ⇓ u) → ∃ λ u′ → u′ ≡ u
+
+eval K K⇓ = K0 , refl
+eval S S⇓ = S0 , refl
+eval (x ∙ y) (A⇓ x⇓ y⇓ ⇓w) with eval x x⇓ | eval y y⇓
+... | u , refl | v , refl = u ⟨∙⟩ v & ⇓w
+eval Void Void⇓ = Void0 , refl
+eval Pr Pr⇓ = Pr0 , refl
+eval Fst Fst⇓ = Fst0 , refl
+eval Snd Snd⇓ = Snd0 , refl
+eval NE NE⇓ = NE0 , refl
+eval Inl Inl⇓ = Inl0 , refl
+eval Inr Inr⇓ = Inr0 , refl
+eval C C⇓ = C0 , refl
+eval Zero Zero⇓ = Zero0 , refl
+eval Suc Suc⇓ = Suc0 , refl
+eval R R⇓ = R0 , refl

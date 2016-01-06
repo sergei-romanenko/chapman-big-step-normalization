@@ -67,7 +67,7 @@ all-scn-Inr0 u p =
 all-scn-C2 : ∀ {α β γ} u (p : SCN u) v (q : SCN v) →
   SCN (C2 {α} {β} {γ} u v)
 all-scn-C2 u p v q (Inl1 w) r with p w r
-... | w′ , ⇓w′ , ∙≈⌜w′⌝ , r′ = w′ , C2L⇓ ⇓w′ , C≈⌜w′⌝ , r′
+... | w′ , ⇓w′ , ∙≈⌜w′⌝ , r′ = w′ , C2l⇓ ⇓w′ , C≈⌜w′⌝ , r′
   where
   open ≈-Reasoning
   C≈⌜w′⌝ : C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inl ∙ ⌜ w ⌝) ≈ ⌜ w′ ⌝
@@ -79,7 +79,7 @@ all-scn-C2 u p v q (Inl1 w) r with p w r
     ⌜ w′ ⌝
     ∎
 all-scn-C2 u p v q (Inr1 w) r with q w r
-... | w′ , ⇓w′ , ∙≈⌜w′⌝ , r′ = w′ , C2R⇓ ⇓w′ , C≈⌜w′⌝ , r′
+... | w′ , ⇓w′ , ∙≈⌜w′⌝ , r′ = w′ , C2r⇓ ⇓w′ , C≈⌜w′⌝ , r′
   where
   open ≈-Reasoning
   C≈⌜w′⌝ : C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inr ∙ ⌜ w ⌝) ≈ ⌜ w′ ⌝

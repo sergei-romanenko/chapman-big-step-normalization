@@ -63,13 +63,13 @@ all-scn-Suc0 u tt =
 all-scn-R2 : ∀ {α} u (p : SCN {α} u) v (q : SCN v) →
   SCN (R2 u v)
 all-scn-R2 u p v q Zero0 tt =
-  u , R2Z⇓ , ≈Rz , p
+  u , R2z⇓ , ≈Rz , p
 all-scn-R2 {α} u p v q (Suc1 w) tt
   with q w tt | all-scn-R2 u p v q w tt
 ... | w′ , ⇓w′ , ≈w′ , r′ | w′′ , ⇓w′′ , ≈w′′ , r′′
   with r′ w′′ r′′
 ... | w′′′ , ⇓w′′′ , ≈w′′′ , r′′′
-  = w′′′ , R2S⇓ ⇓w′ ⇓w′′ ⇓w′′′ , ≈⌜w′′′⌝ , r′′′
+  = w′′′ , R2s⇓ ⇓w′ ⇓w′′ ⇓w′′′ , ≈⌜w′′′⌝ , r′′′
   where
   open ≈-Reasoning
   ≈⌜w′′′⌝ :  R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Suc ∙ ⌜ w ⌝) ≈ ⌜ w′′′ ⌝
