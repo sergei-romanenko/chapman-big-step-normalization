@@ -73,7 +73,7 @@ all-scn-C2 u p v q (Inl1 w) r with p w r
   C≈⌜w′⌝ : C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inl ∙ ⌜ w ⌝) ≈ ⌜ w′ ⌝
   C≈⌜w′⌝ = begin
     C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inl ∙ ⌜ w ⌝)
-      ≈⟨ Cl ⟩
+      ≈⟨ ≈Cl ⟩
     ⌜ u ⌝ ∙ ⌜ w ⌝
       ≈⟨ ∙≈⌜w′⌝ ⟩
     ⌜ w′ ⌝
@@ -85,7 +85,7 @@ all-scn-C2 u p v q (Inr1 w) r with q w r
   C≈⌜w′⌝ : C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inr ∙ ⌜ w ⌝) ≈ ⌜ w′ ⌝
   C≈⌜w′⌝ = begin
     C ∙ ⌜ u ⌝ ∙ ⌜ v ⌝ ∙ (Inr ∙ ⌜ w ⌝)
-      ≈⟨ Cr ⟩
+      ≈⟨ ≈Cr ⟩
     ⌜ v ⌝ ∙ ⌜ w ⌝
       ≈⟨ ∙≈⌜w′⌝ ⟩
     ⌜ w′ ⌝

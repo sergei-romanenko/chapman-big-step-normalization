@@ -41,22 +41,22 @@ data Tm : Ty → Set where
 infix 4 _≈_
 
 data _≈_ : ∀ {α} → Tm α → Tm α → Set where
-  ≈refl  : ∀ {α} {x : Tm α} →
-             x ≈ x
-  ≈sym   : ∀ {α} {x y : Tm α} →
-             x ≈ y → y ≈ x
+  ≈refl : ∀ {α} {x : Tm α} →
+    x ≈ x
+  ≈sym : ∀ {α} {x y : Tm α} →
+    x ≈ y → y ≈ x
   ≈trans : ∀ {α} {x y z : Tm α} →
-             x ≈ y → y ≈ z → x ≈ z
-  ≈K     : ∀ {α β} {x : Tm α} {y : Tm β} →
-             K ∙ x ∙ y ≈ x
-  ≈S     : ∀ {α β γ} {x : Tm (α ⇒ β ⇒ γ)} {y : Tm (α ⇒ β)}{z : Tm α} →
-             S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
+    x ≈ y → y ≈ z → x ≈ z
+  ≈K : ∀ {α β} {x : Tm α} {y : Tm β} →
+    K ∙ x ∙ y ≈ x
+  ≈S : ∀ {α β γ} {x : Tm (α ⇒ β ⇒ γ)} {y : Tm (α ⇒ β)}{z : Tm α} →
+    S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
   ≈cong∙ : ∀ {α β} {x y : Tm (α ⇒ β)} {x′ y′ : Tm α} →
-             x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
-  Cl : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm α} →
-         C ∙ x ∙ y ∙ (Inl ∙ z) ≈ x ∙ z
-  Cr : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm β} →
-         C ∙ x ∙ y ∙ (Inr ∙ z) ≈ y ∙ z
+    x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
+  ≈Cl : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm α} →
+    C ∙ x ∙ y ∙ (Inl ∙ z) ≈ x ∙ z
+  ≈Cr : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm β} →
+    C ∙ x ∙ y ∙ (Inr ∙ z) ≈ y ∙ z
 
 --
 -- Setoid reasoning.

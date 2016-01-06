@@ -26,11 +26,11 @@ all-scn-C3 : ∀ {α β γ}(l : Nf (α ⇒ γ))(r : Nf (β ⇒ γ))(c : Nf (α +
          λ n → (C2 l r ⟨∙⟩ c ⇓ n) × SCN n × (C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝ ∙ ⌜ c ⌝ ≈ ⌜ n ⌝)
 all-scn-C3 l r (Inl1 x) sl sr sx = 
   proj₁ lx
-    , C2L⇓ (proj₁ (proj₂ lx)) , (proj₁ ∘ proj₂) (proj₂ lx) , ≈trans Cl ((proj₂ ∘ proj₂) (proj₂ lx))
+    , C2L⇓ (proj₁ (proj₂ lx)) , (proj₁ ∘ proj₂) (proj₂ lx) , ≈trans ≈Cl ((proj₂ ∘ proj₂) (proj₂ lx))
   where lx = sl x sx
 all-scn-C3 l r (Inr1 x) sl sr sx = 
   proj₁ rx
-    , C2R⇓ (proj₁ (proj₂ rx)) , (proj₁ ∘ proj₂) (proj₂ rx) , ≈trans Cr ((proj₂ ∘ proj₂) (proj₂ rx))
+    , C2R⇓ (proj₁ (proj₂ rx)) , (proj₁ ∘ proj₂) (proj₂ rx) , ≈trans ≈Cr ((proj₂ ∘ proj₂) (proj₂ rx))
   where rx = sr x sx
 
 SCR : ∀ {α}(z : Nf α)(f : Nf (N ⇒ α ⇒ α))(n : Nf N) →
@@ -39,12 +39,12 @@ SCR : ∀ {α}(z : Nf α)(f : Nf (N ⇒ α ⇒ α))(n : Nf N) →
         λ n' → (R2 z f ⟨∙⟩ n ⇓ n') × 
                SCN n' ×
                (R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝ ∙ ⌜ n ⌝ ≈ ⌜ n' ⌝)  
-SCR z f Zero0 sz sf = z , R2Z⇓ , sz , ≈RZero
+SCR z f Zero0 sz sf = z , R2Z⇓ , sz , ≈Rz
 SCR z f (Suc1 n) sz sf  = 
   proj₁ fnrn ,
       R2S⇓ (proj₁ (proj₂ fn)) (proj₁ (proj₂ rn)) (proj₁ (proj₂ fnrn)) ,
           (proj₁ ∘ proj₂) (proj₂ fnrn) ,
-          ≈trans ≈RSuc (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ fn)) ((proj₂ ∘ proj₂) (proj₂ rn)))
+          ≈trans ≈Rs (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ fn)) ((proj₂ ∘ proj₂) (proj₂ rn)))
                                 ((proj₂ ∘ proj₂) (proj₂ fnrn)))
   where
   fn = sf n (record {})

@@ -52,5 +52,5 @@ C2 l r ⟨∙⟩ Inr1 x = r ⟨∙⟩ x
 ⟦⟧-sound ≈S = refl
 ⟦⟧-sound (≈cong∙ x≈x′ y≈y′) =
   cong₂ _⟨∙⟩_ (⟦⟧-sound x≈x′) (⟦⟧-sound y≈y′)
-⟦⟧-sound Cl = refl
-⟦⟧-sound Cr = refl
+⟦⟧-sound ≈Cl = refl
+⟦⟧-sound ≈Cr = refl

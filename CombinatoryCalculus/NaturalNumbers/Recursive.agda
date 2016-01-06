@@ -11,32 +11,43 @@ infixl 5 _⟨∙⟩_
 
 {-# TERMINATING #-}
 
-_⟨∙⟩_ : ∀ {α β} → Nf (α ⇒ β) → Nf α → Nf β
-K0 ⟨∙⟩ x = K1 x
-K1 x ⟨∙⟩ y = x
-S0 ⟨∙⟩ x = S1 x
-S1 x ⟨∙⟩ y = S2 x y
-S2 x y ⟨∙⟩ z = (x ⟨∙⟩ z) ⟨∙⟩ (y ⟨∙⟩ z)
-Suc0    ⟨∙⟩ n       = Suc1 n
-R0      ⟨∙⟩ z       = R1 z
-R1 z   ⟨∙⟩ f       = R2 z f
-R2 z f ⟨∙⟩ Zero0   = z
-R2 z f ⟨∙⟩ Suc1 n  = (f ⟨∙⟩ n) ⟨∙⟩ (R2 z f ⟨∙⟩ n)
+_⟨∙⟩_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) → Nf β
 
-nf : {α : Ty} → Tm α → Nf α
-nf K = K0
-nf S = S0
-nf (t ∙ u) = nf t ⟨∙⟩ nf u
-nf Zero = Zero0
-nf Suc  = Suc0
-nf R    = R0
+K0 ⟨∙⟩ u = K1 u
+K1 u ⟨∙⟩ v = u
+S0 ⟨∙⟩ u = S1 u
+S1 u ⟨∙⟩ v = S2 u v
+S2 u v ⟨∙⟩ w = (u ⟨∙⟩ w) ⟨∙⟩ (v ⟨∙⟩ w)
+Suc0 ⟨∙⟩ u = Suc1 u
+R0 ⟨∙⟩ u = R1 u
+R1 u ⟨∙⟩ v = R2 u v
+R2 u v ⟨∙⟩ Zero0   = u
+R2 u v ⟨∙⟩ Suc1 w  = (v ⟨∙⟩ w) ⟨∙⟩ (R2 u v ⟨∙⟩ w)
 
-sound : ∀ {α}{t u : Tm α} → t ≈ u → nf t ≡ nf u
-sound ≈refl        = refl 
-sound (≈sym p)     = sym (sound p) 
-sound (≈trans p q) = trans (sound p) (sound q) 
-sound ≈K          = refl 
-sound ≈S          = refl 
-sound (≈cong∙ p q)    = cong₂ _⟨∙⟩_ (sound p) (sound q)
-sound ≈RZero      = refl 
-sound ≈RSuc       = refl 
+⟦_⟧ : ∀ {α} (x : Tm α) → Nf α
+
+⟦ K ⟧ = K0
+⟦ S ⟧ = S0
+⟦ x ∙ y ⟧ = ⟦ x ⟧ ⟨∙⟩ ⟦ y ⟧
+⟦ Zero ⟧ = Zero0
+⟦ Suc ⟧ = Suc0
+⟦ R ⟧ = R0
+
+--
+-- The following "proof" is correct on condition that _⟨∙⟩_ is total.
+-- But Agda's termination checker is unable to prove this fact. :-(
+--
+
+⟦⟧-sound : ∀ {α} {x y : Tm α} → x ≈ y → ⟦ x ⟧ ≡ ⟦ y ⟧
+
+⟦⟧-sound ≈refl = refl
+⟦⟧-sound (≈sym y≈x) =
+  sym (⟦⟧-sound y≈x)
+⟦⟧-sound (≈trans x≈y x≈z) =
+  trans (⟦⟧-sound x≈y) (⟦⟧-sound x≈z)
+⟦⟧-sound ≈K = refl
+⟦⟧-sound ≈S = refl
+⟦⟧-sound (≈cong∙ x≈x′ y≈y′) =
+  cong₂ _⟨∙⟩_ (⟦⟧-sound x≈x′) (⟦⟧-sound y≈y′)
+⟦⟧-sound ≈Rz = refl
+⟦⟧-sound ≈Rs = refl

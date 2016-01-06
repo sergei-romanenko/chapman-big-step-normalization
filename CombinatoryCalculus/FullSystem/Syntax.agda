@@ -50,30 +50,30 @@ data Tm : Ty → Set where
 infix 4 _≈_
 
 data _≈_ : ∀ {α} → Tm α → Tm α → Set where
-  ≈refl  : ∀ {α} {x : Tm α} →
-             x ≈ x
-  ≈sym   : ∀ {α} {x y : Tm α} →
-             x ≈ y → y ≈ x
+  ≈refl : ∀ {α} {x : Tm α} →
+    x ≈ x
+  ≈sym : ∀ {α} {x y : Tm α} →
+    x ≈ y → y ≈ x
   ≈trans : ∀ {α} {x y z : Tm α} →
-             x ≈ y → y ≈ z → x ≈ z
-  ≈K     : ∀ {α β} {x : Tm α} {y : Tm β} →
-             K ∙ x ∙ y ≈ x
-  ≈S     : ∀ {α β γ} {x : Tm (α ⇒ β ⇒ γ)} {y : Tm (α ⇒ β)}{z : Tm α} →
-             S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
+    x ≈ y → y ≈ z → x ≈ z
+  ≈K : ∀ {α β} {x : Tm α} {y : Tm β} →
+    K ∙ x ∙ y ≈ x
+  ≈S : ∀ {α β γ} {x : Tm (α ⇒ β ⇒ γ)} {y : Tm (α ⇒ β)}{z : Tm α} →
+    S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
   ≈cong∙ : ∀ {α β} {x y : Tm (α ⇒ β)} {x′ y′ : Tm α} →
-             x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
+    x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
   ≈Fst : ∀ {α β} {x : Tm α} {y : Tm β} →
-           Fst ∙ (Pr ∙ x ∙ y) ≈ x
+    Fst ∙ (Pr ∙ x ∙ y) ≈ x
   ≈Snd : ∀ {α β} {x : Tm α} {y : Tm β} →
-           Snd ∙ (Pr ∙ x ∙ y) ≈ y
-  Cl : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm α} →
-         C ∙ x ∙ y ∙ (Inl ∙ z) ≈ x ∙ z
-  Cr : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm β} →
-         C ∙ x ∙ y ∙ (Inr ∙ z) ≈ y ∙ z
-  ≈RZero : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
-             R ∙ x ∙ y ∙ Zero ≈ x
-  ≈RSuc  : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
-             R ∙ x ∙ y ∙ (Suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
+    Snd ∙ (Pr ∙ x ∙ y) ≈ y
+  ≈Cl : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm α} →
+    C ∙ x ∙ y ∙ (Inl ∙ z) ≈ x ∙ z
+  ≈Cr : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm β} →
+    C ∙ x ∙ y ∙ (Inr ∙ z) ≈ y ∙ z
+  ≈Rz : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
+    R ∙ x ∙ y ∙ Zero ≈ x
+  ≈Rs : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
+    R ∙ x ∙ y ∙ (Suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
 
 --
 -- Setoid reasoning.

@@ -36,22 +36,22 @@ data Tm : Ty → Set where
 infix 4 _≈_
 
 data _≈_ : ∀ {α} → Tm α → Tm α → Set where
-  ≈refl  : ∀ {α} {x : Tm α} →
-             x ≈ x
-  ≈sym   : ∀ {α} {x y : Tm α} →
-             x ≈ y → y ≈ x
+  ≈refl : ∀ {α} {x : Tm α} →
+    x ≈ x
+  ≈sym : ∀ {α} {x y : Tm α} →
+    x ≈ y → y ≈ x
   ≈trans : ∀ {α} {x y z : Tm α} →
-             x ≈ y → y ≈ z → x ≈ z
-  ≈K     : ∀ {α β} {x : Tm α} {y : Tm β} →
-             K ∙ x ∙ y ≈ x
-  ≈S     : ∀ {α β γ} {x : Tm (α ⇒ β ⇒ γ)} {y : Tm (α ⇒ β)}{z : Tm α} →
-             S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
+    x ≈ y → y ≈ z → x ≈ z
+  ≈K : ∀ {α β} {x : Tm α} {y : Tm β} →
+    K ∙ x ∙ y ≈ x
+  ≈S : ∀ {α β γ} {x : Tm (α ⇒ β ⇒ γ)} {y : Tm (α ⇒ β)}{z : Tm α} →
+    S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
   ≈cong∙ : ∀ {α β} {x y : Tm (α ⇒ β)} {x′ y′ : Tm α} →
-             x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
-  ≈RZero : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
-             R ∙ x ∙ y ∙ Zero ≈ x
-  ≈RSuc  : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
-             R ∙ x ∙ y ∙ (Suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
+    x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
+  ≈Rz : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
+    R ∙ x ∙ y ∙ Zero ≈ x
+  ≈Rs : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
+    R ∙ x ∙ y ∙ (Suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
 
 --
 -- Setoid reasoning.
@@ -80,11 +80,11 @@ data Nf : Ty → Set where
   S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
   Zero0 : Nf N
-  Suc0  : Nf (N ⇒ N)
+  Suc0 : Nf (N ⇒ N)
   Suc1 : Nf N → Nf N
-  R0    : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  R1   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  R2   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
+  R0 : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R1 : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R2 : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
 
 --
 -- Inclusion of normal forms in terms
