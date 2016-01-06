@@ -14,7 +14,7 @@ infixr 2 _*_
 data Ty : Set where
   ⋆   : Ty
   _⇒_ : Ty → Ty → Ty
-  One : Ty
+  U   : Ty
   _*_ : Ty → Ty → Ty
 
 
@@ -28,7 +28,7 @@ data Tm : Ty → Set where
   K    : ∀ {α β} → Tm (α ⇒ β ⇒ α)
   S    : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   _∙_  : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
-  Void : Tm One
+  Void : Tm U
   Pr   : ∀ {α β} → Tm (α ⇒ β ⇒ (α * β))
   Fst  : ∀ {α β} → Tm ((α * β) ⇒ α)
   Snd  : ∀ {α β} → Tm ((α * β) ⇒ β)
@@ -83,7 +83,7 @@ data Nf : Ty → Set where
   S0 : ∀ {α β γ} → Nf ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
-  Void0 : Nf One
+  Void0 : Nf U
   Pr0  : ∀ {α β} → Nf (α ⇒ β ⇒ (α * β))
   Pr1  : ∀ {α β} → Nf α → Nf (β ⇒ (α * β))
   Pr2  : ∀ {α β} → Nf α → Nf β → Nf (α * β)

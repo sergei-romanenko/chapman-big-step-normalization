@@ -11,7 +11,7 @@ open import BasicSystem.Utils
 infixr 5 _⇒_
 
 data Ty : Set where
-  ⋆ : Ty
+  ⋆   : Ty
   _⇒_ : Ty → Ty → Ty
 
 --

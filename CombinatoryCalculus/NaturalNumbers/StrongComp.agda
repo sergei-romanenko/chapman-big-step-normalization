@@ -7,22 +7,22 @@ open import NaturalNumbers.BigStep
 -- Strong Computability
 SCN : ∀ {α} → Nf α → Set
 SCN {⋆}     n = ⊤
-SCN {N}     n = ⊤
 SCN {α ⇒ β} f = ∀ a → SCN a → 
   Σ (Nf β) λ n →  (f ⟨∙⟩ a ⇓ n) × SCN n × (⌜ f ⌝ ∙ ⌜ a ⌝ ≈ ⌜ n ⌝)
+SCN {N}     n = ⊤
 
 SCR : ∀ {α}(z : Nf α)(f : Nf (N ⇒ α ⇒ α))(n : Nf N) →
       SCN z → SCN f → 
       Σ (Nf α) 
-        λ n' → (Rⁿ² z f ⟨∙⟩ n ⇓ n') × 
+        λ n' → (R2 z f ⟨∙⟩ n ⇓ n') × 
                SCN n' × 
                (R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝ ∙ ⌜ n ⌝ ≈ ⌜ n' ⌝)  
-SCR z f zeroⁿ sz sf = z , rRⁿ²z , sz , ≈Rzero 
-SCR z f (sucⁿ¹ n) sz sf  = 
+SCR z f Zero0 sz sf = z , R2Z⇓ , sz , ≈RZero 
+SCR z f (Suc1 n) sz sf  = 
   proj₁ fnrn ,
-      (rRⁿ²f (proj₁ (proj₂ fn)) (proj₁ (proj₂ rn)) (proj₁ (proj₂ fnrn)) ,
+      (R2S⇓ (proj₁ (proj₂ fn)) (proj₁ (proj₂ rn)) (proj₁ (proj₂ fnrn)) ,
           (proj₁ ∘ proj₂) (proj₂ fnrn) ,
-          ≈trans ≈Rsuc (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ fn)) ((proj₂ ∘ proj₂) (proj₂ rn)))
+          ≈trans ≈RSuc (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ fn)) ((proj₂ ∘ proj₂) (proj₂ rn)))
                        ((proj₂ ∘ proj₂) (proj₂ fnrn))))
   where
   fn = sf n (record {})
@@ -72,23 +72,23 @@ all-scn (S2 x y) = λ z sz →
               ≈trans ≈S 
                      (≈trans (≈cong∙ ((proj₂ ∘ proj₂) (proj₂ pxz)) ((proj₂ ∘ proj₂) (proj₂ pyz)))
                              ((proj₂ ∘ proj₂) (proj₂ pxzyz)))
-all-scn zeroⁿ = record {} 
-all-scn sucⁿ = λ n _ → sucⁿ¹ n , rsucⁿ , record {} , ≈refl
-all-scn (sucⁿ¹ n) = record {} 
-all-scn Rⁿ = λ z sz → 
-  Rⁿ¹ z ,
-      (rRⁿ ,
-          (λ f sf → Rⁿ² z f ,
-                          (rRⁿ¹ ,
+all-scn Zero0 = record {} 
+all-scn Suc0 = λ n _ → Suc1 n , Suc0⇓ , record {} , ≈refl
+all-scn (Suc1 n) = record {} 
+all-scn R0 = λ z sz → 
+  R1 z ,
+      (R0⇓ ,
+          (λ f sf → R2 z f ,
+                          (R1⇓ ,
                               (λ n _ → SCR z f n sz sf) ,
                               ≈refl)) ,
           ≈refl)  
-all-scn (Rⁿ¹ z) = λ f sf → 
-  Rⁿ² z f ,
-      rRⁿ¹ ,
+all-scn (R1 z) = λ f sf → 
+  R2 z f ,
+      R1⇓ ,
           (λ n _ → SCR z f n (all-scn z) sf) ,
           ≈refl
-all-scn (Rⁿ² z f) = λ n _ → SCR z f n (all-scn z) (all-scn f) 
+all-scn (R2 z f) = λ n _ → SCR z f n (all-scn z) (all-scn f) 
 
 SC : ∀ {α} → Tm α → Set
 SC {α} t = Σ (Nf α) λ n → (t ⇓ n) × SCN n × (t ≈ ⌜ n ⌝)
@@ -100,20 +100,20 @@ all-sc (t ∙ u) with all-sc t          | all-sc u
 all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca with sf a sa
 all-sc (t ∙ u) | f , rf , sf , cf | a , ra , sa , ca | v , rv , sv , cv
   = v , A⇓ rf ra rv , sv , ≈trans (≈cong∙ cf ca) cv
-all-sc zero    = zeroⁿ , rzero , record {} , ≈refl
-all-sc suc     = 
-  sucⁿ ,
-      rsuc ,
-          (λ n sn → sucⁿ¹ n ,
-                        rsucⁿ , record {} , ≈refl) ,
+all-sc Zero    = Zero0 , Zero⇓ , record {} , ≈refl
+all-sc Suc     = 
+  Suc0 ,
+      Suc⇓ ,
+          (λ n sn → Suc1 n ,
+                        Suc0⇓ , record {} , ≈refl) ,
           ≈refl
 all-sc R       = 
-  Rⁿ ,
-      rR ,
-          (λ z sz → Rⁿ¹ z ,
-                        rRⁿ ,
-                            (λ f sf → Rⁿ² z f ,
-                                          rRⁿ¹ ,
+  R0 ,
+      R⇓ ,
+          (λ z sz → R1 z ,
+                        R0⇓ ,
+                            (λ f sf → R2 z f ,
+                                          R1⇓ ,
                                               (λ n _ → SCR z f n sz sf) ,
                                               ≈refl) ,
                             ≈refl) ,

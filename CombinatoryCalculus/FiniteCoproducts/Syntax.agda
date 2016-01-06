@@ -12,10 +12,10 @@ infixr 5 _⇒_
 infixr 1 _+_
 
 data Ty : Set where
-  ⋆    : Ty
-  _⇒_  : Ty → Ty → Ty
-  Zero : Ty
-  _+_  : Ty → Ty → Ty
+  ⋆   : Ty
+  _⇒_ : Ty → Ty → Ty
+  Z   : Ty
+  _+_ : Ty → Ty → Ty
 
 --
 -- Typed terms.
@@ -27,7 +27,7 @@ data Tm : Ty → Set where
   K   : ∀ {α β} → Tm (α ⇒ β ⇒ α)
   S   : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   _∙_ : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
-  NE  : ∀ {α} → Tm (Zero ⇒ α) 
+  NE  : ∀ {α} → Tm (Z ⇒ α) 
   Inl : ∀ {α β} → Tm (α ⇒ (α + β))
   Inr : ∀ {α β} → Tm (β ⇒ (α + β))
   C   : ∀ {α β γ} → Tm ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
@@ -84,7 +84,7 @@ data Nf : Ty → Set where
   S0 : ∀ {α β γ} → Nf ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
-  NE0  : ∀ {α} → Nf (Zero ⇒ α)
+  NE0  : ∀ {α} → Nf (Z ⇒ α)
   Inl0 : ∀ {α β} → Nf (α ⇒ (α + β))
   Inl1 : ∀ {α β} → Nf α → Nf (α + β)
   Inr0 : ∀ {α β} → Nf (β ⇒ (α + β))

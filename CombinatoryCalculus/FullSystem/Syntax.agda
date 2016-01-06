@@ -14,12 +14,12 @@ infixr 1 _+_
 
 data Ty : Set where
   ⋆ : Ty
-  N : Ty
-  One : Ty
-  Zero : Ty
-  _⇒_  : Ty → Ty → Ty
+  _⇒_ : Ty → Ty → Ty
+  U   : Ty
   _*_ : Ty → Ty → Ty
-  _+_  : Ty → Ty → Ty
+  Z   : Ty
+  _+_ : Ty → Ty → Ty
+  N   : Ty
 
 --
 -- Typed terms.
@@ -31,16 +31,16 @@ data Tm : Ty → Set where
   K : ∀ {α β} → Tm (α ⇒ β ⇒ α)
   S : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   _∙_ : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
-  Void : Tm One
+  Void : Tm U
   Pr   : ∀ {α β} → Tm (α ⇒ β ⇒ (α * β))
   Fst  : ∀ {α β} → Tm ((α * β) ⇒ α)
   Snd  : ∀ {α β} → Tm ((α * β) ⇒ β)
-  NE   : ∀ {α} → Tm (Zero ⇒ α) 
+  NE   : ∀ {α} → Tm (Z ⇒ α) 
   Inl  : ∀ {α β} → Tm (α ⇒ (α + β))
   Inr  : ∀ {α β} → Tm (β ⇒ (α + β))
   C : ∀ {α β γ} → Tm ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
-  zero : Tm N
-  suc  : Tm (N ⇒ N)
+  Zero : Tm N
+  Suc  : Tm (N ⇒ N)
   R    : ∀ {α} → Tm (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
 
 --
@@ -70,10 +70,10 @@ data _≈_ : ∀ {α} → Tm α → Tm α → Set where
          C ∙ x ∙ y ∙ (Inl ∙ z) ≈ x ∙ z
   Cr : ∀ {α β γ} {x : Tm (α ⇒ γ)} {y : Tm (β ⇒ γ)} {z : Tm β} →
          C ∙ x ∙ y ∙ (Inr ∙ z) ≈ y ∙ z
-  ≈Rzero : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
-             R ∙ x ∙ y ∙ zero ≈ x
-  ≈Rsuc  : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
-             R ∙ x ∙ y ∙ (suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
+  ≈RZero : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
+             R ∙ x ∙ y ∙ Zero ≈ x
+  ≈RSuc  : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
+             R ∙ x ∙ y ∙ (Suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
 
 --
 -- Setoid reasoning.
@@ -99,13 +99,13 @@ data Nf : Ty → Set where
   S0 : ∀ {α β γ} → Nf ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
-  Void0 : Nf One
+  Void0 : Nf U
   Pr0   : ∀ {α β} → Nf (α ⇒ β ⇒ (α * β))
   Pr1  : ∀ {α β} → Nf α → Nf (β ⇒ (α * β))
   Pr2  : ∀ {α β} → Nf α → Nf β → Nf (α * β)
   Fst0  : ∀ {α β} → Nf ((α * β) ⇒ α)
   Snd0  : ∀ {α β} → Nf ((α * β) ⇒ β)
-  NE0  : ∀ {α} → Nf (Zero ⇒ α)
+  NE0  : ∀ {α} → Nf (Z ⇒ α)
   Inl0  : ∀ {α β} → Nf (α ⇒ (α + β))
   Inl1 : ∀ {α β} → Nf α → Nf (α + β)
   Inr0  : ∀ {α β} → Nf (β ⇒ (α + β))
@@ -113,12 +113,12 @@ data Nf : Ty → Set where
   C0 : ∀ {α β γ} → Nf ((α ⇒ γ) ⇒ (β ⇒ γ) ⇒ (α + β) ⇒ γ)
   C1 : ∀ {α β γ} → Nf (α ⇒ γ) → Nf ((β ⇒ γ) ⇒ (α + β) ⇒ γ)
   C2 : ∀ {α β γ} → Nf (α ⇒ γ) → Nf (β ⇒ γ) → Nf ((α + β) ⇒ γ)
-  zeroⁿ : Nf N
-  sucⁿ  : Nf (N ⇒ N)
-  sucⁿ¹ : Nf N → Nf N
-  Rⁿ    : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  Rⁿ¹   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  Rⁿ²   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
+  Zero0 : Nf N
+  Suc0  : Nf (N ⇒ N)
+  Suc1 : Nf N → Nf N
+  R0    : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R1   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R2   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
 
 -- Inclusion of normal forms in terms
 ⌜_⌝ : ∀ {α} → Nf α → Tm α
@@ -141,9 +141,9 @@ data Nf : Ty → Set where
 ⌜ C0 ⌝ = C
 ⌜ C1 l ⌝ = C ∙ ⌜ l ⌝
 ⌜ C2 l r ⌝ = C ∙ ⌜ l ⌝ ∙ ⌜ r ⌝
-⌜ zeroⁿ ⌝ = zero
-⌜ sucⁿ ⌝ = suc
-⌜ sucⁿ¹ n ⌝ = suc ∙ ⌜ n ⌝
-⌜ Rⁿ ⌝ = R
-⌜ Rⁿ¹ z ⌝ = R ∙ ⌜ z ⌝
-⌜ Rⁿ² z f ⌝ = R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝
+⌜ Zero0 ⌝ = Zero
+⌜ Suc0 ⌝ = Suc
+⌜ Suc1 n ⌝ = Suc ∙ ⌜ n ⌝
+⌜ R0 ⌝ = R
+⌜ R1 z ⌝ = R ∙ ⌜ z ⌝
+⌜ R2 z f ⌝ = R ∙ ⌜ z ⌝ ∙ ⌜ f ⌝

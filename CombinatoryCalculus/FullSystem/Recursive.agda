@@ -28,11 +28,11 @@ C0      ⟨∙⟩ l       = C1 l
 C1 l   ⟨∙⟩ r       = C2 l r
 C2 l r ⟨∙⟩ Inl1 x  = l ⟨∙⟩ x
 C2 l r ⟨∙⟩ Inr1 x  = r ⟨∙⟩ x
-sucⁿ    ⟨∙⟩ n       = sucⁿ¹ n
-Rⁿ      ⟨∙⟩ z       = Rⁿ¹ z
-Rⁿ¹ z   ⟨∙⟩ f       = Rⁿ² z f
-Rⁿ² z f ⟨∙⟩ zeroⁿ   = z
-Rⁿ² z f ⟨∙⟩ sucⁿ¹ n  = (f ⟨∙⟩ n) ⟨∙⟩ (Rⁿ² z f ⟨∙⟩ n)
+Suc0    ⟨∙⟩ n       = Suc1 n
+R0      ⟨∙⟩ z       = R1 z
+R1 z   ⟨∙⟩ f       = R2 z f
+R2 z f ⟨∙⟩ Zero0   = z
+R2 z f ⟨∙⟩ Suc1 n  = (f ⟨∙⟩ n) ⟨∙⟩ (R2 z f ⟨∙⟩ n)
 
 nf : {α : Ty} → Tm α → Nf α
 nf K = K0
@@ -46,9 +46,9 @@ nf NE      = NE0
 nf Inl     = Inl0
 nf Inr     = Inr0
 nf C       = C0
-nf zero = zeroⁿ
-nf suc  = sucⁿ
-nf R    = Rⁿ
+nf Zero = Zero0
+nf Suc  = Suc0
+nf R    = R0
 
 sound : ∀ {α}{t u : Tm α} → t ≈ u → nf t ≡ nf u
 sound ≈refl        = refl 
@@ -61,5 +61,5 @@ sound ≈Fst        = refl
 sound ≈Snd        = refl 
 sound Cl          = refl 
 sound Cr          = refl 
-sound ≈Rzero      = refl 
-sound ≈Rsuc       = refl 
+sound ≈RZero      = refl 
+sound ≈RSuc       = refl 

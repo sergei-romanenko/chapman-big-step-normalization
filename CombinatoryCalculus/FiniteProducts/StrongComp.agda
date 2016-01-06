@@ -12,7 +12,7 @@ SCN : ∀ {α} (u : Nf α) → Set
 SCN {⋆} u = ⊤
 SCN {α ⇒ β} u = ∀ v → SCN v →
   ∃ λ w → (u ⟨∙⟩ v ⇓ w) × (⌜ u ⌝ ∙ ⌜ v ⌝ ≈ ⌜ w ⌝) × SCN w
-SCN {One} u = ⊤
+SCN {U} u = ⊤
 SCN {α * β} u =
   (∃ λ w → (Fst0 ⟨∙⟩ u ⇓ w) × (Fst ∙ ⌜ u ⌝ ≈ ⌜ w ⌝) × SCN w)
   ×

@@ -34,15 +34,15 @@ data _⟨∙⟩_⇓_ : ∀ {α β} (u : Nf (α ⇒ β)) (v : Nf α) (w : Nf β) 
            r ⟨∙⟩ x ⇓ y → C2 l r ⟨∙⟩ Inr1 x ⇓ y 
   Inl0⇓ : ∀ {α β}{x : Nf α} → Inl0 {β = β} ⟨∙⟩ x ⇓ Inl1 x
   Inr0⇓ : ∀ {α β}{x : Nf β} → Inr0 {α = α} ⟨∙⟩ x ⇓ Inr1 x
-  rsucⁿ : {n : Nf N} → sucⁿ ⟨∙⟩ n ⇓ sucⁿ¹ n
-  rRⁿ   : {α : Ty}{z : Nf α} → Rⁿ ⟨∙⟩ z ⇓ Rⁿ¹ z
-  rRⁿ¹  : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → Rⁿ¹ z ⟨∙⟩ f ⇓ Rⁿ² z f
-  rRⁿ²z : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → 
-          Rⁿ² z f ⟨∙⟩ zeroⁿ ⇓ z
-  rRⁿ²f : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)}{n : Nf N}
+  Suc0⇓ : {n : Nf N} → Suc0 ⟨∙⟩ n ⇓ Suc1 n
+  R0⇓  : {α : Ty}{z : Nf α} → R0 ⟨∙⟩ z ⇓ R1 z
+  R1⇓  : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → R1 z ⟨∙⟩ f ⇓ R2 z f
+  R2Z⇓ : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)} → 
+          R2 z f ⟨∙⟩ Zero0 ⇓ z
+  R2S⇓ : {α : Ty}{z : Nf α}{f : Nf (N ⇒ α ⇒ α)}{n : Nf N}
           {fn : Nf (α ⇒ α)} → f ⟨∙⟩ n ⇓ fn → 
-          {rn : Nf α} → Rⁿ² z f ⟨∙⟩ n ⇓ rn → 
-          {rsn : Nf α} → fn ⟨∙⟩ rn ⇓ rsn → Rⁿ² z f ⟨∙⟩ sucⁿ¹ n ⇓ rsn
+          {rn : Nf α} → R2 z f ⟨∙⟩ n ⇓ rn → 
+          {rsn : Nf α} → fn ⟨∙⟩ rn ⇓ rsn → R2 z f ⟨∙⟩ Suc1 n ⇓ rsn
 
 data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where 
   K⇓ : ∀ {α β} →
@@ -60,9 +60,9 @@ data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where
   Inl⇓ : ∀ {α β} → Inl {α}{β} ⇓ Inl0
   Inr⇓ : ∀ {α β} → Inr {α}{β} ⇓ Inr0
   C⇓   : ∀ {α β γ} → C {α} {β} {γ} ⇓ C0
-  rzero : zero ⇓ zeroⁿ
-  rsuc  : suc ⇓ sucⁿ
-  rR    : ∀ {α} → R {α} ⇓ Rⁿ
+  Zero⇓ : Zero ⇓ Zero0
+  Suc⇓  : Suc ⇓ Suc0
+  R⇓    : ∀ {α} → R {α} ⇓ R0
 
 --
 -- Structurally recursive normalizer.
@@ -86,12 +86,12 @@ _⟨∙⟩_&_ : ∀ {α β}(f : Nf (α ⇒ β))(a : Nf α){n} → f ⟨∙⟩ a 
 .(C1 l)   ⟨∙⟩ r  & C1⇓ {l = l} = C2 l r , refl  
 .(C2 l r) ⟨∙⟩ .(Inl1 x) & C2L⇓ {l = l}{r = r}{x = x} p = l ⟨∙⟩ x & p
 .(C2 l r) ⟨∙⟩ .(Inr1 x) & C2R⇓ {l = l}{r = r}{x = x} p = r ⟨∙⟩ x & p
-.sucⁿ      ⟨∙⟩ n & rsucⁿ        = sucⁿ¹ n , refl  
-.Rⁿ        ⟨∙⟩ z & rRⁿ          = Rⁿ¹ z , refl  
-.(Rⁿ¹ z)   ⟨∙⟩ f & rRⁿ¹ {z = z} = Rⁿ² z f , refl 
-.(Rⁿ² z f) ⟨∙⟩ .zeroⁿ     & rRⁿ²z {z = z}{f = f} = z , refl 
-.(Rⁿ² z f) ⟨∙⟩ .(sucⁿ¹ n) & rRⁿ²f {z = z}{f = f}{n = n} p q r
-  with f ⟨∙⟩ n & p | Rⁿ² z f ⟨∙⟩ n & q
+.Suc0      ⟨∙⟩ n & Suc0⇓        = Suc1 n , refl  
+.R0        ⟨∙⟩ z & R0⇓          = R1 z , refl  
+.(R1 z)   ⟨∙⟩ f & R1⇓ {z = z} = R2 z f , refl 
+.(R2 z f) ⟨∙⟩ .Zero0     & R2Z⇓ {z = z}{f = f} = z , refl 
+.(R2 z f) ⟨∙⟩ .(Suc1 n) & R2S⇓ {z = z}{f = f}{n = n} p q r
+  with f ⟨∙⟩ n & p | R2 z f ⟨∙⟩ n & q
 ... | fn , refl | rn , refl = fn ⟨∙⟩ rn & r 
 
 eval : ∀ {α}(t : Tm α){n} → t ⇓ n → Σ (Nf α) λ n' → n' ≡ n
@@ -107,6 +107,6 @@ eval .NE NE⇓ = NE0 , refl
 eval .Inl Inl⇓ = Inl0 , refl
 eval .Inr Inr⇓ = Inr0 , refl
 eval .C C⇓ = C0 , refl 
-eval .zero rzero = zeroⁿ , refl 
-eval .suc rsuc   = sucⁿ , refl 
-eval .R rR       = Rⁿ , refl 
+eval .Zero Zero⇓ = Zero0 , refl 
+eval .Suc Suc⇓   = Suc0 , refl 
+eval .R R⇓       = R0 , refl 

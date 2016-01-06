@@ -11,9 +11,9 @@ open import NaturalNumbers.Utils
 infixr 5 _⇒_
 
 data Ty : Set where
-  ⋆ : Ty
-  N : Ty
+  ⋆   : Ty
   _⇒_ : Ty → Ty → Ty
+  N   : Ty
 
 --
 -- Typed terms.
@@ -25,8 +25,8 @@ data Tm : Ty → Set where
   K : ∀ {α β} → Tm (α ⇒ β ⇒ α)
   S : ∀ {α β γ} → Tm ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   _∙_ : ∀ {α β} → Tm (α ⇒ β) → Tm α → Tm β
-  zero : Tm N
-  suc  : Tm (N ⇒ N)
+  Zero : Tm N
+  Suc  : Tm (N ⇒ N)
   R    : ∀ {α} → Tm (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
 
 --
@@ -48,10 +48,10 @@ data _≈_ : ∀ {α} → Tm α → Tm α → Set where
              S ∙ x ∙ y ∙ z ≈ x ∙ z ∙ (y ∙ z)
   ≈cong∙ : ∀ {α β} {x y : Tm (α ⇒ β)} {x′ y′ : Tm α} →
              x ≈ y → x′ ≈ y′ → x ∙ x′ ≈ y ∙ y′
-  ≈Rzero : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
-             R ∙ x ∙ y ∙ zero ≈ x
-  ≈Rsuc  : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
-             R ∙ x ∙ y ∙ (suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
+  ≈RZero : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} →
+             R ∙ x ∙ y ∙ Zero ≈ x
+  ≈RSuc  : ∀ {α} {x : Tm α} {y : Tm (N ⇒ α ⇒ α)} {z : Tm N} → 
+             R ∙ x ∙ y ∙ (Suc ∙ z) ≈ y ∙ z ∙ (R ∙ x ∙ y ∙ z)
 
 --
 -- Setoid reasoning.
@@ -79,12 +79,12 @@ data Nf : Ty → Set where
   S0 : ∀ {α β γ} → Nf ((α ⇒ β ⇒ γ) ⇒ (α ⇒ β) ⇒ α ⇒ γ)
   S1 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf ((α ⇒ β) ⇒ α ⇒ γ)
   S2 : ∀ {α β γ} → Nf (α ⇒ β ⇒ γ) → Nf (α ⇒ β) → Nf (α ⇒ γ)
-  zeroⁿ : Nf N
-  sucⁿ  : Nf (N ⇒ N)
-  sucⁿ¹ : Nf N → Nf N
-  Rⁿ    : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  Rⁿ¹   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
-  Rⁿ²   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
+  Zero0 : Nf N
+  Suc0  : Nf (N ⇒ N)
+  Suc1 : Nf N → Nf N
+  R0    : ∀ {α} → Nf (α ⇒ (N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R1   : ∀ {α} → Nf α → Nf ((N ⇒ α ⇒ α) ⇒ N ⇒ α)
+  R2   : ∀ {α} → Nf α → Nf (N ⇒ α ⇒ α) → Nf (N ⇒ α)
 
 --
 -- Inclusion of normal forms in terms
@@ -96,9 +96,9 @@ data Nf : Ty → Set where
 ⌜ S0 ⌝ = S
 ⌜ S1 u ⌝ = S ∙ ⌜ u ⌝
 ⌜ S2 u v ⌝ = S ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
-⌜ zeroⁿ ⌝ = zero
-⌜ sucⁿ ⌝ = suc
-⌜ sucⁿ¹ u ⌝ = suc ∙ ⌜ u ⌝
-⌜ Rⁿ ⌝ = R
-⌜ Rⁿ¹ u ⌝ = R ∙ ⌜ u ⌝
-⌜ Rⁿ² u v ⌝ = R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
+⌜ Zero0 ⌝ = Zero
+⌜ Suc0 ⌝ = Suc
+⌜ Suc1 u ⌝ = Suc ∙ ⌜ u ⌝
+⌜ R0 ⌝ = R
+⌜ R1 u ⌝ = R ∙ ⌜ u ⌝
+⌜ R2 u v ⌝ = R ∙ ⌜ u ⌝ ∙ ⌜ v ⌝
