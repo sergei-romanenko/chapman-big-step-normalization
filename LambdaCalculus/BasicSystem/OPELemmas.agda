@@ -1,10 +1,10 @@
 module BasicSystem.OPELemmas where
 
-open import BasicSystem.Syntax
-open import BasicSystem.OPE
 open import BasicSystem.Utils
+open import BasicSystem.Syntax
 open import BasicSystem.Embeddings
 open import BasicSystem.Conversion
+open import BasicSystem.OPE
 
 rightid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp f oid ≡ f
 rightid done     = refl 

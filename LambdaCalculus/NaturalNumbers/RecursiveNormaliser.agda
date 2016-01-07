@@ -1,10 +1,10 @@
-{-# OPTIONS --no-termination-check 
-  #-}
-
 module NaturalNumbers.RecursiveNormaliser where
+
 open import NaturalNumbers.Syntax
 open import NaturalNumbers.OPE
+open import NaturalNumbers.IdentityEnvironment
 
+{-# TERMINATING #-}
 mutual
   eval : ∀ {Γ Δ σ} → Tm Δ σ → Env Γ Δ → Val Γ σ
   eval ø          (vs << v) = v
@@ -30,6 +30,7 @@ mutual
   evalˢ ı        vs        = vs
   evalˢ (ts ○ us) vs        = evalˢ ts (evalˢ us vs)
 
+{-# TERMINATING #-}
 mutual
   quot : ∀ {Γ σ} → Val Γ σ → Nf Γ σ
   quot {σ = ⋆}     (nev n)   = ne⋆ (quotⁿ n)
@@ -42,8 +43,6 @@ mutual
   quotⁿ (varV x)      = varN x
   quotⁿ (appV n v)    = appN (quotⁿ n) (quot v)
   quotⁿ (primV z s n) = primN (quot z) (quot s) (quotⁿ n)
-
-open import NaturalNumbers.IdentityEnvironment
 
 nf : ∀ {Γ σ} → Tm Γ σ → Nf Γ σ
 nf t = quot (eval t vid)

@@ -1,4 +1,5 @@
 module BasicSystem.StructuralNormaliser where
+
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
 open import BasicSystem.OPE

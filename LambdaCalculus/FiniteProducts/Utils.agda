@@ -1,6 +1,6 @@
 module FiniteProducts.Utils where
 
-open import Function using (_∘_) public
+open import Function public
 open import Relation.Binary.PropositionalEquality as P
   renaming ([_] to ≡[_]) public
 open import Data.Unit using (⊤; tt) public

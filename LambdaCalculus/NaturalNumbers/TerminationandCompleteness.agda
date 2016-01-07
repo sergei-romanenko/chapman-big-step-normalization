@@ -1,14 +1,15 @@
 module NaturalNumbers.TerminationandCompleteness where
+
 open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
-open import NaturalNumbers.OPE
-open import NaturalNumbers.OPEBigStep
-open import NaturalNumbers.OPELemmas
 open import NaturalNumbers.Embeddings
 open import NaturalNumbers.Conversion
-open import NaturalNumbers.BigStepSemantics
-open import NaturalNumbers.StrongComputability
+open import NaturalNumbers.OPE
+open import NaturalNumbers.OPELemmas
 open import NaturalNumbers.IdentityEnvironment
+open import NaturalNumbers.BigStepSemantics
+open import NaturalNumbers.OPEBigStep
+open import NaturalNumbers.StrongComputability
 
 mutual
   quotelema : ∀ {Γ} σ {v : Val Γ σ} → 

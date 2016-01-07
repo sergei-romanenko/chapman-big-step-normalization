@@ -1,9 +1,11 @@
 module FullSystem.IdentityEnvironment where
+
+open import FullSystem.Utils
 open import FullSystem.Syntax
+open import FullSystem.Embeddings
 open import FullSystem.Conversion
 open import FullSystem.OPE
 open import FullSystem.OPELemmas
-open import FullSystem.Embeddings
 
 vid : ∀ {Γ} → Env Γ Γ
 vid {ε}     = ε

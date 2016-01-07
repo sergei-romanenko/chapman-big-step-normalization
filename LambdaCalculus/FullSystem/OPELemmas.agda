@@ -1,10 +1,10 @@
 module FullSystem.OPELemmas where
 
-open import FullSystem.Syntax
-open import FullSystem.OPE
 open import FullSystem.Utils
+open import FullSystem.Syntax
 open import FullSystem.Embeddings
 open import FullSystem.Conversion
+open import FullSystem.OPE
 
 rightid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp f oid ≡ f
 rightid done     = refl 

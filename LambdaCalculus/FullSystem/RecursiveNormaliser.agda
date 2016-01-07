@@ -1,9 +1,10 @@
-{-# OPTIONS --no-termination-check #-}
-
 module FullSystem.RecursiveNormaliser where
+
 open import FullSystem.Syntax
 open import FullSystem.OPE
+open import FullSystem.IdentityEnvironment
 
+{-# TERMINATING #-}
 mutual
   eval : ∀ {Γ Δ σ} → Tm Δ σ → Env Γ Δ → Val Γ σ
   eval ø          (vs << v) = v
@@ -42,6 +43,7 @@ mutual
   evalˢ ı        vs        = vs
   evalˢ (ts ○ us) vs        = evalˢ ts (evalˢ us vs)
 
+{-# TERMINATING #-}
 mutual
   quot : ∀ {Γ σ} → Val Γ σ → Nf Γ σ
   quot {σ = ⋆}     (nev n)   = ne⋆ (quotⁿ n)
@@ -58,8 +60,6 @@ mutual
   quotⁿ (primV z s n) = primN (quot z) (quot s) (quotⁿ n)
   quotⁿ (fstV n)   = fstN (quotⁿ n) 
   quotⁿ (sndV n)   = sndN (quotⁿ n) 
-
-open import FullSystem.IdentityEnvironment
 
 nf : ∀ {Γ σ} → Tm Γ σ → Nf Γ σ
 nf t = quot (eval t vid)

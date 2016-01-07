@@ -1,10 +1,11 @@
 module FiniteProducts.StrongConvertibility where
+
+open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
 open import FiniteProducts.OPE
 open import FiniteProducts.OPELemmas
-open import FiniteProducts.OPERecursive
 open import FiniteProducts.RecursiveNormaliser
-open import FiniteProducts.Utils
+open import FiniteProducts.OPERecursive
 
 _∼_ : ∀ {Γ σ} → Val Γ σ → Val Γ σ → Set 
 _∼_ {Γ}{⋆}     (nev n) (nev n') = quotⁿ n ≡ quotⁿ n'   

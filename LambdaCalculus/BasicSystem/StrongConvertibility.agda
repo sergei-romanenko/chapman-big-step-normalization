@@ -1,10 +1,11 @@
 module BasicSystem.StrongConvertibility where
+
+open import BasicSystem.Utils
 open import BasicSystem.Syntax
 open import BasicSystem.OPE
 open import BasicSystem.OPELemmas
-open import BasicSystem.OPERecursive
 open import BasicSystem.RecursiveNormaliser
-open import BasicSystem.Utils
+open import BasicSystem.OPERecursive
 
 _∼_ : ∀ {Γ σ} → Val Γ σ → Val Γ σ → Set 
 _∼_ {Γ}{⋆}     (nev n) (nev n') = quotⁿ n ≡ quotⁿ n'   

@@ -1,5 +1,5 @@
-{-# OPTIONS --no-termination-check #-}
 module FullSystem.OPERecursive where
+
 open import FullSystem.Utils
 open import FullSystem.Syntax
 open import FullSystem.OPE
@@ -8,6 +8,7 @@ open import FullSystem.RecursiveNormaliser
 
 -- Unsurprisingly this isn't structurally recursive
 
+{-# TERMINATING #-}
 mutual
   evmaplem : ∀ {B Γ Δ σ}(f : OPE B Γ)(t : Tm Δ σ)(vs : Env Γ Δ) → 
              eval t (emap f vs) ≡ vmap f (eval t vs)
@@ -63,6 +64,7 @@ mutual
     trans (cong (evalˢ ts) (evˢmaplem f us vs)) 
            (evˢmaplem f ts (evalˢ us vs))  
 
+{-# TERMINATING #-}
 mutual
   qmaplem : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) → 
              quot (vmap f v) ≡ nfmap f (quot v)

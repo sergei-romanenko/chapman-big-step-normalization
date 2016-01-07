@@ -1,14 +1,15 @@
 module FiniteProducts.TerminationandCompleteness where
+
 open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
-open import FiniteProducts.OPE
-open import FiniteProducts.OPEBigStep
-open import FiniteProducts.OPELemmas
 open import FiniteProducts.Embeddings
 open import FiniteProducts.Conversion
-open import FiniteProducts.BigStepSemantics
-open import FiniteProducts.StrongComputability
+open import FiniteProducts.OPE
+open import FiniteProducts.OPELemmas
 open import FiniteProducts.IdentityEnvironment
+open import FiniteProducts.BigStepSemantics
+open import FiniteProducts.OPEBigStep
+open import FiniteProducts.StrongComputability
 
 mutual
   fundthrm : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) → SCE vs →

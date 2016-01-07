@@ -1,10 +1,11 @@
 module FullSystem.StrongConvertibility where
+
+open import FullSystem.Utils
 open import FullSystem.Syntax
 open import FullSystem.OPE
 open import FullSystem.OPELemmas
-open import FullSystem.OPERecursive
 open import FullSystem.RecursiveNormaliser
-open import FullSystem.Utils
+open import FullSystem.OPERecursive
 
 data _∼ⁿ_ : ∀ {Γ N} → Val Γ N → Val Γ N → Set where
   ∼zero : ∀ {Γ} → zerov {Γ} ∼ⁿ zerov

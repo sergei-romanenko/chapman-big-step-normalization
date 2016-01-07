@@ -1,9 +1,11 @@
 module NaturalNumbers.IdentityEnvironment where
+
+open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
+open import NaturalNumbers.Embeddings
 open import NaturalNumbers.Conversion
 open import NaturalNumbers.OPE
 open import NaturalNumbers.OPELemmas
-open import NaturalNumbers.Embeddings
 
 vid : ∀ {Γ} → Env Γ Γ
 vid {ε}     = ε

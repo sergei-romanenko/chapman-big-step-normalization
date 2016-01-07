@@ -1,12 +1,13 @@
 module NaturalNumbers.StrongComputability where
+
 open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
-open import NaturalNumbers.OPE
-open import NaturalNumbers.OPEBigStep
-open import NaturalNumbers.OPELemmas
 open import NaturalNumbers.Embeddings
 open import NaturalNumbers.Conversion
+open import NaturalNumbers.OPE
+open import NaturalNumbers.OPELemmas
 open import NaturalNumbers.BigStepSemantics
+open import NaturalNumbers.OPEBigStep
 
 SCV : ∀ {Γ σ} → Val Γ σ → Set
 SCV {Γ} {⋆}     (nev n)  = Σ (NeN Γ ⋆) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)

@@ -1,13 +1,15 @@
 module FiniteProducts.Soundness where
+
 open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
+open import FiniteProducts.Conversion
 open import FiniteProducts.OPE
 open import FiniteProducts.OPELemmas
-open import FiniteProducts.OPERecursive
-open import FiniteProducts.RecursiveNormaliser
-open import FiniteProducts.Conversion
-open import FiniteProducts.StrongConvertibility
 open import FiniteProducts.IdentityEnvironment
+open import FiniteProducts.RecursiveNormaliser
+open import FiniteProducts.OPERecursive
+open import FiniteProducts.StrongConvertibility
+
 mutual
   idext : ∀ {Γ Δ σ}(t : Tm Δ σ){vs vs' : Env Γ Δ} → vs ∼ˢ vs' →
           eval t vs ∼ eval t vs'

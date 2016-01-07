@@ -1,9 +1,11 @@
 module BasicSystem.IdentityEnvironment where
+
+open import BasicSystem.Utils
 open import BasicSystem.Syntax
+open import BasicSystem.Embeddings
 open import BasicSystem.Conversion
 open import BasicSystem.OPE
 open import BasicSystem.OPELemmas
-open import BasicSystem.Embeddings
 
 vid : ∀ {Γ} → Env Γ Γ
 vid {ε}     = ε

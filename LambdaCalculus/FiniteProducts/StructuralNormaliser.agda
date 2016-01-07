@@ -1,4 +1,5 @@
 module FiniteProducts.StructuralNormaliser where
+
 open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
 open import FiniteProducts.OPE

@@ -1,4 +1,5 @@
 module NaturalNumbers.StructuralNormaliser where
+
 open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
 open import NaturalNumbers.OPE

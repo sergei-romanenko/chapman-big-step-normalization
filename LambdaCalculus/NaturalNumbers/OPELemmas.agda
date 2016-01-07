@@ -1,10 +1,10 @@
 module NaturalNumbers.OPELemmas where
 
-open import NaturalNumbers.Syntax
-open import NaturalNumbers.OPE
 open import NaturalNumbers.Utils
+open import NaturalNumbers.Syntax
 open import NaturalNumbers.Embeddings
 open import NaturalNumbers.Conversion
+open import NaturalNumbers.OPE
 
 rightid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp f oid ≡ f
 rightid done     = refl 

@@ -1,10 +1,11 @@
 module NaturalNumbers.StrongConvertibility where
+
+open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
 open import NaturalNumbers.OPE
 open import NaturalNumbers.OPELemmas
-open import NaturalNumbers.OPERecursive
 open import NaturalNumbers.RecursiveNormaliser
-open import NaturalNumbers.Utils
+open import NaturalNumbers.OPERecursive
 
 data _∼ⁿ_ : ∀ {Γ N} → Val Γ N → Val Γ N → Set where
   ∼zero : ∀ {Γ} → zerov {Γ} ∼ⁿ zerov

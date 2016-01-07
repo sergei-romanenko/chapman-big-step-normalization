@@ -1,13 +1,14 @@
 module NaturalNumbers.Soundness where
+
 open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
+open import NaturalNumbers.Conversion
 open import NaturalNumbers.OPE
 open import NaturalNumbers.OPELemmas
-open import NaturalNumbers.OPERecursive
-open import NaturalNumbers.RecursiveNormaliser
-open import NaturalNumbers.Conversion
-open import NaturalNumbers.StrongConvertibility
 open import NaturalNumbers.IdentityEnvironment
+open import NaturalNumbers.RecursiveNormaliser
+open import NaturalNumbers.OPERecursive
+open import NaturalNumbers.StrongConvertibility
 
 mutual
   squotlema : ∀ {Γ σ}{v v' : Val Γ σ} → 

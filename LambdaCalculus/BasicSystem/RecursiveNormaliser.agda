@@ -1,9 +1,10 @@
-{-# OPTIONS --no-termination-check #-}
-
 module BasicSystem.RecursiveNormaliser where
+
 open import BasicSystem.Syntax
 open import BasicSystem.OPE
+open import BasicSystem.IdentityEnvironment
 
+{-# TERMINATING #-}
 mutual
   eval : ∀ {Γ Δ σ} → Tm Δ σ → Env Γ Δ → Val Γ σ
   eval ø        (vs << v) = v
@@ -21,6 +22,7 @@ mutual
   evalˢ ı        vs        = vs
   evalˢ (ts ○ us) vs        = evalˢ ts (evalˢ us vs)
 
+{-# TERMINATING #-}
 mutual
   quot : ∀ {Γ σ} → Val Γ σ → Nf Γ σ
   quot {σ = σ ⇒ τ} f       = λn (quot (vwk σ f ∙∙ nev (varV vZ)))
@@ -29,8 +31,6 @@ mutual
   quotⁿ : ∀ {Γ σ} → NeV Γ σ → NeN Γ σ
   quotⁿ (varV x)   = varN x
   quotⁿ (appV n v) = appN (quotⁿ n) (quot v)
-
-open import BasicSystem.IdentityEnvironment
 
 nf : ∀ {Γ σ} → Tm Γ σ → Nf Γ σ
 nf t = quot (eval t vid)

@@ -1,14 +1,15 @@
 module FullSystem.TerminationandCompleteness where
+
 open import FullSystem.Utils
 open import FullSystem.Syntax
-open import FullSystem.OPE
-open import FullSystem.OPEBigStep
-open import FullSystem.OPELemmas
 open import FullSystem.Embeddings
 open import FullSystem.Conversion
-open import FullSystem.BigStepSemantics
-open import FullSystem.StrongComputability
+open import FullSystem.OPE
+open import FullSystem.OPELemmas
 open import FullSystem.IdentityEnvironment
+open import FullSystem.BigStepSemantics
+open import FullSystem.OPEBigStep
+open import FullSystem.StrongComputability
 
 mutual
   quotelema : ∀ {Γ} σ {v : Val Γ σ} → 

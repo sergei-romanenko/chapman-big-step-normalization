@@ -1,13 +1,14 @@
 module BasicSystem.Soundness where
+
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
+open import BasicSystem.Conversion
 open import BasicSystem.OPE
 open import BasicSystem.OPELemmas
-open import BasicSystem.OPERecursive
-open import BasicSystem.RecursiveNormaliser
-open import BasicSystem.Conversion
-open import BasicSystem.StrongConvertibility
 open import BasicSystem.IdentityEnvironment
+open import BasicSystem.RecursiveNormaliser
+open import BasicSystem.OPERecursive
+open import BasicSystem.StrongConvertibility
 
 mutual
   idext : ∀ {Γ Δ σ}(t : Tm Δ σ){vs vs' : Env Γ Δ} → vs ∼ˢ vs' →

@@ -1,12 +1,13 @@
 module BasicSystem.StrongComputability where
+
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
-open import BasicSystem.OPE
-open import BasicSystem.OPEBigStep
-open import BasicSystem.OPELemmas
 open import BasicSystem.Embeddings
 open import BasicSystem.Conversion
+open import BasicSystem.OPE
+open import BasicSystem.OPELemmas
 open import BasicSystem.BigStepSemantics
+open import BasicSystem.OPEBigStep
 
 SCV : ∀ {Γ σ} → Val Γ σ → Set
 SCV {Γ} {⋆}     (nev n) = Σ (NeN Γ ⋆) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)

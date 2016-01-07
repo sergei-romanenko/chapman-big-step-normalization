@@ -1,12 +1,13 @@
 module FullSystem.StrongComputability where
+
 open import FullSystem.Utils
 open import FullSystem.Syntax
-open import FullSystem.OPE
-open import FullSystem.OPEBigStep
-open import FullSystem.OPELemmas
 open import FullSystem.Embeddings
 open import FullSystem.Conversion
+open import FullSystem.OPE
+open import FullSystem.OPELemmas
 open import FullSystem.BigStepSemantics
+open import FullSystem.OPEBigStep
 
 SCV : ∀ {Γ σ} → Val Γ σ → Set
 SCV {Γ} {⋆}     (nev n)  = Σ (NeN Γ ⋆) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)

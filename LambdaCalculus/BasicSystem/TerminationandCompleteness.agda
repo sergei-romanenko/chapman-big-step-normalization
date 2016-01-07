@@ -1,14 +1,15 @@
 module BasicSystem.TerminationandCompleteness where
+
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
-open import BasicSystem.OPE
-open import BasicSystem.OPEBigStep
-open import BasicSystem.OPELemmas
 open import BasicSystem.Embeddings
 open import BasicSystem.Conversion
-open import BasicSystem.BigStepSemantics
-open import BasicSystem.StrongComputability
+open import BasicSystem.OPE
+open import BasicSystem.OPELemmas
 open import BasicSystem.IdentityEnvironment
+open import BasicSystem.BigStepSemantics
+open import BasicSystem.OPEBigStep
+open import BasicSystem.StrongComputability
 
 mutual
   fundthrm : ∀ {Γ Δ σ}(t : Tm Δ σ)(vs : Env Γ Δ) → SCE vs →

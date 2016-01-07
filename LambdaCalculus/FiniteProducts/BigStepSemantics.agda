@@ -1,4 +1,5 @@
 module FiniteProducts.BigStepSemantics where
+
 open import FiniteProducts.Syntax
 open import FiniteProducts.OPE
 

@@ -1,9 +1,10 @@
-{-# OPTIONS --no-termination-check #-}
-
 module FiniteProducts.RecursiveNormaliser where
+
 open import FiniteProducts.Syntax
 open import FiniteProducts.OPE
+open import FiniteProducts.IdentityEnvironment
 
+{-# TERMINATING #-}
 mutual
   eval : ∀ {Γ Δ σ} → Tm Δ σ → Env Γ Δ → Val Γ σ
   eval ø        (vs << v) = v
@@ -33,6 +34,7 @@ mutual
   evalˢ ı        vs        = vs
   evalˢ (ts ○ us) vs        = evalˢ ts (evalˢ us vs)
 
+{-# TERMINATING #-}
 mutual
   quot : ∀ {Γ σ} → Val Γ σ → Nf Γ σ
   quot {σ = ⋆}     (nev n) = ne (quotⁿ n)
@@ -48,8 +50,6 @@ mutual
   quotⁿ (appV n v) = appN (quotⁿ n) (quot v)
   quotⁿ (fstV n)   = fstN (quotⁿ n) 
   quotⁿ (sndV n)   = sndN (quotⁿ n) 
-
-open import FiniteProducts.IdentityEnvironment
 
 nf : ∀ {Γ σ} → Tm Γ σ → Nf Γ σ
 nf t = quot (eval t vid)

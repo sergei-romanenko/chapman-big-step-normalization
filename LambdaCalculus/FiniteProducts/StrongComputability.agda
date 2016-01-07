@@ -1,12 +1,13 @@
 module FiniteProducts.StrongComputability where
+
 open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
-open import FiniteProducts.OPE
-open import FiniteProducts.OPEBigStep
-open import FiniteProducts.OPELemmas
 open import FiniteProducts.Embeddings
 open import FiniteProducts.Conversion
+open import FiniteProducts.OPE
+open import FiniteProducts.OPELemmas
 open import FiniteProducts.BigStepSemantics
+open import FiniteProducts.OPEBigStep
 
 SCV : ∀ {Γ σ} → Val Γ σ → Set
 SCV {Γ} {⋆}     (nev n) = Σ (NeN Γ ⋆) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)

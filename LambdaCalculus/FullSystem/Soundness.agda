@@ -1,13 +1,14 @@
 module FullSystem.Soundness where
+
 open import FullSystem.Utils
 open import FullSystem.Syntax
+open import FullSystem.Conversion
 open import FullSystem.OPE
 open import FullSystem.OPELemmas
-open import FullSystem.OPERecursive
-open import FullSystem.RecursiveNormaliser
-open import FullSystem.Conversion
-open import FullSystem.StrongConvertibility
 open import FullSystem.IdentityEnvironment
+open import FullSystem.RecursiveNormaliser
+open import FullSystem.OPERecursive
+open import FullSystem.StrongConvertibility
 
 mutual
   squotlema : ∀ {Γ σ}{v v' : Val Γ σ} → 

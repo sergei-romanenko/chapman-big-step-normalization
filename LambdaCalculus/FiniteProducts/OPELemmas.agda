@@ -1,10 +1,10 @@
 module FiniteProducts.OPELemmas where
 
-open import FiniteProducts.Syntax
-open import FiniteProducts.OPE
 open import FiniteProducts.Utils
+open import FiniteProducts.Syntax
 open import FiniteProducts.Embeddings
 open import FiniteProducts.Conversion
+open import FiniteProducts.OPE
 
 rightid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp f oid ≡ f
 rightid done     = refl 
