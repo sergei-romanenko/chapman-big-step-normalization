@@ -12,7 +12,7 @@ open import BasicSystem.StrongComp
 nf : ∀ {α} (x : Tm α) → Nf α
 
 nf x with all-sc x
-... | u , p , x⇓u , x≈⌜u⌝ with eval x x⇓u
+... | u , p , x⇓u with eval x x⇓u
 ... | u′ , u′≡u = u′
 
 
@@ -60,7 +60,7 @@ nf x with all-sc x
 complete : ∀ {α} (x : Tm α) → x ≈ ⌜ nf x ⌝
 
 complete x with all-sc x
-... | u , p , x⇓u , x≈⌜u⌝ with eval x x⇓u
+... | u , p , x⇓u with eval x x⇓u
 ... | ._ , refl =
   ⇓-complete x⇓u
 
@@ -78,7 +78,7 @@ complete x with all-sc x
 ⇓-sound (≈sym x≈y) x⇓u x⇓v =
   sym $ ⇓-sound x≈y x⇓v x⇓u
 ⇓-sound (≈trans {α} {x} {z} {y} x≈z z≈y) x⇓u y⇓v =
-  let w , r , z⇓w , _ = all-sc z
+  let w , r , z⇓w = all-sc z
   in trans (⇓-sound x≈z x⇓u z⇓w) (⇓-sound z≈y z⇓w y⇓v)
 ⇓-sound ≈K (A⇓ (A⇓ K⇓ x⇓′ K0⇓) y⇓ K1⇓) x⇓′′ =
   ⇓-det x⇓′ x⇓′′
@@ -95,7 +95,7 @@ complete x with all-sc x
 sound : ∀ {α} {x y : Tm α} → x ≈ y → nf x ≡ nf y
 
 sound {α} {x} {y} x≈y with all-sc x | all-sc y
-... | u , p , ⇓u , _ | v , q , ⇓v , _
+... | u , p , ⇓u | v , q , ⇓v
   with eval x ⇓u | eval y ⇓v
 ... | ._ , refl | ._ , refl
   = ⇓-sound x≈y ⇓u ⇓v
