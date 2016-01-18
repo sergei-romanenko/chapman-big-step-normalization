@@ -12,7 +12,7 @@ open import NaturalNumbers.StrongComp
 nf : ∀ {α} (x : Tm α) → Nf α
 
 nf x with all-sc x
-... | u , x⇓u , x≈⌜u⌝ , scn-u with eval x x⇓u
+... | u , p , x⇓u , x≈⌜u⌝ with eval x x⇓u
 ... | u′ , u′≡u = u′
 
 --
@@ -22,7 +22,7 @@ nf x with all-sc x
 complete : ∀ {α} (x : Tm α) → x ≈ ⌜ nf x ⌝
 
 complete x with all-sc x
-... | u , x⇓u , x≈⌜u⌝ , scn-u with eval x x⇓u
+... | u , p , x⇓u , x≈⌜u⌝ with eval x x⇓u
 ... | ._ , refl = x≈⌜u⌝
 
 --
@@ -32,7 +32,7 @@ complete x with all-sc x
 sound : ∀ {α} (x y : Tm α) → x ≈ y → ⌜ nf x ⌝ ≈ ⌜ nf y ⌝
 
 sound x y x≈y with all-sc x | all-sc y
-... | u , x⇓u , x≈⌜u⌝ , scn-u | v , y⇓v , y≈⌜v⌝ , scn-v
+... | u , p , x⇓u , x≈⌜u⌝ | v , q , y⇓v , y≈⌜v⌝
   with eval x x⇓u | eval y y⇓v
 ... | u′ , u′≡u | v′ , v′≡v = begin
   ⌜ u′ ⌝
