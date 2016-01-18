@@ -80,3 +80,36 @@ eval (x ∙ y) (A⇓ x⇓ y⇓ ⇓w) with eval x x⇓ | eval y y⇓
 eval Zero Zero⇓ = Zero0 , refl
 eval Suc Suc⇓ = Suc0 , refl
 eval R R⇓ = R0 , refl
+
+--
+-- Determinism: x ⇓ u → x ⇓ v → u ≡ v
+--
+
+⟨∙⟩⇓-det : ∀ {α β} {u : Nf (α ⇒ β)} {v : Nf α} {w w′ : Nf β} →
+  u ⟨∙⟩ v ⇓ w → u ⟨∙⟩ v ⇓ w′ → w ≡ w′
+
+⟨∙⟩⇓-det K0⇓ K0⇓ = refl
+⟨∙⟩⇓-det K1⇓ K1⇓ = refl
+⟨∙⟩⇓-det S0⇓ S0⇓ = refl
+⟨∙⟩⇓-det S1⇓ S1⇓ = refl
+⟨∙⟩⇓-det (S2⇓ p q r) (S2⇓ p′ q′ r′)
+  rewrite ⟨∙⟩⇓-det p p′ | ⟨∙⟩⇓-det q q′ | ⟨∙⟩⇓-det r r′
+  = refl
+⟨∙⟩⇓-det Suc0⇓ Suc0⇓ = refl
+⟨∙⟩⇓-det R0⇓ R0⇓ = refl
+⟨∙⟩⇓-det R1⇓ R1⇓ = refl
+⟨∙⟩⇓-det R2z⇓ R2z⇓ = refl
+⟨∙⟩⇓-det (R2s⇓ p q r) (R2s⇓ p′ q′ r′)
+  rewrite ⟨∙⟩⇓-det p p′ | ⟨∙⟩⇓-det q q′ | ⟨∙⟩⇓-det r r′
+  = refl
+
+⇓-det : ∀ {α} {x : Tm α} {u u′ : Nf α} →
+  x ⇓ u → x ⇓ u′ → u ≡ u′
+⇓-det K⇓ K⇓ = refl
+⇓-det S⇓ S⇓ = refl
+⇓-det (A⇓ p q r) (A⇓ p′ q′ r′)
+  rewrite ⇓-det p p′ | ⇓-det q q′ | ⟨∙⟩⇓-det r r′
+  = refl
+⇓-det Zero⇓ Zero⇓ = refl
+⇓-det Suc⇓ Suc⇓ = refl
+⇓-det R⇓ R⇓ = refl

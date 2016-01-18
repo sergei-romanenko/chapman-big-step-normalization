@@ -32,6 +32,28 @@ data _⇓_ : {α : Ty} (x : Tm α) (u : Nf α) → Set where
     x ∙ y ⇓ w
 
 --
+-- Determinism: x ⇓ u → x ⇓ v → u ≡ v
+--
+
+⟨∙⟩⇓-det : ∀ {α β} {u : Nf (α ⇒ β)} {v : Nf α} {w w′ : Nf β} →
+  u ⟨∙⟩ v ⇓ w → u ⟨∙⟩ v ⇓ w′ → w ≡ w′
+⟨∙⟩⇓-det K0⇓ K0⇓ = refl
+⟨∙⟩⇓-det K1⇓ K1⇓ = refl
+⟨∙⟩⇓-det S0⇓ S0⇓ = refl
+⟨∙⟩⇓-det S1⇓ S1⇓ = refl
+⟨∙⟩⇓-det (S2⇓ p q r) (S2⇓ p′ q′ r′)
+  rewrite ⟨∙⟩⇓-det p p′ | ⟨∙⟩⇓-det q q′ | ⟨∙⟩⇓-det r r′
+  = refl
+
+⇓-det : ∀ {α} {x : Tm α} {u u′ : Nf α} →
+  x ⇓ u → x ⇓ u′ → u ≡ u′
+⇓-det K⇓ K⇓ = refl
+⇓-det S⇓ S⇓ = refl
+⇓-det (A⇓ p q r) (A⇓ p′ q′ r′)
+  rewrite ⇓-det p p′ | ⇓-det q q′ | ⟨∙⟩⇓-det r r′
+  = refl
+
+--
 -- Structurally recursive normalizer.
 --
 

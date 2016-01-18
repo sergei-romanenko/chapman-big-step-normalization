@@ -75,3 +75,36 @@ eval Void Void⇓ = Void0 , refl
 eval Pr Pr⇓ = Pr0 , refl
 eval Fst Fst⇓ = Fst0 , refl
 eval Snd Snd⇓ = Snd0 , refl
+
+
+--
+-- Determinism: x ⇓ u → x ⇓ v → u ≡ v
+--
+
+⟨∙⟩⇓-det : ∀ {α β} {u : Nf (α ⇒ β)} {v : Nf α} {w w′ : Nf β} →
+  u ⟨∙⟩ v ⇓ w → u ⟨∙⟩ v ⇓ w′ → w ≡ w′
+
+⟨∙⟩⇓-det K0⇓ K0⇓ = refl
+⟨∙⟩⇓-det K1⇓ K1⇓ = refl
+⟨∙⟩⇓-det S0⇓ S0⇓ = refl
+⟨∙⟩⇓-det S1⇓ S1⇓ = refl
+⟨∙⟩⇓-det (S2⇓ p q r) (S2⇓ p′ q′ r′)
+  rewrite ⟨∙⟩⇓-det p p′ | ⟨∙⟩⇓-det q q′ | ⟨∙⟩⇓-det r r′
+  = refl
+⟨∙⟩⇓-det Pr0⇓ Pr0⇓ = refl
+⟨∙⟩⇓-det Pr1⇓ Pr1⇓ = refl
+⟨∙⟩⇓-det Fst0⇓ Fst0⇓ = refl
+⟨∙⟩⇓-det Snd0⇓ Snd0⇓ = refl
+
+
+⇓-det : ∀ {α} {x : Tm α} {u u′ : Nf α} →
+  x ⇓ u → x ⇓ u′ → u ≡ u′
+⇓-det K⇓ K⇓ = refl
+⇓-det S⇓ S⇓ = refl
+⇓-det (A⇓ p q r) (A⇓ p′ q′ r′)
+  rewrite ⇓-det p p′ | ⇓-det q q′ | ⟨∙⟩⇓-det r r′
+  = refl
+⇓-det Void⇓ Void⇓ = refl
+⇓-det Pr⇓ Pr⇓ = refl
+⇓-det Fst⇓ Fst⇓ = refl
+⇓-det Snd⇓ Snd⇓ = refl
