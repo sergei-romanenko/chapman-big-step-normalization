@@ -7,8 +7,8 @@ open import BasicSystem.OPELemmas
 open import BasicSystem.BigStepSemantics
 
 mutual
-  eval⇓map : ∀ {B Γ Δ σ}(f : OPE B Γ)
-             {t : Tm Δ σ}{vs : Env Γ Δ}{v : Val Γ σ} →
+  eval⇓map : ∀ {B Γ Δ α}(f : OPE B Γ)
+             {t : Tm Δ α}{vs : Env Γ Δ}{v : Val Γ α} →
              eval t & vs ⇓ v → eval t & emap f vs ⇓ vmap f v
   eval⇓map f rlam            = rlam 
   eval⇓map f rvar            = rvar 
@@ -16,8 +16,8 @@ mutual
   eval⇓map f (rapp p p' p'') = 
     rapp (eval⇓map f p) (eval⇓map f p') (∙∙⇓map f p'') 
 
-  ∙∙⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ)
-           {v : Val Δ (σ ⇒ τ)}{a : Val Δ σ}{v' : Val Δ τ} →
+  ∙∙⇓map : ∀ {Γ Δ α β}(f : OPE Γ Δ)
+           {v : Val Δ (α ⇒ β)}{a : Val Δ α}{v' : Val Δ β} →
            v ∙∙ a ⇓ v' → vmap f v ∙∙ vmap f a ⇓ vmap f v'
   ∙∙⇓map f (r∙lam p) = r∙lam (eval⇓map f p) 
   ∙∙⇓map f r∙ne      = r∙ne 
@@ -31,16 +31,20 @@ mutual
   evalˢ⇓map f (rˢcomp p p') = rˢcomp (evalˢ⇓map f p) (evalˢ⇓map f p')
 
 mutual
-  quot⇓map : ∀ {Γ Δ σ}(f : OPE Γ Δ) →
-              {v : Val Δ σ}{n : Nf Δ σ} →
+  quot⇓map : ∀ {Γ Δ α}(f : OPE Γ Δ) →
+              {v : Val Δ α}{n : Nf Δ α} →
               quot v ⇓ n → quot vmap f v ⇓ nfmap f n
-  quot⇓map {σ = σ ⇒ τ} f (qarr {f = v} p p') with ∙∙⇓map (keep _ f) p
-  ... | p'' with vmap (keep σ f) (vmap (skip σ oid) v) | quotlemma σ f v
-  ... | ._ | refl = qarr p'' (quot⇓map (keep _ f) p') 
+  quot⇓map {α = α ⇒ β} f (qarr {f = v} p p') with ∙∙⇓map (keep _ f) p
+  ... | p'' with vmap (keep α f) (vmap (skip α oid) v) | quotlemma α f v
+  ... | ._ | refl =
+    qarr (vmap (skip α oid) (vmap f v) ∙∙ ne (var zero) ⇓ vmap (keep α f) _
+               ∋ p'')
+         (quot vmap (keep α f) _ ⇓ nfmap (keep α f) _
+               ∋ quot⇓map (keep _ f) p') 
   quot⇓map f (qbase p)   = qbase (quotⁿ⇓map f p) 
 
-  quotⁿ⇓map : ∀ {Γ Δ σ}(f : OPE Γ Δ) →
-              {n : NeV Δ σ}{n' : NeN Δ σ} →
+  quotⁿ⇓map : ∀ {Γ Δ α}(f : OPE Γ Δ) →
+              {n : NeVal Δ α}{n' : NeNf Δ α} →
               quotⁿ n ⇓ n' → quotⁿ nevmap f n ⇓ nenmap f n'
   quotⁿ⇓map f qⁿvar        = qⁿvar 
   quotⁿ⇓map f (qⁿapp p p') = qⁿapp (quotⁿ⇓map f p) (quot⇓map f p') 

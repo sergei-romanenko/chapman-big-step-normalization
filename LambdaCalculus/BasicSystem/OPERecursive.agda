@@ -10,9 +10,9 @@ open import BasicSystem.RecursiveNormaliser
 
 {-# TERMINATING #-}
 mutual
-  evmaplem : ∀ {B Γ Δ σ}(f : OPE B Γ)(t : Tm Δ σ)(vs : Env Γ Δ) → 
+  evmaplem : ∀ {B Γ Δ α}(f : OPE B Γ)(t : Tm Δ α)(vs : Env Γ Δ) → 
              eval t (emap f vs) ≡ vmap f (eval t vs)
-  evmaplem f ø        (vs << v) = refl 
+  evmaplem f ø        (v ∷ vs) = refl 
   evmaplem f (t [ ts ]) vs        = 
     trans (cong (eval t) (evˢmaplem f ts vs)) (evmaplem f t (evalˢ ts vs)) 
   evmaplem f (ƛ t)     vs        = refl 
@@ -21,16 +21,16 @@ mutual
            (∙∙maplem f (eval t vs) (eval u vs))
            
 
-  ∙∙maplem : ∀ {Γ Δ σ τ}(f : OPE Γ Δ)(v : Val Δ (σ ⇒ τ))(a : Val Δ σ) →
+  ∙∙maplem : ∀ {Γ Δ α β}(f : OPE Γ Δ)(v : Val Δ (α ⇒ β))(a : Val Δ α) →
              vmap f v ∙∙ vmap f a ≡ vmap f (v ∙∙ a)
-  ∙∙maplem f (λv t vs) a = evmaplem f t (vs << a) 
-  ∙∙maplem f (nev n)   a = refl 
+  ∙∙maplem f (lam t vs) a = evmaplem f t (a ∷ vs) 
+  ∙∙maplem f (ne n)   a = refl 
 
   evˢmaplem : ∀ {A B Γ Δ}(f : OPE A B)(ts : Sub Γ Δ)(vs : Env B Γ) →
               evalˢ ts (emap f vs) ≡ emap f (evalˢ ts vs)
-  evˢmaplem f (↑ σ)   (vs << v) = refl 
-  evˢmaplem f (ts < t)  vs        = 
-    cong₂ _<<_ (evˢmaplem f ts vs) (evmaplem f t vs) 
+  evˢmaplem f ↑   (v ∷ vs) = refl 
+  evˢmaplem f (t ∷ ts)  vs        = 
+    cong₂ _∷_ (evmaplem f t vs) (evˢmaplem f ts vs) 
   evˢmaplem f ı        vs        = refl 
   evˢmaplem f (ts ○ us) vs        = 
     trans (cong (evalˢ ts) (evˢmaplem f us vs)) 
@@ -38,24 +38,24 @@ mutual
 
 {-# TERMINATING #-}
 mutual
-  qmaplem : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) → 
+  qmaplem : ∀ {Γ Δ α}(f : OPE Γ Δ)(v : Val Δ α) → 
              quot (vmap f v) ≡ nfmap f (quot v)
-  qmaplem {σ = ⋆}     f (nev n) = cong ne (qⁿmaplem f n) 
-  qmaplem {σ = σ ⇒ τ} f v       = 
-    cong λn 
-         (trans (cong (λ v → quot (v ∙∙ nev (varV vZ))) 
-                       (compvmap (skip σ oid) f v)) 
-                 (trans (trans (cong (λ f → quot (vmap (skip σ f) v ∙∙ nev (varV vZ))) 
+  qmaplem {α = ⋆}     f (ne n) = cong ne (qⁿmaplem f n) 
+  qmaplem {α = α ⇒ β} f v       = 
+    cong lam 
+         (trans (cong (λ v → quot (v ∙∙ ne (var zero))) 
+                       (compvmap (skip α oid) f v)) 
+                 (trans (trans (cong (λ f → quot (vmap (skip α f) v ∙∙ ne (var zero))) 
                                        (trans (leftid f) (sym (rightid f))))
-                                 (cong quot (trans (cong (λ v → v ∙∙ nev (varV vZ))
-                                                           (sym (compvmap (keep σ f) (skip σ oid) v)))  
-                                                     (∙∙maplem (keep σ f) 
-                                                               (vmap (skip σ oid) v) 
-                                                               (nev (varV vZ)) ))))
-                         (qmaplem (keep σ f) 
-                                  (vmap (skip σ oid) v ∙∙ nev (varV vZ))))) 
+                                 (cong quot (trans (cong (λ v → v ∙∙ ne (var zero))
+                                                           (sym (compvmap (keep α f) (skip α oid) v)))  
+                                                     (∙∙maplem (keep α f) 
+                                                               (vmap (skip α oid) v) 
+                                                               (ne (var zero)) ))))
+                         (qmaplem (keep α f) 
+                                  (vmap (skip α oid) v ∙∙ ne (var zero))))) 
 
-  qⁿmaplem : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : NeV Δ σ) → 
+  qⁿmaplem : ∀ {Γ Δ α}(f : OPE Γ Δ)(n : NeVal Δ α) → 
              quotⁿ (nevmap f n) ≡ nenmap f (quotⁿ n)
-  qⁿmaplem f (varV x)   = refl 
-  qⁿmaplem f (appV n v) = cong₂ appN (qⁿmaplem f n) (qmaplem f v) 
+  qⁿmaplem f (var x)   = refl 
+  qⁿmaplem f (app n v) = cong₂ app (qⁿmaplem f n) (qmaplem f v) 

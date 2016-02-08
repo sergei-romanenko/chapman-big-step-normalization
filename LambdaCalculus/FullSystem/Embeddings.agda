@@ -8,7 +8,7 @@ embˣ (vS τ x) = embˣ x [ ↑ τ ]
 
 mutual
   emb  : ∀ {Γ σ} → Val Γ σ → Tm Γ σ
-  emb (λv t vs) = ƛ t [ embˢ vs ] 
+  emb (λv t vs) = (ƛ t) [ embˢ vs ]
   emb (nev n)   = embⁿ n 
   emb zerov     = zero 
   emb (sucv v)  = suc (emb v) 

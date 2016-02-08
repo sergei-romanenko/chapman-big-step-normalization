@@ -105,6 +105,7 @@ eval R R⇓ = R0 , refl
 
 ⇓-det : ∀ {α} {x : Tm α} {u u′ : Nf α} →
   x ⇓ u → x ⇓ u′ → u ≡ u′
+
 ⇓-det K⇓ K⇓ = refl
 ⇓-det S⇓ S⇓ = refl
 ⇓-det (A⇓ p q r) (A⇓ p′ q′ r′)

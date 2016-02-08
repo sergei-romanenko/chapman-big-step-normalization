@@ -6,31 +6,31 @@ open import BasicSystem.IdentityEnvironment
 
 {-# TERMINATING #-}
 mutual
-  eval : ∀ {Γ Δ σ} → Tm Δ σ → Env Γ Δ → Val Γ σ
-  eval ø        (vs << v) = v
+  eval : ∀ {Γ Δ α} → Tm Δ α → Env Γ Δ → Val Γ α
+  eval ø        (v ∷ vs) = v
   eval (t [ ts ]) vs        = eval t (evalˢ ts vs)
-  eval (ƛ t)     vs        = λv t vs
+  eval (ƛ t)     vs        = lam t vs
   eval (t ∙ u)    vs        = eval t vs ∙∙ eval u vs
 
-  _∙∙_ : ∀ {Γ σ τ} → Val Γ (σ ⇒ τ) → Val Γ σ → Val Γ τ
-  λv t vs ∙∙ v = eval t (vs << v)
-  nev n   ∙∙ v = nev (appV n v)
+  _∙∙_ : ∀ {Γ α β} → Val Γ (α ⇒ β) → Val Γ α → Val Γ β
+  lam t vs ∙∙ v = eval t (v ∷ vs)
+  ne n   ∙∙ v = ne (app n v)
 
   evalˢ : ∀ {Γ Δ Σ} → Sub Δ Σ → Env Γ Δ → Env Γ Σ
-  evalˢ (↑ σ)   (vs << v) = vs
-  evalˢ (ts < t)  vs        = evalˢ ts vs << eval t vs
+  evalˢ ↑ (v ∷ vs) = vs
+  evalˢ (t ∷ ts)  vs        = eval t vs ∷ evalˢ ts vs
   evalˢ ı        vs        = vs
   evalˢ (ts ○ us) vs        = evalˢ ts (evalˢ us vs)
 
 {-# TERMINATING #-}
 mutual
-  quot : ∀ {Γ σ} → Val Γ σ → Nf Γ σ
-  quot {σ = σ ⇒ τ} f       = λn (quot (vwk σ f ∙∙ nev (varV vZ)))
-  quot {σ = ⋆}     (nev n) = ne (quotⁿ n)
+  quot : ∀ {Γ α} → Val Γ α → Nf Γ α
+  quot {α = α ⇒ β} f       = lam (quot (vwk α f ∙∙ ne (var zero)))
+  quot {α = ⋆}     (ne n) = ne (quotⁿ n)
 
-  quotⁿ : ∀ {Γ σ} → NeV Γ σ → NeN Γ σ
-  quotⁿ (varV x)   = varN x
-  quotⁿ (appV n v) = appN (quotⁿ n) (quot v)
+  quotⁿ : ∀ {Γ α} → NeVal Γ α → NeNf Γ α
+  quotⁿ (var x)   = var x
+  quotⁿ (app n v) = app (quotⁿ n) (quot v)
 
-nf : ∀ {Γ σ} → Tm Γ σ → Nf Γ σ
+nf : ∀ {Γ α} → Tm Γ α → Nf Γ α
 nf t = quot (eval t vid)

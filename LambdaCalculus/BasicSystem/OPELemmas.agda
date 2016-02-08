@@ -8,113 +8,126 @@ open import BasicSystem.OPE
 
 rightid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp f oid ≡ f
 rightid done     = refl 
-rightid (keep σ f) = cong (keep σ) (rightid f) 
-rightid (skip σ f) = cong (skip σ) (rightid f)
+rightid (keep α f) = cong (keep α) (rightid f) 
+rightid (skip α f) = cong (skip α) (rightid f)
 
 leftid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp oid f ≡ f
 leftid done       = refl 
-leftid (keep σ f) = cong (keep σ)  (leftid f) 
-leftid (skip σ f) = cong (skip σ) (leftid f)
+leftid (keep α f) = cong (keep α)  (leftid f) 
+leftid (skip α f) = cong (skip α) (leftid f)
 
 -- Variables
-oidxmap : ∀ {Γ σ}(x : Var Γ σ) → xmap oid x ≡ x
-oidxmap vZ       = refl 
-oidxmap (vS σ x) = cong (vS σ) (oidxmap x) 
+oidxmap : ∀ {Γ α}(x : Var Γ α) → xmap oid x ≡ x
+oidxmap zero       = refl 
+oidxmap (suc x) = cong suc (oidxmap x) 
 
-compxmap : ∀ {B Γ Δ σ}(f : OPE B Γ)(g : OPE Γ Δ)(x : Var Δ σ) → 
+compxmap : ∀ {B Γ Δ α}(f : OPE B Γ)(g : OPE Γ Δ)(x : Var Δ α) → 
            xmap f (xmap g x) ≡ xmap (comp f g) x
 compxmap done     done     ()
-compxmap (skip σ f) g           x         = cong (vS σ) (compxmap f g x)  
-compxmap (keep σ f) (keep .σ g) vZ        = refl 
-compxmap (keep σ f) (keep .σ g) (vS .σ x) = cong (vS σ) (compxmap f g x) 
-compxmap (keep σ f) (skip .σ g) x         = cong (vS σ) (compxmap f g x) 
+compxmap (skip α f) g           x         = cong suc (compxmap f g x)  
+compxmap (keep α f) (keep .α g) zero        = refl 
+compxmap (keep α f) (keep .α g) (suc x) = cong suc (compxmap f g x) 
+compxmap (keep α f) (skip .α g) x         = cong suc (compxmap f g x) 
 
 -- Values
 mutual
-  oidvmap : ∀ {Γ σ}(v : Val Γ σ) → vmap oid v ≡ v
-  oidvmap (λv t vs) = cong (λv t) (oidemap vs) 
-  oidvmap (nev n)   = cong nev (oidnevmap n) 
+  oidvmap : ∀ {Γ α}(v : Val Γ α) → vmap oid v ≡ v
+  oidvmap (lam t vs) = cong (lam t) (oidemap vs) 
+  oidvmap (ne n)   = cong ne (oidnevmap n) 
 
-  oidnevmap : ∀ {Γ σ}(n : NeV Γ σ) → nevmap oid n ≡ n
-  oidnevmap (varV x)   = cong varV (oidxmap x) 
-  oidnevmap (appV n v) = cong₂ appV (oidnevmap n) (oidvmap v) 
+  oidnevmap : ∀ {Γ α}(n : NeVal Γ α) → nevmap oid n ≡ n
+  oidnevmap (var x)   = cong var (oidxmap x) 
+  oidnevmap (app n v) = cong₂ app (oidnevmap n) (oidvmap v) 
   
   oidemap : ∀ {Γ Δ}(vs : Env Γ Δ) → emap oid vs ≡ vs
-  oidemap ε        = refl 
-  oidemap (vs << v) = cong₂ _<<_ (oidemap vs) (oidvmap v) 
+  oidemap []        = refl 
+  oidemap (v ∷ vs) = cong₂ _∷_ (oidvmap v) (oidemap vs) 
 
 mutual
-  compvmap : ∀ {B Γ Δ σ}(f : OPE B Γ)(g : OPE Γ Δ)(v : Val Δ σ) → 
+  compvmap : ∀ {B Γ Δ α}(f : OPE B Γ)(g : OPE Γ Δ)(v : Val Δ α) → 
              vmap f (vmap g v) ≡ vmap (comp f g) v
-  compvmap f g (λv t vs) = cong (λv t) (compemap f g vs) 
-  compvmap f g (nev n)   = cong nev (compnevmap f g n) 
+  compvmap f g (lam t vs) = cong (lam t) (compemap f g vs) 
+  compvmap f g (ne n)   = cong ne (compnevmap f g n) 
 
-  compnevmap : ∀ {B Γ Δ σ}(f : OPE B Γ)(g : OPE Γ Δ)(n : NeV Δ σ) → 
+  compnevmap : ∀ {B Γ Δ α}(f : OPE B Γ)(g : OPE Γ Δ)(n : NeVal Δ α) → 
                nevmap f (nevmap g n) ≡ nevmap (comp f g) n
-  compnevmap f g (varV x)   = cong varV (compxmap f g x) 
-  compnevmap f g (appV n v) = cong₂ appV (compnevmap f g n) (compvmap f g v) 
+  compnevmap f g (var x)   = cong var (compxmap f g x) 
+  compnevmap f g (app n v) = cong₂ app (compnevmap f g n) (compvmap f g v) 
 
   compemap : ∀ {A B Γ Δ}(f : OPE A B)(g : OPE B Γ)(vs : Env Γ Δ) → 
              emap f (emap g vs) ≡ emap (comp f g) vs
-  compemap f g ε         = refl 
-  compemap f g (vs << v) = cong₂ _<<_ (compemap f g vs) (compvmap f g v) 
+  compemap f g []         = refl 
+  compemap f g (v ∷ vs) = cong₂ _∷_ (compvmap f g v) (compemap f g vs) 
 
-quotlemma : ∀ {Γ Δ σ} τ (f : OPE Γ Δ)(v : Val Δ σ) →
-             vmap (keep τ f) (vmap (skip τ oid) v) ≡ vwk τ (vmap f v)
-quotlemma τ f v = 
-  trans (trans (compvmap (keep τ f) (skip τ oid) v)
-                 (cong (λ f → vmap (skip τ f) v)
+quotlemma : ∀ {Γ Δ α} β (f : OPE Γ Δ)(v : Val Δ α) →
+             vmap (keep β f) (vmap (skip β oid) v) ≡ vwk β (vmap f v)
+quotlemma β f v = 
+  trans (trans (compvmap (keep β f) (skip β oid) v)
+                 (cong (λ f → vmap (skip β f) v)
                        (trans (rightid f) 
                                (sym (leftid f)))))
-         (sym (compvmap (skip τ oid) f v))
+         (sym (compvmap (skip β oid) f v))
 
 -- Embedding and conversion
 -- Variables
-oxemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(x : Var Δ σ) →
+oxemb : ∀ {Γ Δ α}(f : OPE Γ Δ)(x : Var Δ α) →
         embˣ (xmap f x) ≈ embˣ x [ oemb f ]
-oxemb (keep σ f) vZ       = ≈sym ø< 
-oxemb (skip σ f) vZ       = ≈trans (cong[] (oxemb f vZ) ≃refl) [][] 
-oxemb (keep .τ f) (vS τ x) = 
+oxemb (keep α f) zero       = ≈sym ø< 
+oxemb (skip α f) zero       = ≈trans (cong[] (oxemb f zero) ≃refl) [][] 
+oxemb (keep β f) (suc x) = 
   ≈trans (cong[] (oxemb f x) ≃refl)
         (≈trans (≈trans [][] (cong[] ≈refl (≃sym ↑comp))) (≈sym [][])) 
-oxemb (skip σ  f) (vS τ x) = ≈trans (cong[] (oxemb f (vS τ x)) ≃refl) [][] 
+oxemb (skip α  f) (suc x) = ≈trans (cong[] (oxemb f (suc x)) ≃refl) [][] 
 oxemb done ()
 
 -- Values
 mutual
-  ovemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) →
+  ovemb : ∀ {Γ Δ α}(f : OPE Γ Δ)(v : Val Δ α) →
             emb (vmap f v) ≈ emb v [ oemb f ]
-  ovemb f (λv t vs) = ≈trans (cong[] ≈refl (oeemb f vs)) (≈sym [][]) 
-  ovemb f (nev n)   = onevemb f n 
+  ovemb f (lam t vs) =
+    ≈trans ((ƛ t) [ embˢ (emap f vs) ] ≈ (ƛ t) [ embˢ vs ○ oemb f ] ∋
+              cong[] ≈refl (oeemb f vs))
+           ((ƛ t) [ embˢ vs ○ oemb f ] ≈ ((ƛ t) [ embˢ vs ]) [ oemb f ] ∋
+              ≈sym [][]) 
+  ovemb f (ne n)   = onevemb f n 
 
-  onevemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : NeV Δ σ) →
+  onevemb : ∀ {Γ Δ α}(f : OPE Γ Δ)(n : NeVal Δ α) →
             embⁿ (nevmap f n) ≈ embⁿ n [ oemb f ]
-  onevemb f (varV x)   = oxemb f x 
-  onevemb f (appV n v) = ≈trans (cong∙ (onevemb f n) (ovemb f v)) (≈sym ∙[]) 
+  onevemb f (var x)   = oxemb f x 
+  onevemb f (app n v) = ≈trans (cong∙ (onevemb f n) (ovemb f v)) (≈sym ∙[]) 
 
   oeemb : ∀ {B Γ Δ}(f : OPE B Γ)(vs : Env Γ Δ) →
            embˢ (emap f vs) ≃ embˢ vs ○ oemb f
-  oeemb f (vs << v) = ≃trans (cong< (oeemb f vs) (ovemb f v)) (≃sym comp<) 
-  oeemb {Γ = Γ < σ} (keep .σ f) ε = 
-    ≃trans (≃trans (≃trans (cong○ (oeemb f ε) ≃refl) assoc) 
-                   (cong○ ≃refl (≃sym ↑comp))) 
-           (≃sym assoc) 
-  oeemb {Γ = Γ < σ} (skip τ  f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
-  oeemb {Γ = ε} done       ε = ≃sym leftidˢ 
-  oeemb {Γ = ε} (skip σ f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
+  oeemb f (v ∷  vs) = ≃trans (cong< (oeemb f vs) (ovemb f v)) (≃sym comp<) 
+  oeemb {Γ = α ∷ Γ} (keep .α f) [] = 
+    ≃trans (≃trans (≃trans (cong○ (oeemb f []) ≃refl) assoc) 
+                           (cong○ ≃refl (≃sym ↑comp))) 
+           (embˢ [] ○ (↑ ○ (ø ∷ (oemb f ○ ↑))) ≃
+              (embˢ [] ○ ↑) ○ (ø ∷ (oemb f ○ ↑)) ∋ ≃sym assoc) 
+  oeemb {Γ = α ∷ Γ} (skip β  f) [] =
+    ≃trans (embˢ [] ○ (↑) ≃
+                 ((embˢ [] ○ ↑) ○ oemb f) ○ ↑ ∋ cong○ (oeemb f []) ≃refl)
+           (((embˢ [] ○ ↑) ○ oemb f) ○ ↑ ≃
+                   (embˢ [] ○ ↑) ○ (oemb f ○ ↑) ∋ assoc) 
+  oeemb {Γ = []} done       [] = ≃sym leftidˢ 
+  oeemb {Γ = []} (skip α f) [] =
+    ≃trans (embˢ [] ○ ↑ ≃ (ı ○ oemb f) ○ ↑
+                 ∋ cong○ (oeemb f []) ≃refl)
+           ((ı ○ oemb f) ○ ↑ ≃ ı ○ (oemb f ○ ↑)
+                 ∋ assoc)
 
 lemoid : ∀ {Γ} → ı {Γ} ≃ oemb oid
-lemoid {ε}     = ≃refl 
-lemoid {Γ < σ} = ≃trans idcomp (cong< (cong○ (lemoid {Γ}) ≃refl) ≈refl) 
+lemoid {[]}     = ≃refl 
+lemoid {α ∷ Γ} = ≃trans idcomp (cong< (cong○ (lemoid {Γ}) ≃refl) ≈refl) 
 
 -- Normal Forms
 mutual
-  onfemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : Nf Δ σ) →
+  onfemb : ∀ {Γ Δ α}(f : OPE Γ Δ)(n : Nf Δ α) →
            nemb (nfmap f n) ≈ nemb n [ oemb f ]
-  onfemb f (λn n) = ≈trans (congλ (onfemb (keep _ f) n)) (≈sym λ[]) 
+  onfemb f (lam n) = ≈trans (congλ (onfemb (keep _ f) n)) (≈sym λ[]) 
   onfemb f (ne n) = onenemb f n 
 
-  onenemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : NeN Δ σ) →
+  onenemb : ∀ {Γ Δ α}(f : OPE Γ Δ)(n : NeNf Δ α) →
             nembⁿ (nenmap f n) ≈ nembⁿ n [ oemb f ]
-  onenemb f (varN x)    = oxemb f x 
-  onenemb f (appN n n') = ≈trans (cong∙ (onenemb f n) (onfemb f n')) (≈sym ∙[]) 
+  onenemb f (var x)    = oxemb f x 
+  onenemb f (app n n') = ≈trans (cong∙ (onenemb f n) (onfemb f n')) (≈sym ∙[]) 

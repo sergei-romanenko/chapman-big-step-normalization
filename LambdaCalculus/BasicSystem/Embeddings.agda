@@ -2,29 +2,29 @@ module BasicSystem.Embeddings where
 
 open import BasicSystem.Syntax
 
-embˣ : ∀ {Γ σ} → Var Γ σ → Tm Γ σ
-embˣ vZ       = ø 
-embˣ (vS τ x) = embˣ x [ ↑ τ ]
+embˣ : ∀ {Γ α} → Var Γ α → Tm Γ α
+embˣ zero = ø
+embˣ (suc x) = embˣ x [ ↑ ]
 
 mutual
-  emb  : ∀ {Γ σ} → Val Γ σ → Tm Γ σ
-  emb (λv t vs) = ƛ t [ embˢ vs ] 
-  emb (nev n)   = embⁿ n 
+  emb  : ∀ {Γ α} → Val Γ α → Tm Γ α
+  emb (lam t vs) = (ƛ t) [ embˢ vs ]
+  emb (ne n)   = embⁿ n 
 
-  embⁿ : ∀ {Γ σ} → NeV Γ σ → Tm Γ σ
-  embⁿ (varV x)   = embˣ x 
-  embⁿ (appV n v) = embⁿ n ∙ emb v
+  embⁿ : ∀ {Γ α} → NeVal Γ α → Tm Γ α
+  embⁿ (var x)   = embˣ x 
+  embⁿ (app n v) = embⁿ n ∙ emb v
   
   embˢ : ∀ {Γ Σ} → Env Γ Σ → Sub Γ Σ
-  embˢ (vs << v) = embˢ vs < emb v
-  embˢ {ε}     ε = ı 
-  embˢ {Γ < σ} ε = embˢ {Γ} ε ○ ↑ σ 
+  embˢ (v ∷ vs) =  emb v ∷ embˢ vs
+  embˢ {[]}     [] = ı 
+  embˢ {α ∷ Γ} [] = embˢ {Γ} [] ○ ↑
 
 mutual
-  nemb  : ∀ {Γ σ} → Nf Γ σ → Tm Γ σ
-  nemb (λn n) = ƛ (nemb n) 
+  nemb  : ∀ {Γ α} → Nf Γ α → Tm Γ α
+  nemb (lam n) = ƛ (nemb n) 
   nemb (ne n) = nembⁿ n
 
-  nembⁿ : ∀ {Γ σ} → NeN Γ σ → Tm Γ σ
-  nembⁿ (varN x) = embˣ x
-  nembⁿ (appN n n') = nembⁿ n ∙ nemb n'
+  nembⁿ : ∀ {Γ α} → NeNf Γ α → Tm Γ α
+  nembⁿ (var x) = embˣ x
+  nembⁿ (app n n') = nembⁿ n ∙ nemb n'

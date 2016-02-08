@@ -1,8 +1,8 @@
 module FullSystem.Utils where
 
 open import Function public
-open import Relation.Binary.PropositionalEquality as P
-  renaming ([_] to ≡[_]) public
+open import Relation.Binary.PropositionalEquality as P public
+  renaming ([_] to ≡[_])
 open import Data.Unit using (⊤; tt) public
 open import Data.Product hiding (<_,_>) public
 

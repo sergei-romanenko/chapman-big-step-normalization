@@ -6,33 +6,33 @@ infix 4 _≈_
 infix 4 _≃_
 
 mutual
-  data _≈_ : ∀ {Γ σ} → Tm Γ σ → Tm Γ σ → Set where
+  data _≈_ : ∀ {Γ α} → Tm Γ α → Tm Γ α → Set where
     -- equivalence closure
-    ≈refl  : ∀ {Γ σ}{t : Tm Γ σ} → t ≈ t
-    ≈sym   : ∀ {Γ σ}{t t' : Tm Γ σ} → t ≈ t' → t' ≈ t
-    ≈trans : ∀ {Γ σ}{t t' t'' : Tm Γ σ} → t ≈ t' → t' ≈ t'' → t ≈ t''
+    ≈refl  : ∀ {Γ α}{t : Tm Γ α} → t ≈ t
+    ≈sym   : ∀ {Γ α}{t t' : Tm Γ α} → t ≈ t' → t' ≈ t
+    ≈trans : ∀ {Γ α}{t t' t'' : Tm Γ α} → t ≈ t' → t' ≈ t'' → t ≈ t''
 
     -- congruence closure
-    cong[]   : ∀ {Γ Δ σ}{t t' : Tm Δ σ}{ts ts' : Sub Γ Δ} → t ≈ t' →
+    cong[]   : ∀ {Γ Δ α}{t t' : Tm Δ α}{ts ts' : Sub Γ Δ} → t ≈ t' →
                ts ≃ ts' → t [ ts ] ≈ t' [ ts' ]
 
-    congλ    : ∀ {Γ σ τ}{t t' : Tm (Γ < σ) τ} → t ≈ t' → ƛ t ≈ ƛ t'
-    cong∙    : ∀ {Γ σ τ}{t t' : Tm Γ (σ ⇒ τ)}{u u' : Tm Γ σ} → t ≈ t' →
+    congλ    : ∀ {Γ α β}{t t' : Tm (α ∷ Γ) β} → t ≈ t' → (ƛ t) ≈ (ƛ t')
+    cong∙    : ∀ {Γ α β}{t t' : Tm Γ (α ⇒ β)}{u u' : Tm Γ α} → t ≈ t' →
                 u ≈ u' → t ∙ u ≈ t' ∙ u'
 
     -- computation rules
-    ø<   : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → ø [ ts < t ] ≈ t 
-    [][] : ∀ {B Γ Δ σ}{t : Tm Δ σ}{ts : Sub Γ Δ}{us : Sub B Γ} →
+    ø<   : ∀ {Γ Δ α}{ts : Sub Γ Δ}{t : Tm Γ α} → ø [ t ∷ ts ] ≈ t 
+    [][] : ∀ {B Γ Δ α}{t : Tm Δ α}{ts : Sub Γ Δ}{us : Sub B Γ} →
            t [ ts ] [ us ] ≈ t [ ts ○ us ]
-    []id : ∀ {Γ σ}{t : Tm Γ σ} → t [ ı ] ≈ t
+    []id : ∀ {Γ α}{t : Tm Γ α} → t [ ı ] ≈ t
 
-    λ[]  : ∀ {Γ Δ σ τ}{t : Tm (Δ < σ) τ}{ts : Sub Γ Δ} → 
-           ƛ t [ ts ] ≈ ƛ (t [ (ts ○ ↑ σ) < ø ])
-    ∙[]  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ ⇒ τ)}{u : Tm Δ σ}{ts : Sub Γ Δ} →
+    λ[]  : ∀ {Γ Δ α β}{t : Tm (α ∷ Δ) β}{ts : Sub Γ Δ} → 
+           (ƛ t) [ ts ] ≈ (ƛ t [ ø ∷ (ts ○ ↑) ])
+    ∙[]  : ∀ {Γ Δ α β}{t : Tm Δ (α ⇒ β)}{u : Tm Δ α}{ts : Sub Γ Δ} →
            (t ∙ u) [ ts ] ≈ t [ ts ] ∙ (u [ ts ])
-    β    : ∀ {Γ σ τ}{t : Tm (Γ < σ) τ}{u : Tm Γ σ} →
-           ƛ t ∙ u ≈ t [ ı < u ]
-    η    : ∀ {Γ σ τ}{t : Tm Γ (σ ⇒ τ)} → t ≈  ƛ (t [ ↑ σ ] ∙ ø)
+    ≈βσ  : ∀ {Γ α β}{t : Tm (α ∷ Γ) β}{u : Tm Γ α} →
+           (ƛ t) ∙ u ≈ t [ u ∷ ı ]
+    ≈η    : ∀ {Γ α β}{t : Tm Γ (α ⇒ β)} → t ≈  (ƛ t [ ↑ ] ∙ ø)
 
   data _≃_ : ∀ {Γ Δ} → Sub Γ Δ → Sub Γ Δ → Set where
     -- equivalence closure
@@ -42,18 +42,18 @@ mutual
              ts' ≃ ts'' → ts ≃ ts''
   
     -- congruence closure
-    cong<  : ∀ {Γ Δ σ}{ts ts' : Sub Γ Δ}{t t' : Tm Γ σ} → ts ≃ ts' →
-             t ≈ t' → ts < t ≃ ts' < t'
+    cong<  : ∀ {Γ Δ α}{ts ts' : Sub Γ Δ}{t t' : Tm Γ α} → ts ≃ ts' →
+             t ≈ t' → t ∷ ts ≃ t' ∷ ts'
     cong○  : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ}{us us' : Sub B Γ} → ts ≃ ts' →
              us ≃ us' → ts ○ us ≃ ts' ○ us'
 
     -- computation rules
-    idcomp  : ∀ {Γ σ} → ı ≃ (ı {Γ} ○ ↑ σ) < ø
-    ↑comp : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → 
-              ↑ σ ○ (ts < t) ≃ ts
+    idcomp  : ∀ {Γ α} → ı {α ∷ Γ} ≃  ø ∷ (ı ○ ↑)
+    ↑comp : ∀ {Γ Δ α}{ts : Sub Γ Δ}{t : Tm Γ α} → 
+              ↑ ○ (t ∷ ts) ≃ ts
     leftidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ı ○ ts ≃ ts
     rightidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ○ ı ≃ ts
     assoc   : ∀ {A B Γ Δ}{ts : Sub Γ Δ}{us : Sub B Γ}{vs : Sub A B} →
               (ts ○ us) ○ vs ≃ ts ○ (us ○ vs)
-    comp<   : ∀ {B Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ}{us : Sub B Γ} →
-              (ts < t) ○ us ≃ (ts ○ us) < t [ us ]
+    comp<   : ∀ {B Γ Δ α}{ts : Sub Γ Δ}{t : Tm Γ α}{us : Sub B Γ} →
+              (t ∷ ts) ○ us ≃ t [ us ] ∷ (ts ○ us)

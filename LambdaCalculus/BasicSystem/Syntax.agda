@@ -1,49 +1,78 @@
 module BasicSystem.Syntax where
 
+--
+-- Types.
+--
+
+infixr 5 _⇒_
+
 data Ty : Set where
-  ⋆   : Ty
-  _⇒_ : Ty → Ty → Ty
+  ⋆   :  Ty
+  _⇒_ : (α β : Ty) → Ty
 
-data Con : Set where
-  ε   : Con
-  _<_ : Con → Ty → Con
+infixl 6 _[_]
+infixr 6 _○_
+infixr 5 _∷_
+infixl 5 _∙_
+infixr 3 ƛ_
 
-mutual
-  data Tm : Con → Ty → Set where
-    ø    : ∀ {Γ σ} → Tm (Γ < σ) σ
-    _[_] : ∀ {Γ Δ σ} → Tm Δ σ → Sub Γ Δ → Tm Γ σ
-    ƛ    : ∀ {Γ σ τ} → Tm (Γ < σ) τ → Tm Γ (σ ⇒ τ)
-    _∙_  : ∀ {Γ σ τ} → Tm Γ (σ ⇒ τ) → Tm Γ σ → Tm Γ τ
+-- Contexts.
 
-  data Sub : Con → Con → Set where
-    ↑   : ∀ {Γ} σ → Sub (Γ < σ) Γ
-    _<_ : ∀ {Γ Δ σ} → Sub Γ Δ → Tm Γ σ → Sub Γ (Δ < σ)
-    ı  : ∀ {Γ} → Sub Γ Γ
-    _○_ : ∀ {B Γ Δ} → Sub Γ Δ → Sub B Γ → Sub B Δ
-
-data Var : Con → Ty → Set where
-  vZ : ∀ {Γ σ} → Var (Γ < σ) σ
-  vS : ∀ {Γ σ} τ → Var Γ σ → Var (Γ < τ) σ
+data Ctx : Set where
+  []  : Ctx
+  _∷_ : (α : Ty) (Γ : Ctx)  → Ctx
 
 mutual
-  data Val : Con → Ty → Set where
-    λv  : ∀ {Γ Δ σ τ} → Tm (Δ < σ) τ → Env Γ Δ → 
-          Val Γ (σ ⇒ τ)
-    nev : ∀ {Γ σ} → NeV Γ σ → Val Γ σ
 
-  data Env : Con → Con → Set where
-    ε   : ∀ {Γ} → Env Γ ε
-    _<<_ : ∀ {Γ Δ σ} → Env Γ Δ → Val Γ σ → Env Γ (Δ < σ)
+  -- Terms.
 
-  data NeV : Con → Ty → Set where
-    varV : ∀ {Γ σ} → Var Γ σ → NeV Γ σ
-    appV : ∀ {Γ σ τ} → NeV Γ (σ ⇒ τ) → Val Γ σ → NeV Γ τ
+  data Tm : (Γ : Ctx) (α : Ty) → Set where
+    ø   : ∀ {α Γ} → Tm (α ∷ Γ) α
+    _∙_ : ∀ {α β Γ} (t : Tm Γ (α ⇒ β)) (t′ : Tm Γ α) → Tm Γ β
+    ƛ_  : ∀ {α β Γ} (t : Tm (α ∷ Γ) β) → Tm Γ (α ⇒ β)
+    _[_] : ∀ {α Γ Δ} (t : Tm Δ α) (σ : Sub Γ Δ) → Tm Γ α
+
+  -- Substitutions: `Sub Γ Δ` transforms `Tm Δ α` into `Tm Γ α`.
+
+  data Sub : (Γ Δ : Ctx) → Set where
+    ı   : ∀ {Γ} → Sub Γ Γ
+    _○_ : ∀ {Γ Δ Γ′} (σ : Sub Δ Γ) (σ′ : Sub Γ′ Δ) → Sub Γ′ Γ
+    _∷_ : ∀ {α Γ Δ} (t : Tm Γ α) (σ : Sub Γ Δ) → Sub Γ (α ∷ Δ)
+    ↑  : ∀ {α Γ} → Sub (α ∷ Γ) Γ
+
+--
+-- Weak head normal forms.
+--
+
+data Var : (Γ : Ctx) (α : Ty) → Set where
+  zero : ∀ {α Γ} → Var (α ∷ Γ) α
+  suc  : ∀ {α β Γ} (x : Var Γ α) → Var (β ∷ Γ) α
 
 mutual
-  data Nf : Con → Ty → Set where
-    λn : ∀ {Γ σ τ} → Nf (Γ < σ) τ → Nf Γ (σ ⇒ τ)
-    ne : ∀ {Γ} → NeN Γ ⋆ → Nf Γ ⋆
 
-  data NeN : Con → Ty → Set where
-    varN : ∀ {Γ σ} → Var Γ σ → NeN Γ σ
-    appN : ∀ {Γ σ τ} → NeN Γ (σ ⇒ τ) → Nf Γ σ → NeN Γ τ
+  data Val : (Γ : Ctx) (α : Ty) → Set where
+    ne  : ∀ {α Γ} (us : NeVal Γ α) → Val Γ α
+    lam : ∀ {α β Γ Δ} (t : Tm (α ∷ Δ) β) (ρ : Env Γ Δ) → Val Γ (α ⇒ β)
+
+  data Env (Γ : Ctx) : Ctx → Set where
+    []  : Env Γ []
+    _∷_ : ∀ {α Δ} (u : Val Γ α) (ρ : Env Γ Δ) → Env Γ (α ∷ Δ)
+
+  data NeVal (Γ : Ctx) : Ty → Set where
+    var : ∀ {α} (x : Var Γ α) → NeVal Γ α
+    app : ∀ {α β} (us : NeVal Γ (α ⇒ β)) (u : Val Γ α) → NeVal Γ β
+
+
+--
+-- η-long β-normal forms.
+--
+
+mutual
+
+  data Nf (Γ : Ctx) : Ty → Set where
+    ne  : ∀ (ns : NeNf Γ ⋆) → Nf Γ ⋆
+    lam : ∀ {α β} (n : Nf (α ∷ Γ) β) → Nf Γ (α ⇒ β)
+
+  data NeNf (Γ : Ctx) : Ty → Set where
+    var : ∀ {α} (x : Var Γ α) → NeNf Γ α
+    app : ∀ {α β} (ns : NeNf Γ (α ⇒ β)) (n : Nf Γ α) → NeNf Γ β
