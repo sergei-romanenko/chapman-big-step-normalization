@@ -10,6 +10,7 @@ import BasicSystem.RecursiveNormaliser
 --
 import BasicSystem.BigStepSemantics
 import BasicSystem.OPEBigStep
-import BasicSystem.StructuralNormaliser 
 import BasicSystem.StrongComputability
-import BasicSystem.TerminationandCompleteness
+import BasicSystem.StructuralNormaliser
+import BasicSystem.StabilityAndCompleteness
+import BasicSystem.Soundness

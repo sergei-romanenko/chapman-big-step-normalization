@@ -319,3 +319,24 @@ mutual
     embNeNf (app ns u) [ ≤2sub η ]
     ∎
     where open ≈-Reasoning
+
+--
+-- embEnv id-env ≈≈ ı
+--
+
+embEnv∘id-env : ∀ {Γ} → embEnv (id-env {Γ}) ≈≈ ı
+embEnv∘id-env {[]} = ≈≈refl
+embEnv∘id-env {x ∷ Γ} = begin
+  ø ∷ embEnv (env≤ wk id-env)
+    ≡⟨⟩
+  ø ∷ embEnv (env≤ wk id-env)
+    ≈⟨ ≈≈cong∷ ≈refl (embEnv∘≤ wk id-env) ⟩
+  ø ∷ embEnv id-env ○ (≤2sub ≤id ○ ↑)
+    ≈⟨ ≈≈cong∷ ≈refl (≈≈cong○ ≈≈refl (≈≈cong○ ı≈≈≤2sub-≤id ≈≈refl)) ⟩
+  ø ∷ embEnv id-env ○ (ı ○ ↑)
+    ≈⟨ ≈≈cong∷ ≈refl (≈≈cong○ embEnv∘id-env ≈≈idl) ⟩
+  ø ∷ (ı ○ ↑)
+    ≈⟨ ≈≈sym ≈≈id∷ ⟩
+  ı
+  ∎
+  where open ≈≈-Reasoning
