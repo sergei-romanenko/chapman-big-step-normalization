@@ -2,7 +2,6 @@ module BasicSystem.StrongComputability where
 
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
-open import BasicSystem.Embeddings
 open import BasicSystem.Conversion
 open import BasicSystem.OPE
 open import BasicSystem.OPELemmas
@@ -10,10 +9,10 @@ open import BasicSystem.BigStepSemantics
 open import BasicSystem.OPEBigStep
 
 SCV : ∀ {Γ α} → Val Γ α → Set
-SCV {Γ} {⋆}     (ne n) = Σ (NeNf Γ ⋆) λ m → quotⁿ n ⇓ m × (embⁿ n ≈ nembⁿ m)
-SCV {Γ} {α ⇒ β} v       = ∀ {B}(f : OPE B Γ)(a : Val B α) → SCV a → 
+SCV {Γ} {⋆}     (ne n) = Σ (NeNf Γ ⋆) λ m → quotⁿ n ⇓ m × (embNeVal n ≈ embNeNf m)
+SCV {Γ} {α ⇒ β} v       = ∀ {B}(f : _≤_ B Γ)(a : Val B α) → SCV a → 
   Σ (Val B β) 
-    λ w → (vmap f v ∙∙ a ⇓ w) × SCV w × (emb (vmap f v) ∙ emb a ≈ emb w)    
+    λ w → (val≤ f v ∙∙ a ⇓ w) × SCV w × (embVal (val≤ f v) ∙ embVal a ≈ embVal w)    
 
 data SCE {Γ : Ctx} : ∀ {Δ} → Env Γ Δ → Set where
   s[] : SCE []
@@ -22,8 +21,8 @@ data SCE {Γ : Ctx} : ∀ {Δ} → Env Γ Δ → Set where
 
 helper : ∀ {Θ}{α}{β}{f f' : Val Θ (α ⇒ β)} → f ≡ f' → 
     {a : Val Θ α} →
-    Σ (Val Θ β) (λ v → (f' ∙∙ a ⇓ v) × SCV v × (emb f' ∙ emb a ≈ emb v)) →
-    Σ (Val Θ β) λ v → (f ∙∙ a ⇓ v) × SCV v × (emb f ∙ emb a ≈ emb v)
+    Σ (Val Θ β) (λ v → (f' ∙∙ a ⇓ v) × SCV v × (embVal f' ∙ embVal a ≈ embVal v)) →
+    Σ (Val Θ β) λ v → (f ∙∙ a ⇓ v) × SCV v × (embVal f ∙ embVal a ≈ embVal v)
 helper refl p = p 
 
 helper' : ∀ {Θ}{α}{β}{f f' : Val Θ (α ⇒ β)} → f ≡ f' → 
@@ -32,18 +31,18 @@ helper' refl p = p
 
 helper'' : ∀ {Θ}{α}{β}{f f' : Val Θ (α ⇒ β)} → f ≡ f' → 
     {a : Val Θ α}{v : Val Θ β} → 
-    emb f' ∙ emb a ≈ emb v → emb f ∙ emb a ≈ emb v
+    embVal f' ∙ embVal a ≈ embVal v → embVal f ∙ embVal a ≈ embVal v
 helper'' refl p = p 
 
-scvmap : ∀ {Γ Δ α}(f : OPE Γ Δ)(v : Val Δ α) → SCV v → SCV (vmap f v)
-scvmap {α = ⋆}     f (ne m) (n , p , q) = 
-  nenmap f n ,
+scval≤ : ∀ {Γ Δ α}(f : _≤_ Γ Δ)(v : Val Δ α) → SCV v → SCV (val≤ f v)
+scval≤ {α = ⋆}     f (ne m) (n , p , q) = 
+  neNf≤ f n ,
       quotⁿ⇓map f p ,
-          ≈trans (onevemb f m) (≈trans (cong[] q ≃refl) (≈sym (onenemb f n)))
-scvmap {α = α ⇒ β} f v       sv = λ f' a sa → 
-  helper (compvmap f' f v) (sv (comp f' f) a sa) 
+          ≈trans (embNeVal∘≤ f m) (≈trans (≈cong[] q ≈≈refl) (≈sym (embNeNf∘≤ f n)))
+scval≤ {α = α ⇒ β} f v       sv = λ f' a sa → 
+  helper (val≤∘ f' f v) (sv (_●_ f' f) a sa) 
 
-scemap : ∀ {B Γ Δ}(f : OPE B Γ)(vs : Env Γ Δ) → 
-         SCE vs → SCE (emap f vs)
-scemap f []         s[]         = s[] 
-scemap f (v ∷ vs) (s<< p p') = s<< (scemap f vs p) (scvmap f v p') 
+scenv≤ : ∀ {B Γ Δ}(f : _≤_ B Γ)(vs : Env Γ Δ) → 
+         SCE vs → SCE (env≤ f vs)
+scenv≤ f []         s[]         = s[] 
+scenv≤ f (v ∷ vs) (s<< p p') = s<< (scenv≤ f vs p) (scval≤ f v p') 

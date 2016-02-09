@@ -2,8 +2,8 @@ module FiniteProducts.Everything where
 
 import FiniteProducts.Utils
 import FiniteProducts.Syntax
-import FiniteProducts.Embeddings
 import FiniteProducts.Conversion
+import FiniteProducts.Embeddings
 import FiniteProducts.OPE 
 import FiniteProducts.OPELemmas
 import FiniteProducts.IdentityEnvironment

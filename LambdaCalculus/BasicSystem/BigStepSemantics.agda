@@ -38,7 +38,7 @@ mutual
 mutual
   data quot_⇓_ : ∀ {Γ α} → Val Γ α → Nf Γ α → Set where
     qarr : ∀ {Γ α β}{f : Val Γ (α ⇒ β)}{v : Val (α ∷ Γ) β}{n} →
-           vwk α f ∙∙ ne (var zero) ⇓ v →  quot v ⇓ n → quot f ⇓ lam n
+           val≤ wk f ∙∙ ne (var zero) ⇓ v →  quot v ⇓ n → quot f ⇓ lam n
     qbase : ∀ {Γ}{m : NeVal Γ ⋆}{n} → quotⁿ m ⇓ n → quot ne m ⇓ ne n
 
   data quotⁿ_⇓_ : ∀ {Γ α} → NeVal Γ α → NeNf Γ α → Set where
@@ -46,7 +46,6 @@ mutual
     qⁿapp : ∀ {Γ α β}{m : NeVal Γ (α ⇒ β)}{v}{n}{n'} →
             quotⁿ m ⇓ n → quot v ⇓ n' → quotⁿ app m v ⇓ app n n'
 
-open import BasicSystem.IdentityEnvironment
 
 data nf_⇓_ {Γ : Ctx}{α : Ty} : Tm Γ α → Nf Γ α → Set where
-  norm⇓ : ∀ {t v n} → eval t & vid ⇓ v → quot v ⇓ n → nf t ⇓ n
+  norm⇓ : ∀ {t v n} → eval t & id-env ⇓ v → quot v ⇓ n → nf t ⇓ n

@@ -1,4 +1,5 @@
 module NaturalNumbers.Conversion where
+
 open import NaturalNumbers.Syntax
 
 infix 4 _≈_

@@ -76,3 +76,41 @@ mutual
   data NeNf (Γ : Ctx) : Ty → Set where
     var : ∀ {α} (x : Var Γ α) → NeNf Γ α
     app : ∀ {α β} (ns : NeNf Γ (α ⇒ β)) (n : Nf Γ α) → NeNf Γ β
+
+
+--
+-- Embedding of values and normal forms into terms.
+--
+
+embVar : ∀ {α Γ} (x : Var Γ α) → Tm Γ α
+embVar zero = ø
+embVar (suc x) = embVar x [ ↑ ]
+
+sub-from-[] : ∀ {Γ} → Sub Γ []
+sub-from-[] {[]} = ı
+sub-from-[] {α ∷ Γ} = sub-from-[] ○ ↑
+
+mutual
+
+  embVal : ∀ {α Γ} (u : Val Γ α) → Tm Γ α
+  embVal (lam t ρ) =
+    (ƛ t) [ embEnv ρ ]
+  embVal (ne us) = embNeVal us
+
+  embNeVal : ∀ {α Γ} (us : NeVal Γ α) → Tm Γ α
+  embNeVal (var x) = embVar x
+  embNeVal (app us u) = embNeVal us ∙ embVal u
+
+  embEnv : ∀ {Γ Δ} (ρ : Env Γ Δ) → Sub Γ Δ
+  embEnv [] = sub-from-[]
+  embEnv (u ∷ ρ) = embVal u ∷ embEnv ρ
+
+mutual
+
+  embNf : ∀ {α Γ} (n : Nf Γ α) → Tm Γ α
+  embNf (lam n) = ƛ embNf n
+  embNf (ne ns) = embNeNf ns
+
+  embNeNf : ∀ {α Γ} (ns : NeNf Γ α) → Tm Γ α
+  embNeNf (var x) = embVar x
+  embNeNf (app ns n) = embNeNf ns ∙ embNf n

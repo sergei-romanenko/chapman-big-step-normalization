@@ -2,8 +2,8 @@ module FullSystem.Everything where
 
 import FullSystem.Utils
 import FullSystem.Syntax
-import FullSystem.Embeddings
 import FullSystem.Conversion
+import FullSystem.Embeddings
 import FullSystem.OPE
 import FullSystem.OPELemmas
 import FullSystem.IdentityEnvironment

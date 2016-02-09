@@ -2,61 +2,84 @@ module BasicSystem.OPE where
 
 open import BasicSystem.Syntax
 
-data OPE : Ctx → Ctx → Set where
-  done : OPE [] []
-  keep : ∀ {Γ Δ} α → OPE Γ Δ → OPE (α ∷ Γ) (α ∷ Δ)
-  skip : ∀ {Γ Δ} α → OPE Γ Δ → OPE (α ∷ Γ) Δ
 
-oid : ∀ {Γ} → OPE Γ Γ
-oid {[]}     = done
-oid {α ∷ Γ} = keep α oid
+--
+-- Weakening contexts by means of order preserving embeddings.
+--
 
-comp : ∀ {B Γ Δ} → OPE B Γ → OPE Γ Δ → OPE B Δ
-comp done     done          = done
-comp (skip α f) g           = skip α (comp f g) 
-comp (keep α f) (keep .α g) = keep α (comp f g) 
-comp (keep α f) (skip .α g) = skip α (comp f g)
+infix 4 _≤_
 
-weak : ∀ {Γ} β → OPE (β ∷ Γ) Γ
-weak β = skip β oid
+data _≤_ : Ctx → Ctx → Set where
+  ≤[] : _≤_ [] []
+  ≤lift : ∀ {α Γ Δ} → _≤_ Γ Δ → _≤_ (α ∷ Γ) (α ∷ Δ)
+  ≤weak : ∀ {α Γ Δ} → _≤_ Γ Δ → _≤_ (α ∷ Γ) Δ
 
--- Variables
-xmap : ∀ {Γ Δ α} → OPE Γ Δ → Var Δ α → Var Γ α
-xmap done     ()
-xmap (keep α f) zero        = zero
-xmap (keep α f) (suc x) = suc (xmap f x)
-xmap (skip α f) x         = suc (xmap f x)
+≤id : ∀ {Γ} → _≤_ Γ Γ
+≤id {[]}     = ≤[]
+≤id {α ∷ Γ} = ≤lift ≤id
 
--- Values
+wk : ∀ {α Γ} → _≤_ (α ∷ Γ) Γ
+wk {α} = ≤weak ≤id
+
+--
+-- Applying OPEs.
+--
+
+var≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {α} (x : Var Δ α) → Var Γ α
+var≤ ≤[] x = x
+var≤ (≤weak η) x = suc (var≤ η x)
+var≤ (≤lift η) zero = zero
+var≤ (≤lift η) (suc x) = suc (var≤ η x)
+
 mutual
-  vmap : ∀ {Γ Δ α} → OPE Γ Δ → Val Δ α → Val Γ α
-  vmap f (lam t vs) = lam t (emap f vs) 
-  vmap f (ne n)   = ne (nevmap f n) 
 
-  nevmap : ∀ {Γ Δ α} → OPE Γ Δ → NeVal Δ α → NeVal Γ α
-  nevmap f (var x)   = var (xmap f x)  
-  nevmap f (app n v) = app (nevmap f n) (vmap f v) 
+  val≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {α} (u : Val Δ α) → Val Γ α
+  val≤ η (ne us) = ne (neVal≤ η us)
+  val≤ η (lam t ρ) = lam t (env≤ η ρ)
 
-  emap : ∀ {B Γ Δ} → OPE B Γ → Env Γ Δ → Env B Δ
-  emap f []         = [] 
-  emap f (v ∷ vs) = vmap f v ∷ emap f vs 
+  neVal≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {α} (us : NeVal Δ α) → NeVal Γ α
+  neVal≤ η (var x) = var (var≤ η x)
+  neVal≤ η (app us u) = app (neVal≤ η us) (val≤ η u)
 
--- weakening for values
-vwk : ∀ {Γ α} β → Val Γ α → Val (β ∷ Γ) α
-vwk β v = vmap (weak β) v
+  env≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {α} (ρ : Env Δ α) → Env Γ α
+  env≤ η [] = []
+  env≤ η (u ∷ ρ) = val≤ η u ∷ env≤ η ρ
 
--- Normal forms
 mutual
-  nfmap : ∀ {Γ Δ α} → OPE Γ Δ → Nf Δ α → Nf Γ α
-  nfmap f (lam n) = lam (nfmap (keep _ f) n) 
-  nfmap f (ne n) = ne (nenmap f n) 
 
-  nenmap : ∀ {Γ Δ α} → OPE Γ Δ → NeNf Δ α → NeNf Γ α
-  nenmap f (var x)    = var (xmap f x) 
-  nenmap f (app n n') = app (nenmap f n) (nfmap f n')
+  nf≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {α} (n : Nf Δ α) → Nf Γ α
+  nf≤ η (ne ns) = ne (neNf≤ η ns)
+  nf≤ η (lam n) = lam (nf≤ (≤lift η) n)
 
--- Embedding
-oemb : ∀ {Γ Δ} → OPE Γ Δ → Sub Γ Δ
-oemb done       = ı 
-oemb (keep α f) =  ø ∷ (oemb f ○ ↑)
-oemb (skip α f) = oemb f ○ ↑
+  neNf≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {α} (ns : NeNf Δ α) → NeNf Γ α
+  neNf≤ η (var x) = var (var≤ η x)
+  neNf≤ η (app ns n) = app (neNf≤ η ns) (nf≤ η n)
+
+--
+-- ≤ to Sub.
+--
+
+≤2sub : ∀ {Γ Δ} (η : Γ ≤ Δ) → Sub Γ Δ
+≤2sub ≤[] = ı
+≤2sub (≤weak η) = ≤2sub η ○ ↑
+≤2sub (≤lift η) = ø ∷ ≤2sub η ○ ↑
+
+--
+-- Identity environments.
+--
+
+id-env : ∀ {Γ} → Env Γ Γ
+id-env {[]} = []
+id-env {α ∷ Γ} = ne (var zero) ∷ env≤ wk id-env
+
+--
+-- Composing OPEs.
+--
+
+infixr 6 _●_
+
+_●_ : ∀ {Β Γ Δ} (η : Β ≤ Γ) (η′ : Γ ≤ Δ) → Β ≤ Δ
+≤[] ● ≤[] = ≤[]
+≤weak η ● η′ = ≤weak (η ● η′)
+≤lift η ● ≤weak η′ = ≤weak (η ● η′)
+≤lift η ● ≤lift η′ = ≤lift (η ● η′)

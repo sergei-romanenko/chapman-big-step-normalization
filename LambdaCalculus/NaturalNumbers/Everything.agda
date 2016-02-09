@@ -2,8 +2,8 @@ module NaturalNumbers.Everything where
 
 import NaturalNumbers.Utils
 import NaturalNumbers.Syntax
-import NaturalNumbers.Embeddings
 import NaturalNumbers.Conversion
+import NaturalNumbers.Embeddings
 import NaturalNumbers.OPE 
 import NaturalNumbers.OPELemmas
 import NaturalNumbers.IdentityEnvironment

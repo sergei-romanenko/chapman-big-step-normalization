@@ -1,4 +1,5 @@
 module FullSystem.Conversion where
+
 open import FullSystem.Syntax
 
 infix 4 _≈_

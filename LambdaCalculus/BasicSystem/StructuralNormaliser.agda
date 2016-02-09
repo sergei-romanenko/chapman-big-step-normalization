@@ -32,7 +32,7 @@ mutual
 mutual
   quot : ∀ {Γ α}(v : Val Γ α){n : Nf Γ α} → 
           quot v ⇓ n → Σ (Nf Γ α) λ n' → n ≡ n'
-  quot f        (qarr p p')       with vwk _ f ∙∙ ne (var zero) & p
+  quot f        (qarr p p')       with val≤ wk f ∙∙ ne (var zero) & p
   ... | v , refl with quot v p' 
   ... | n , refl = lam n , refl 
   quot .(ne m) (qbase {m = m} p) with quotⁿ m p
@@ -44,10 +44,8 @@ mutual
   quotⁿ .(app m v) (qⁿapp {m = m}{v = v} p p') with quotⁿ m p | quot v p'
   ... | n , refl | n' , refl = app n n' , refl
 
-open import BasicSystem.IdentityEnvironment
-
 nf : ∀ {Γ α}(t : Tm Γ α){n : Nf Γ α} →
      nf t ⇓ n → Σ (Nf Γ α) λ n' → n ≡ n'
-nf t (norm⇓ p p') with eval t vid p 
+nf t (norm⇓ p p') with eval t id-env p 
 ... | v , refl = quot v p'
 
