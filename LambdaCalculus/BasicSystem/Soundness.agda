@@ -363,9 +363,9 @@ mutual
 
   ~confl {⋆} (ne us₁) (ne us₂) (ns₁ , ns₂ , ns₁≡ns₂ , ⇓ns₁ , ⇓ns₂) =
     ne ns₁ , ne ns₂ , cong ne ns₁≡ns₂ , ⋆⇓ us₁ ⇓ns₁ , ⋆⇓ us₂ ⇓ns₂
-  ~confl {α ⇒ β} u₁ u₂ u₁~u₂
-    with u₁~u₂ wk (ne (var zero) ~ ne (var zero)
-         ∋ confl-ne→~ var⇓ var⇓ refl)
+  ~confl {α ⇒ β} {Γ} u₁ u₂ u₁~u₂
+    with u₁~u₂ wk (_~_ {α} (ne (var zero)) (ne (var zero))
+         ∋ confl-ne→~ {α} var⇓ var⇓ refl)
   ... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
     with ~confl w₁ w₂ w₁~w₂
   ... | n₁ , n₂ , n₁≡n₂ , ⇓n₁ , ⇓n₂

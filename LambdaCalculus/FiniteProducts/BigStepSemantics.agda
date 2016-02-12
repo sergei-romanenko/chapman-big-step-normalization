@@ -1,79 +1,203 @@
 module FiniteProducts.BigStepSemantics where
 
+open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
 open import FiniteProducts.OPE
 
-mutual
-  data eval_&_⇓_ : ∀ {Γ Δ σ} → Tm Δ σ → Env Γ Δ → Val Γ σ → Set where
-    rvar  : ∀ {Γ Δ σ}{vs : Env Γ Δ}{v : Val Γ σ} → 
-            eval ø & (vs << v) ⇓ v
-    rsubs : ∀ {B Γ Δ σ}{t : Tm Δ σ}{ts : Sub Γ Δ}{vs : Env B Γ}{ws v} →
-            evalˢ ts & vs ⇓ ws → eval t & ws ⇓ v → eval t [ ts ] & vs ⇓ v
-    rlam  : ∀ {Γ Δ σ τ}{t : Tm (Δ < σ) τ}{vs : Env Γ Δ} →
-            eval ƛ t & vs ⇓ λv t vs
-    rapp  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ ⇒ τ)}{u : Tm Δ σ}{vs : Env Γ Δ}
-            {f : Val Γ (σ ⇒ τ)}{a : Val Γ σ}{v : Val Γ τ} →
-            eval t & vs ⇓ f → eval u & vs ⇓ a → f ∙∙ a ⇓ v →
-            eval t ∙ u & vs ⇓ v
-    rvoid : ∀ {Γ Δ}{vs : Env Γ Δ} → eval void & vs ⇓ voidv
-    r<,>  : ∀ {Γ Δ σ τ}{t : Tm Δ σ}{u : Tm Δ τ}{vs : Env Γ Δ}
-            {v : Val Γ σ}{w : Val Γ τ} → eval t & vs ⇓ v → eval u & vs ⇓ w →
-            eval < t , u > & vs ⇓ < v , w >v
-    rfst  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{vs : Env Γ Δ}
-            {v : Val Γ (σ * τ)} → eval t & vs ⇓ v →
-            {w : Val Γ σ} → vfst v ⇓ w → eval fst t & vs ⇓ w 
-    rsnd  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ * τ)}{vs : Env Γ Δ}
-            {v : Val Γ (σ * τ)} → eval t & vs ⇓ v → 
-            {w : Val Γ τ} → vsnd v ⇓ w → eval snd t & vs ⇓ w 
-
-  data vfst_⇓_ : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ σ → Set where
-    rfst<,> : ∀ {Γ σ τ}{v : Val Γ σ}{w : Val Γ τ} → vfst < v , w >v ⇓ v
-    rfstnev : ∀ {Γ σ τ}{n : NeV Γ (σ * τ)} → vfst nev n ⇓ nev (fstV n) 
-
-  data vsnd_⇓_ : ∀ {Γ σ τ} → Val Γ (σ * τ) → Val Γ τ → Set where
-    rsnd<,> : ∀ {Γ σ τ}{v : Val Γ σ}{w : Val Γ τ} → vsnd < v , w >v ⇓ w
-    rsndnev : ∀ {Γ σ τ}{n : NeV Γ (σ * τ)} → vsnd nev n ⇓ nev (sndV n) 
-
-  data _∙∙_⇓_ : ∀ {Γ σ τ} → 
-                Val Γ (σ ⇒ τ) → Val Γ σ → Val Γ τ → Set where
-    r∙lam : ∀ {Γ Δ σ τ}{t : Tm (Δ < σ) τ}{vs : Env Γ Δ}{a : Val Γ σ}{v} →
-            eval t & vs << a ⇓ v → λv t vs ∙∙ a ⇓ v
-    r∙ne  : ∀ {Γ σ τ}{n : NeV Γ (σ ⇒ τ)}{v : Val Γ σ} →
-            nev n ∙∙ v ⇓ nev (appV n v)
-
-  data evalˢ_&_⇓_ : ∀ {Γ Δ Σ} → 
-                    Sub Δ Σ → Env Γ Δ → Env Γ Σ → Set where
-    rˢ↑  : ∀ {Γ Δ σ}{vs : Env Γ Δ}{v : Val Γ σ} → 
-             evalˢ ↑ σ & vs << v ⇓ vs
-    rˢcons : ∀ {Γ Δ Σ σ}{ts : Sub Δ Σ}{t : Tm Δ σ}{vs : Env Γ Δ}{ws v} →
-             evalˢ ts & vs ⇓ ws → eval t & vs ⇓ v → 
-             evalˢ ts < t & vs ⇓ (ws << v)
-    rˢid   : ∀ {Γ Δ}{vs : Env Γ Δ} → evalˢ ı & vs ⇓ vs
-    rˢcomp : ∀ {A B Γ Δ}{ts : Sub Γ Δ}{us : Sub B Γ}{vs : Env A B}{ws}
-                    {xs} → evalˢ us & vs ⇓ ws →
-                    evalˢ ts & ws ⇓ xs → evalˢ ts ○ us & vs ⇓ xs
+--
+-- Relational big-step semantics.
+--
 
 mutual
-  data quot_⇓_ : ∀ {Γ σ} → Val Γ σ → Nf Γ σ → Set where
-    qbase  : ∀ {Γ}{m : NeV Γ ⋆}{n} → quotⁿ m ⇓ n → quot nev m ⇓ ne n
-    qarr   : ∀ {Γ σ τ}{f : Val Γ (σ ⇒ τ)}{v : Val (Γ < σ) τ}{n} →
-             vwk σ f ∙∙ nev (varV vZ) ⇓ v →  quot v ⇓ n → quot f ⇓ λn n
-    qone   : ∀ {Γ}{v : Val Γ One} → quot v ⇓ voidn
-    qprod  : ∀ {Γ σ τ}{p : Val Γ (σ * τ)}
-             {v : Val Γ σ} → vfst p ⇓ v → {m : Nf Γ σ} → quot v ⇓ m →
-             {w : Val Γ τ} → vsnd p ⇓ w → {n : Nf Γ τ} → quot w ⇓ n →
-             quot p ⇓ < m , n >n
 
-  data quotⁿ_⇓_ : ∀ {Γ σ} → NeV Γ σ → NeN Γ σ → Set where
-    qⁿvar : ∀ {Γ σ}{x : Var Γ σ} → quotⁿ varV x ⇓ varN x
-    qⁿapp : ∀ {Γ σ τ}{m : NeV Γ (σ ⇒ τ)}{v}{n}{n'} →
-            quotⁿ m ⇓ n → quot v ⇓ n' → quotⁿ appV m v ⇓ appN n n'
-    qⁿfst : ∀ {Γ σ τ}{m : NeV Γ (σ * τ)}{n : NeN Γ (σ * τ)} →
-            quotⁿ m ⇓ n → quotⁿ fstV m ⇓ fstN n
-    qⁿsnd : ∀ {Γ σ τ}{m : NeV Γ (σ * τ)}{n : NeN Γ (σ * τ)} →
-            quotⁿ m ⇓ n → quotⁿ sndV m ⇓ sndN n
+  infix 4 ⟦_⟧_⇓_ ⟦_⟧*_⇓_ _⟨∙⟩_⇓_
 
-open import FiniteProducts.IdentityEnvironment
+  data ⟦_⟧_⇓_ : ∀ {α Γ Δ} (t : Tm Δ α) (ρ : Env Γ Δ) (u : Val Γ α) → Set where
+    ø⇓ : ∀ {α Γ Δ} {u : Val Γ α} {ρ : Env Γ Δ} →
+      ⟦ ø ⟧ (u ∷ ρ) ⇓ u
+    ∙⇓ : ∀ {α β Γ Δ} {t : Tm Δ (α ⇒ β)} {t′ : Tm Δ α} {ρ : Env Γ Δ} {u v w}
+      (⇓u : ⟦ t ⟧ ρ ⇓ u) (⇓v : ⟦ t′ ⟧ ρ ⇓ v) (⇓w : u ⟨∙⟩ v ⇓ w) →
+      ⟦ t ∙ t′ ⟧ ρ ⇓ w
+    ƛ⇓ : ∀ {α β Γ Δ} {t : Tm (α ∷ Δ) β} {ρ : Env Γ Δ} →
+      ⟦ ƛ t ⟧ ρ ⇓ lam t ρ
+    []⇓ : ∀ {α Γ Δ Δ′} {t : Tm Δ′ α } {σ : Sub Δ Δ′} {ρ : Env Γ Δ} {θ u}
+      (⇓θ : ⟦ σ ⟧* ρ ⇓ θ) (⇓u : ⟦ t ⟧ θ ⇓ u) →
+      ⟦ t [ σ ] ⟧ ρ ⇓ u
+    void⇓ : ∀ {Γ Δ} {ρ : Env Γ Δ} →
+      ⟦ void ⟧ ρ ⇓ void
+    pair⇓ : ∀ {α β Γ Δ} {f : Tm Δ α} {s : Tm Δ β} {ρ : Env Γ Δ}
+      {u} (⇓u : ⟦ f ⟧ ρ ⇓ u) {v} (⇓v : ⟦ s ⟧ ρ ⇓ v) →
+      ⟦ pair f s ⟧ ρ ⇓ pair u v
+    fst⇓ : ∀ {α β Γ Δ} {t : Tm Δ (α * β)} {ρ : Env Γ Δ}
+      {uv} (⇓uv : ⟦ t ⟧ ρ ⇓ uv) {w} (⇓w : Fst uv ⇓ w) →
+      ⟦ fst t ⟧ ρ ⇓ w 
+    snd⇓ : ∀ {α β Γ Δ} {t : Tm Δ (α * β)} {ρ : Env Γ Δ}
+      {uv} (⇓uv : ⟦ t ⟧ ρ ⇓ uv) {w} (⇓w : Snd uv ⇓ w) → 
+       ⟦ snd t ⟧ ρ ⇓ w 
 
-data nf_⇓_ {Γ : Con}{σ : Ty} : Tm Γ σ → Nf Γ σ → Set where
-  norm⇓ : ∀ {t v n} → eval t & vid ⇓ v → quot v ⇓ n → nf t ⇓ n
+  data ⟦_⟧*_⇓_ : ∀ {Γ Δ Δ′} (σ : Sub Δ Δ′) (ρ : Env Γ Δ) (θ : Env Γ Δ′) →
+       Set where
+    ι⇓ : ∀ {Γ Σ} {ρ : Env Γ Σ} →
+      ⟦ ı ⟧* ρ ⇓ ρ
+    ○⇓ : ∀ {Γ Δ Δ′ Δ′′} {σ : Sub Δ′ Δ′′} {σ′ : Sub Δ Δ′} {ρ : Env Γ Δ} {θ₁ θ₂}
+      (⇓θ₁ : ⟦ σ′ ⟧* ρ ⇓ θ₁) (⇓θ₂ : ⟦ σ ⟧* θ₁ ⇓ θ₂) →
+      ⟦ σ ○ σ′ ⟧* ρ ⇓ θ₂
+    ∷⇓ : ∀ {α Γ Δ Δ′} {t : Tm Δ α} {σ : Sub Δ Δ′} {ρ : Env Γ Δ} {u θ}
+      (⇓u : ⟦ t ⟧ ρ ⇓ u) (⇓θ : ⟦ σ ⟧* ρ ⇓ θ) →
+      ⟦ t ∷ σ ⟧* ρ ⇓ (u ∷ θ)
+    ↑⇓ : ∀ {α Γ Δ} {u : Val Γ α} {ρ : Env Γ Δ} →
+      ⟦ ↑ ⟧* (u ∷ ρ) ⇓ ρ
+
+  data _⟨∙⟩_⇓_ : ∀ {α β Γ}
+       (u : Val Γ (α ⇒ β)) (v : Val Γ α) (w : Val Γ β) → Set where
+    ne⇓  : ∀ {α β Γ} {us : NeVal Γ (α ⇒ β)} {u} →
+      ne us ⟨∙⟩ u ⇓ ne (app us u)
+    lam⇓ : ∀ {α β Γ Δ} {t : Tm (α ∷ Δ) β} {ρ : Env Γ Δ} {u v}
+      (⇓v : ⟦ t ⟧ (u ∷ ρ) ⇓ v) →
+      lam t ρ ⟨∙⟩ u ⇓ v
+
+  data Fst_⇓_ : ∀ {α β Γ} (uv : Val Γ (α * β)) (v : Val Γ α) → Set where
+    fst-pair⇓ : ∀ {α β Γ} {u : Val Γ α} {v : Val Γ β} →
+      Fst (pair u v) ⇓ u
+    fst-ne⇓ : ∀ {Γ α β} {ns : NeVal Γ (α * β)} →
+      Fst (ne ns) ⇓ ne (fst ns) 
+
+  data Snd_⇓_ : ∀ {α β Γ} (uv : Val Γ (α * β)) (v : Val Γ β) → Set where
+    snd-pair⇓ : ∀ {α β Γ} {u : Val Γ α} {v : Val Γ β} →
+      Snd (pair u  v) ⇓ v
+    snd-ne⇓ : ∀ {Γ α β} {ns : NeVal Γ (α * β)} →
+      Snd (ne ns) ⇓ ne (snd ns) 
+
+mutual
+
+  data Quote_⇓_ : ∀ {α Γ} (u : Val Γ α) (n : Nf Γ α) → Set where
+    ⋆⇓ : ∀ {Γ} (us : NeVal Γ ⋆) {ns}
+      (⇓ns : Quote* us ⇓ ns) →
+      Quote (ne us) ⇓ ne ns
+    ⇒⇓ : ∀ {α β Γ} {f : Val Γ (α ⇒ β)} {u n} →
+      (⇓u : val≤ wk f ⟨∙⟩ ne (var zero) ⇓ u) (⇓n : Quote u ⇓ n) →
+      Quote f ⇓ lam n
+    One⇓ : ∀ {Γ} {u : Val Γ One} →
+      Quote u ⇓ void
+    Prod⇓ : ∀ {α β Γ} {uv : Val Γ (α * β)}
+      {u} (⇓u : Fst uv ⇓ u) {nu} (⇓na : Quote u ⇓ nu)
+      {v} (⇓v : Snd uv ⇓ v) {nv} (⇓nb : Quote v ⇓ nv) →
+      Quote uv ⇓ pair nu nv
+
+  data Quote*_⇓_ : ∀ {α Γ} (us : NeVal Γ α) (ns : NeNf Γ α) → Set where
+    var⇓ : ∀ {α Γ} {x : Var Γ α} →
+      Quote* var x ⇓ var x
+    app⇓ : ∀ {α β Γ} {us : NeVal Γ (α ⇒ β)} {u : Val Γ α} {ns n}
+      (⇓ns : Quote* us ⇓ ns) (⇓n : Quote u ⇓ n) →
+      Quote* app us u ⇓ app ns n
+    fst⇓ : ∀ {α β Γ} {u : NeVal Γ (α * β)} {n} →
+      Quote* u ⇓ n → Quote* fst u ⇓ fst n
+    snd⇓ : ∀ {Γ α β} {u : NeVal Γ (α * β)} {n} →
+      Quote* u ⇓ n → Quote* snd u ⇓ snd n
+
+
+data Nf_⇓_ : ∀ {α Γ} (t : Tm Γ α) (n : Nf Γ α) → Set where
+  nf⇓ : ∀ {α Γ} {t : Tm Γ α} {u n}
+    (⇓u : ⟦ t ⟧ id-env ⇓ u) (⇓n : Quote u ⇓ n) →
+    Nf t ⇓ n
+
+--
+-- Determinism (left-injectivity) of ⟦_⟧_⇓_ , Quote_⇓_ and Nf_⇓_ :
+--
+--   ⟦ t ⟧ ρ₁ ⇓ u₁ →  ⟦ t ⟧ ρ₂ ⇓ u₂ → ρ₁ ≡ ρ₂ → u₁ ≡ u₂
+--   Quote u₁ ⇓ n₁ →  Quote u₂ ⇓ n₂ → u₁ ≡ u₂ →  n₁ ≡ n₂
+--   Nf t ⇓ n₁ → Nf t ⇓ n₂ → n₁ ≡ n₂
+--
+
+--   ⟦ t ⟧ ρ₁ ⇓ u₁ →  ⟦ t ⟧ ρ₂ ⇓ u₂ → ρ₁ ≡ ρ₂ → u₁ ≡ u₂
+
+mutual
+
+  ⟦⟧⇓-det : ∀ {α Γ Δ} {t : Tm Δ α} {ρ₁ ρ₂ : Env Γ Δ} {u₁ u₂} →
+    (⇓u₁ : ⟦ t ⟧ ρ₁ ⇓ u₁) (⇓u₂ : ⟦ t ⟧ ρ₂ ⇓ u₂)
+    (ρ₁≡ρ₂ : ρ₁ ≡ ρ₂) → u₁ ≡ u₂
+
+  ⟦⟧⇓-det ø⇓ ø⇓ refl = refl
+  ⟦⟧⇓-det (∙⇓ ⇓u₁ ⇓v₁ ⇓w₁) (∙⇓ ⇓u₂ ⇓v₂ ⇓w₂) ρ₁≡ρ₂ =
+    ⟨∙⟩⇓-det ⇓w₁ ⇓w₂ (⟦⟧⇓-det ⇓u₁ ⇓u₂ ρ₁≡ρ₂) (⟦⟧⇓-det ⇓v₁ ⇓v₂ ρ₁≡ρ₂)
+  ⟦⟧⇓-det ƛ⇓ ƛ⇓ refl = refl
+  ⟦⟧⇓-det ([]⇓ ⇓ρ₁ ⇓u₁) ([]⇓ ⇓ρ₂ ⇓u₂) ρ₁≡ρ₂ =
+    ⟦⟧⇓-det ⇓u₁ ⇓u₂ (⟦⟧*⇓-det ⇓ρ₁ ⇓ρ₂ ρ₁≡ρ₂)
+  ⟦⟧⇓-det void⇓ void⇓ ρ₁≡ρ₂ = refl
+  ⟦⟧⇓-det (pair⇓ ⇓u₁ ⇓v₁) (pair⇓ ⇓u₂ ⇓v₂) ρ₁≡ρ₂ =
+    cong₂ pair (⟦⟧⇓-det ⇓u₁ ⇓u₂ ρ₁≡ρ₂) (⟦⟧⇓-det ⇓v₁ ⇓v₂ ρ₁≡ρ₂)
+  ⟦⟧⇓-det (fst⇓ ⇓u₁ ⇓w₁) (fst⇓ ⇓u₂ ⇓w₂) ρ₁≡ρ₂ =
+    fst⇓-det ⇓w₁ ⇓w₂ (⟦⟧⇓-det ⇓u₁ ⇓u₂ ρ₁≡ρ₂)
+  ⟦⟧⇓-det (snd⇓ ⇓u₁ ⇓w₁) (snd⇓ ⇓u₂ ⇓w₂) ρ₁≡ρ₂ =
+    snd⇓-det ⇓w₁ ⇓w₂ (⟦⟧⇓-det ⇓u₁ ⇓u₂ ρ₁≡ρ₂)
+
+  ⟦⟧*⇓-det : ∀ {Γ Δ Δ′} {σ : Sub Δ Δ′} {ρ₁ ρ₂ : Env Γ Δ} {θ₁ θ₂}
+    (⇓θ₁ : ⟦ σ ⟧* ρ₁ ⇓ θ₁) (⇓θ₂ : ⟦ σ ⟧* ρ₂ ⇓ θ₂)
+    (ρ₁≡ρ₂ : ρ₁ ≡ ρ₂) → θ₁ ≡ θ₂
+
+  ⟦⟧*⇓-det ι⇓ ι⇓ ρ₁≡ρ₂ = ρ₁≡ρ₂
+  ⟦⟧*⇓-det (○⇓ ⇓θ₁ ⇓θ₂) (○⇓ ⇓φ₁ ⇓φ₂) ρ₁≡ρ₂ =
+    ⟦⟧*⇓-det ⇓θ₂ ⇓φ₂ (⟦⟧*⇓-det ⇓θ₁ ⇓φ₁ ρ₁≡ρ₂)
+  ⟦⟧*⇓-det (∷⇓ ⇓u₁ ⇓θ₁) (∷⇓ ⇓u₂ ⇓θ₂) ρ₁≡ρ₂ =
+    cong₂ _∷_ (⟦⟧⇓-det ⇓u₁ ⇓u₂ ρ₁≡ρ₂) (⟦⟧*⇓-det ⇓θ₁ ⇓θ₂ ρ₁≡ρ₂)
+  ⟦⟧*⇓-det ↑⇓ ↑⇓ refl = refl
+
+  ⟨∙⟩⇓-det : ∀ {α β Γ} {u₁ u₂ : Val Γ (α ⇒ β)} {v₁ v₂ : Val Γ α} {w₁ w₂}
+    (⇓w₁ : u₁ ⟨∙⟩ v₁ ⇓ w₁) (⇓w₂ : u₂ ⟨∙⟩ v₂ ⇓ w₂)
+    (u₁≡u₂ : u₁ ≡ u₂) (v₁≡v₂ : v₁ ≡ v₂) → w₁ ≡ w₂
+
+  ⟨∙⟩⇓-det ne⇓ ne⇓ refl refl = refl
+  ⟨∙⟩⇓-det (lam⇓ ⇓w₁) (lam⇓ ⇓w₂) refl refl =
+    ⟦⟧⇓-det ⇓w₁ ⇓w₂ refl
+
+  fst⇓-det : ∀ {α β Γ} {u₁ u₂ : Val Γ (α * β)} {w₁ w₂}
+    (⇓w₁ : Fst u₁ ⇓ w₁) (⇓w₂ : Fst u₂ ⇓ w₂)
+    (u₁≡u₂ : u₁ ≡ u₂) → w₁ ≡ w₂
+  fst⇓-det fst-pair⇓ fst-pair⇓ refl = refl
+  fst⇓-det fst-ne⇓ fst-ne⇓ refl = refl
+
+  snd⇓-det : ∀ {α β Γ} {u₁ u₂ : Val Γ (α * β)} {w₁ w₂}
+    (⇓w₁ : Snd u₁ ⇓ w₁) (⇓w₂ : Snd u₂ ⇓ w₂)
+    (u₁≡u₂ : u₁ ≡ u₂) → w₁ ≡ w₂
+  snd⇓-det snd-pair⇓ snd-pair⇓ refl = refl
+  snd⇓-det snd-ne⇓ snd-ne⇓ refl = refl
+
+--   Quote u₁ ⇓ n₁ →  Quote u₂ ⇓ n₂ → u₁ ≡ u₂ →  n₁ ≡ n₂
+
+mutual
+
+  quote⇓-det : ∀ {α Γ} {u₁ u₂ : Val Γ α} {n₁ n₂}
+    (⇓n₁ : Quote u₁ ⇓ n₁) (⇓n₂ : Quote u₂ ⇓ n₂)
+    (u₁≡u₂ : u₁ ≡ u₂) →
+    n₁ ≡ n₂
+  quote⇓-det (⋆⇓ us₁ ⇓ns₁) (⋆⇓ .us₁ ⇓ns₂) refl =
+    cong ne (quote*⇓-det ⇓ns₁ ⇓ns₂ refl)
+  quote⇓-det (⇒⇓ ⇓u₁ ⇓n₁) (⇒⇓ ⇓u₂ ⇓n₂) refl =
+    cong lam (quote⇓-det ⇓n₁ ⇓n₂ (⟨∙⟩⇓-det ⇓u₁ ⇓u₂ refl refl))
+  quote⇓-det One⇓ One⇓ refl = refl
+  quote⇓-det (Prod⇓ ⇓u₁ ⇓na₁ ⇓v₁ ⇓nb₁) (Prod⇓ ⇓u₂ ⇓na₂ ⇓v₂ ⇓nb₂) refl =
+    cong₂ pair (quote⇓-det ⇓na₁ ⇓na₂ (fst⇓-det ⇓u₁ ⇓u₂ refl))
+               (quote⇓-det ⇓nb₁ ⇓nb₂ (snd⇓-det ⇓v₁ ⇓v₂ refl))
+
+  quote*⇓-det : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} {ns₁ ns₂}
+    (⇓ns₁ : Quote* us₁ ⇓ ns₁) (⇓ns₂ : Quote* us₂ ⇓ ns₂)
+    (us₁≡us₂ : us₁ ≡ us₂) →
+    ns₁ ≡ ns₂
+
+  quote*⇓-det var⇓ var⇓ refl =
+    refl
+  quote*⇓-det (app⇓ ⇓ns₁ ⇓n₁) (app⇓ ⇓ns₂ ⇓n₂) refl =
+    cong₂ app (quote*⇓-det ⇓ns₁ ⇓ns₂ refl) (quote⇓-det ⇓n₁ ⇓n₂ refl)
+  quote*⇓-det (fst⇓ ⇓ns₁) (fst⇓ ⇓ns₂) refl =
+    cong fst (quote*⇓-det ⇓ns₁ ⇓ns₂ refl)
+  quote*⇓-det (snd⇓ ⇓ns₁) (snd⇓ ⇓ns₂) refl =
+    cong snd (quote*⇓-det ⇓ns₁ ⇓ns₂ refl)
+
+--   Nf t ⇓ n₁ → Nf t ⇓ n₂ → n₁ ≡ n₂
+
+nf⇓-det : ∀ {α Γ} (t : Tm Γ α)
+  {n₁} (⇓n₁ : Nf t ⇓ n₁) {n₂} (⇓n₂ : Nf t ⇓ n₂) →
+  n₁ ≡ n₂
+nf⇓-det t (nf⇓ ⇓u₁ ⇓n₁) (nf⇓ ⇓u₂ ⇓n₂)
+  rewrite ⟦⟧⇓-det ⇓u₁ ⇓u₂ refl
+  = quote⇓-det ⇓n₁ ⇓n₂ refl

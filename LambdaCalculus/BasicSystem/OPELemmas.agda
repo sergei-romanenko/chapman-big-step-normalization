@@ -5,19 +5,20 @@ open import BasicSystem.Syntax
 open import BasicSystem.Conversion
 open import BasicSystem.OPE
 
+
 --
 -- Composing OPEs.
 --
 
-η●≤id : ∀ {Γ Δ} (f : _≤_ Γ Δ) → _●_ f ≤id ≡ f
+η●≤id : ∀ {Γ Δ} (η : Γ ≤ Δ) → η ● ≤id ≡ η
 η●≤id ≤[]     = refl 
-η●≤id (≤lift f) = cong ≤lift (η●≤id f) 
-η●≤id (≤weak f) = cong ≤weak (η●≤id f)
+η●≤id (≤lift η) = cong ≤lift (η●≤id η) 
+η●≤id (≤weak η) = cong ≤weak (η●≤id η)
 
-≤id●η : ∀ {Γ Δ} (f : _≤_ Γ Δ) → _●_ ≤id f ≡ f
+≤id●η : ∀ {Γ Δ} (η : Γ ≤ Δ) → ≤id ● η ≡ η
 ≤id●η ≤[]       = refl 
-≤id●η (≤lift f) = cong ≤lift (≤id●η f) 
-≤id●η (≤weak f) = cong ≤weak (≤id●η f)
+≤id●η (≤lift η) = cong ≤lift (≤id●η η) 
+≤id●η (≤weak η) = cong ≤weak (≤id●η η)
 
 assoc● :  ∀ {Β Γ₁ Γ₂ Δ} (η : Β ≤ Γ₁) (η′ : Γ₁ ≤ Γ₂) (η′′ : Γ₂ ≤ Δ) →
   (η ● η′) ● η′′ ≡ η ● (η′ ● η′′)

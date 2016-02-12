@@ -1,62 +1,137 @@
 module FiniteProducts.Syntax where
 
+--
+-- Types.
+--
+
+infixr 5 _⇒_
+
 data Ty : Set where
-  ⋆   : Ty  
-  _⇒_ : Ty → Ty → Ty
+  ⋆   :  Ty
+  _⇒_ : (α β : Ty) → Ty
   One : Ty
   _*_ : Ty → Ty → Ty
 
-data Con : Set where
-  ε   : Con
-  _<_ : Con → Ty → Con
+infixl 6 _[_]
+infixr 6 _○_
+infixr 5 _∷_
+infixl 5 _∙_
+infixr 3 ƛ_
+
+-- Contexts.
+
+data Ctx : Set where
+  []  : Ctx
+  _∷_ : (α : Ty) (Γ : Ctx)  → Ctx
 
 mutual
-  data Tm : Con → Ty → Set where
-    ø     : ∀ {Γ σ} → Tm (Γ < σ) σ
-    _[_]  : ∀ {Γ Δ σ} → Tm Δ σ → Sub Γ Δ → Tm Γ σ
-    ƛ     : ∀ {Γ σ τ} → Tm (Γ < σ) τ → Tm Γ (σ ⇒ τ)
-    _∙_   : ∀ {Γ σ τ} → Tm Γ (σ ⇒ τ) → Tm Γ σ → Tm Γ τ
+
+  -- Terms.
+
+  data Tm : (Γ : Ctx) (α : Ty) → Set where
+    ø   : ∀ {α Γ} → Tm (α ∷ Γ) α
+    _∙_ : ∀ {α β Γ} (t : Tm Γ (α ⇒ β)) (t′ : Tm Γ α) → Tm Γ β
+    ƛ_  : ∀ {α β Γ} (t : Tm (α ∷ Γ) β) → Tm Γ (α ⇒ β)
+    _[_] : ∀ {α Γ Δ} (t : Tm Δ α) (σ : Sub Γ Δ) → Tm Γ α
     void  : ∀ {Γ} → Tm Γ One
-    <_,_> : ∀ {Γ σ τ} → Tm Γ σ → Tm Γ τ → Tm Γ (σ * τ)
-    fst   : ∀ {Γ σ τ} → Tm Γ (σ * τ) → Tm Γ σ
-    snd   : ∀ {Γ σ τ} → Tm Γ (σ * τ) → Tm Γ τ
+    pair : ∀ {α β Γ} → Tm Γ α → Tm Γ β → Tm Γ (α * β)
+    fst  : ∀ {α β Γ} → Tm Γ (α * β) → Tm Γ α
+    snd  : ∀ {α β Γ} → Tm Γ (α * β) → Tm Γ β
 
-  data Sub : Con → Con → Set where
-    ↑   : ∀ {Γ} σ → Sub (Γ < σ) Γ
-    _<_ : ∀ {Γ Δ σ} → Sub Γ Δ → Tm Γ σ → Sub Γ (Δ < σ)
-    ı  : ∀ {Γ} → Sub Γ Γ
-    _○_ : ∀ {B Γ Δ} → Sub Γ Δ → Sub B Γ → Sub B Δ
+  -- Substitutions: `Sub Γ Δ` transforms `Tm Δ α` into `Tm Γ α`.
 
-data Var : Con → Ty → Set where
-  vZ : ∀ {Γ σ} → Var (Γ < σ) σ
-  vS : ∀ {Γ σ} τ → Var Γ σ → Var (Γ < τ) σ
+  data Sub : (Γ Δ : Ctx) → Set where
+    ı   : ∀ {Γ} → Sub Γ Γ
+    _○_ : ∀ {Γ Δ Γ′} (σ : Sub Δ Γ) (σ′ : Sub Γ′ Δ) → Sub Γ′ Γ
+    _∷_ : ∀ {α Γ Δ} (t : Tm Γ α) (σ : Sub Γ Δ) → Sub Γ (α ∷ Δ)
+    ↑  : ∀ {α Γ} → Sub (α ∷ Γ) Γ
 
-mutual
-  data Val : Con → Ty → Set where
-    λv     : ∀ {Γ Δ σ τ} → Tm (Δ < σ) τ → Env Γ Δ → Val Γ (σ ⇒ τ)
-    voidv  : ∀ {Γ} → Val Γ One
-    <_,_>v : ∀ {Γ σ τ} → Val Γ σ → Val Γ τ → Val Γ (σ * τ)
-    nev    : ∀ {Γ σ} → NeV Γ σ → Val Γ σ
-    
-  data Env : Con → Con → Set where
-    ε   : ∀ {Γ} → Env Γ ε
-    _<<_ : ∀ {Γ Δ σ} → Env Γ Δ → Val Γ σ → Env Γ (Δ < σ)
+--
+-- Weak head normal forms.
+--
 
-  data NeV : Con → Ty → Set where
-    varV : ∀ {Γ σ} → Var Γ σ → NeV Γ σ
-    appV : ∀ {Γ σ τ} → NeV Γ (σ ⇒ τ) → Val Γ σ → NeV Γ τ
-    fstV : ∀ {Γ σ τ} → NeV Γ (σ * τ) → NeV Γ σ
-    sndV : ∀ {Γ σ τ} → NeV Γ (σ * τ) → NeV Γ τ
+data Var : (Γ : Ctx) (α : Ty) → Set where
+  zero : ∀ {α Γ} → Var (α ∷ Γ) α
+  suc  : ∀ {α β Γ} (x : Var Γ α) → Var (β ∷ Γ) α
 
 mutual
-  data Nf : Con → Ty → Set where
-    λn     : ∀ {Γ σ τ} → Nf (Γ < σ) τ → Nf Γ (σ ⇒ τ)
-    voidn  : ∀ {Γ} → Nf Γ One
-    <_,_>n : ∀ {Γ σ τ} → Nf Γ σ → Nf Γ τ → Nf Γ (σ * τ)
-    ne     : ∀ {Γ} → NeN Γ ⋆ → Nf Γ ⋆
 
-  data NeN : Con → Ty → Set where
-    varN : ∀ {Γ σ} → Var Γ σ → NeN Γ σ
-    appN : ∀ {Γ σ τ} → NeN Γ (σ ⇒ τ) → Nf Γ σ → NeN Γ τ
-    fstN : ∀ {Γ σ τ} → NeN Γ (σ * τ) → NeN Γ σ
-    sndN : ∀ {Γ σ τ} → NeN Γ (σ * τ) → NeN Γ τ
+  data Val : (Γ : Ctx) (α : Ty) → Set where
+    ne  : ∀ {α Γ} (us : NeVal Γ α) → Val Γ α
+    lam : ∀ {α β Γ Δ} (t : Tm (α ∷ Δ) β) (ρ : Env Γ Δ) → Val Γ (α ⇒ β)
+    void : ∀ {Γ} → Val Γ One
+    pair : ∀ {α β Γ} (u : Val Γ α) (v : Val Γ β) → Val Γ (α * β)
+
+  data Env (Γ : Ctx) : Ctx → Set where
+    []  : Env Γ []
+    _∷_ : ∀ {α Δ} (u : Val Γ α) (ρ : Env Γ Δ) → Env Γ (α ∷ Δ)
+
+  data NeVal (Γ : Ctx) : Ty → Set where
+    var : ∀ {α} (x : Var Γ α) → NeVal Γ α
+    app : ∀ {α β} (us : NeVal Γ (α ⇒ β)) (u : Val Γ α) → NeVal Γ β
+    fst : ∀ {α β} (us : NeVal Γ (α * β)) → NeVal Γ α
+    snd : ∀ {α β} (us : NeVal Γ (α * β)) → NeVal Γ β
+
+
+--
+-- η-long β-normal forms.
+--
+
+mutual
+
+  data Nf (Γ : Ctx) : Ty → Set where
+    ne  : ∀ (ns : NeNf Γ ⋆) → Nf Γ ⋆
+    lam : ∀ {α β} (n : Nf (α ∷ Γ) β) → Nf Γ (α ⇒ β)
+    void : Nf Γ One
+    pair : ∀ {α β} (na : Nf Γ α) (nb : Nf Γ β) → Nf Γ (α * β)
+
+  data NeNf (Γ : Ctx) : Ty → Set where
+    var : ∀ {α} (x : Var Γ α) → NeNf Γ α
+    app : ∀ {α β} (ns : NeNf Γ (α ⇒ β)) (n : Nf Γ α) → NeNf Γ β
+    fst : ∀ {α β} (ns : NeNf Γ (α * β)) → NeNf Γ α
+    snd : ∀ {α β} (ns : NeNf Γ (α * β)) → NeNf Γ β
+
+
+--
+-- Embedding of values and normal forms into terms.
+--
+
+embVar : ∀ {α Γ} (x : Var Γ α) → Tm Γ α
+embVar zero = ø
+embVar (suc x) = embVar x [ ↑ ]
+
+sub-from-[] : ∀ {Γ} → Sub Γ []
+sub-from-[] {[]} = ı
+sub-from-[] {α ∷ Γ} = sub-from-[] ○ ↑
+
+mutual
+
+  embVal : ∀ {α Γ} (u : Val Γ α) → Tm Γ α
+  embVal (lam t ρ) = (ƛ t) [ embEnv ρ ]
+  embVal (ne us) = embNeVal us
+  embVal void = void
+  embVal (pair u v) = pair (embVal u) (embVal v)
+
+  embNeVal : ∀ {α Γ} (us : NeVal Γ α) → Tm Γ α
+  embNeVal (var x) = embVar x
+  embNeVal (app us u) = embNeVal us ∙ embVal u
+  embNeVal (fst us) = fst (embNeVal us)
+  embNeVal (snd us) = snd (embNeVal us)
+
+  embEnv : ∀ {Γ Δ} (ρ : Env Γ Δ) → Sub Γ Δ
+  embEnv [] = sub-from-[]
+  embEnv (u ∷ ρ) = embVal u ∷ embEnv ρ
+
+mutual
+
+  embNf : ∀ {α Γ} (n : Nf Γ α) → Tm Γ α
+  embNf (lam n) = ƛ embNf n
+  embNf (ne ns) = embNeNf ns
+  embNf void = void
+  embNf (pair na nb) = pair (embNf na) (embNf nb)
+
+  embNeNf : ∀ {α Γ} (ns : NeNf Γ α) → Tm Γ α
+  embNeNf (var x) = embVar x
+  embNeNf (app ns n) = embNeNf ns ∙ embNf n
+  embNeNf (fst ns) = fst (embNeNf ns)
+  embNeNf (snd ns) = snd (embNeNf ns)

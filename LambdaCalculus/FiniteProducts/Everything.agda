@@ -3,18 +3,14 @@ module FiniteProducts.Everything where
 import FiniteProducts.Utils
 import FiniteProducts.Syntax
 import FiniteProducts.Conversion
-import FiniteProducts.Embeddings
 import FiniteProducts.OPE 
 import FiniteProducts.OPELemmas
-import FiniteProducts.IdentityEnvironment
 --
 import FiniteProducts.RecursiveNormaliser
-import FiniteProducts.OPERecursive
-import FiniteProducts.StrongConvertibility
-import FiniteProducts.Soundness
 --
 import FiniteProducts.BigStepSemantics
 import FiniteProducts.OPEBigStep
-import FiniteProducts.StructuralNormaliser 
 import FiniteProducts.StrongComputability
-import FiniteProducts.TerminationandCompleteness
+import FiniteProducts.StructuralNormaliser
+import FiniteProducts.StabilityAndCompleteness
+import FiniteProducts.Soundness

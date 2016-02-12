@@ -2,64 +2,119 @@ module FiniteProducts.OPEBigStep where
 
 open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
+open import FiniteProducts.Conversion
 open import FiniteProducts.OPE
 open import FiniteProducts.OPELemmas
 open import FiniteProducts.BigStepSemantics
 
-mutual
-  eval⇓map : ∀ {B Γ Δ σ}(f : OPE B Γ)
-             {t : Tm Δ σ}{vs : Env Γ Δ}{v : Val Γ σ} →
-             eval t & vs ⇓ v → eval t & emap f vs ⇓ vmap f v
-  eval⇓map f rvar            = rvar 
-  eval⇓map f (rsubs p p')    = rsubs (evalˢ⇓map f p) (eval⇓map f p') 
-  eval⇓map f rlam            = rlam 
-  eval⇓map f (rapp p p' p'') = 
-    rapp (eval⇓map f p) (eval⇓map f p') (∙∙⇓map f p'') 
-  eval⇓map f rvoid           = rvoid 
-  eval⇓map f (r<,> p p')     = r<,> (eval⇓map f p) (eval⇓map f p')
-  eval⇓map f (rfst p p')     = rfst (eval⇓map f p) (vfst⇓map f p')
-  eval⇓map f (rsnd p p')     = rsnd (eval⇓map f p) (vsnd⇓map f p')
 
-  vfst⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ){v : Val Δ (σ * τ)}{w : Val Δ σ} →
-             vfst v ⇓ w → vfst vmap f v ⇓ vmap f w
-  vfst⇓map f rfst<,> = rfst<,> 
-  vfst⇓map f rfstnev = rfstnev 
-
-  vsnd⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ){v : Val Δ (σ * τ)}{w : Val Δ τ} →
-             vsnd v ⇓ w → vsnd vmap f v ⇓ vmap f w
-  vsnd⇓map f rsnd<,> = rsnd<,> 
-  vsnd⇓map f rsndnev = rsndnev 
-
-  ∙∙⇓map : ∀ {Γ Δ σ τ}(f : OPE Γ Δ)
-           {v : Val Δ (σ ⇒ τ)}{a : Val Δ σ}{v' : Val Δ τ} →
-           v ∙∙ a ⇓ v' → vmap f v ∙∙ vmap f a ⇓ vmap f v'
-  ∙∙⇓map f (r∙lam p) = r∙lam (eval⇓map f p) 
-  ∙∙⇓map f r∙ne      = r∙ne 
-
-  evalˢ⇓map : ∀ {A B Γ Δ}(f : OPE A B)
-              {ts : Sub Γ Δ}{vs : Env B Γ}{ws : Env B Δ} →
-              evalˢ ts & vs ⇓ ws → evalˢ ts & emap f vs ⇓ emap f ws
-  evalˢ⇓map f rˢ↑         = rˢ↑ 
-  evalˢ⇓map f (rˢcons p p') = rˢcons (evalˢ⇓map f p) (eval⇓map f p') 
-  evalˢ⇓map f rˢid          = rˢid 
-  evalˢ⇓map f (rˢcomp p p') = rˢcomp (evalˢ⇓map f p) (evalˢ⇓map f p')
+--
+-- OPEs commute with evaluation
+--
 
 mutual
-  quot⇓map : ∀ {Γ Δ σ}(f : OPE Γ Δ) →
-              {v : Val Δ σ}{n : Nf Δ σ} →
-              quot v ⇓ n → quot vmap f v ⇓ nfmap f n
-  quot⇓map f (qbase p)   = qbase (quotⁿ⇓map f p) 
-  quot⇓map {σ = σ ⇒ τ} f (qarr {f = v} p p') with ∙∙⇓map (keep _ f) p
-  ... | p'' with vmap (keep σ f) (vmap (skip σ oid) v) | quotlemma σ f v
-  ... | ._ | refl = qarr p'' (quot⇓map (keep _ f) p') 
-  quot⇓map f qone                  = qone 
-  quot⇓map f (qprod p p' p'' p''') = 
-    qprod (vfst⇓map f p) (quot⇓map f p') (vsnd⇓map f p'') (quot⇓map f p''')  
 
-  quotⁿ⇓map : ∀ {Γ Δ σ}(f : OPE Γ Δ) →
-              {n : NeV Δ σ}{n' : NeN Δ σ} →
-              quotⁿ n ⇓ n' → quotⁿ nevmap f n ⇓ nenmap f n'
-  quotⁿ⇓map f qⁿvar        = qⁿvar 
-  quotⁿ⇓map f (qⁿapp p p') = qⁿapp (quotⁿ⇓map f p) (quot⇓map f p') 
-  quotⁿ⇓map f (qⁿfst p)    = qⁿfst (quotⁿ⇓map f p) 
-  quotⁿ⇓map f (qⁿsnd p)    = qⁿsnd (quotⁿ⇓map f p) 
+  ⟦⟧⇓≤ : ∀ {α Β Γ Δ} (η : Β ≤ Γ) {t : Tm Δ α} {ρ : Env Γ Δ} {u : Val Γ α}
+    (⇓u : ⟦ t ⟧ ρ ⇓ u) →
+    ⟦ t ⟧ env≤ η ρ ⇓ val≤ η u
+  ⟦⟧⇓≤ η ø⇓ = ø⇓
+  ⟦⟧⇓≤ η (∙⇓ ⇓u ⇓v ⇓w) = ∙⇓ (⟦⟧⇓≤ η ⇓u) (⟦⟧⇓≤ η ⇓v) (⟨∙⟩⇓≤ η ⇓w)
+  ⟦⟧⇓≤ η ƛ⇓ = ƛ⇓
+  ⟦⟧⇓≤ η ([]⇓ ⇓θ ⇓u) = []⇓ (⟦⟧*⇓≤ η ⇓θ) (⟦⟧⇓≤ η ⇓u)
+  ⟦⟧⇓≤ η void⇓ = void⇓
+  ⟦⟧⇓≤ η (pair⇓ ⇓u ⇓v) =
+    pair⇓ (⟦⟧⇓≤ η ⇓u) (⟦⟧⇓≤ η ⇓v)
+  ⟦⟧⇓≤ η (fst⇓ ⇓uv ⇓w) =
+    fst⇓ (⟦⟧⇓≤ η ⇓uv) (fst⇓≤ η ⇓w)
+  ⟦⟧⇓≤ η (snd⇓ ⇓uv ⇓w) =
+    snd⇓ (⟦⟧⇓≤ η ⇓uv) (snd⇓≤ η ⇓w)
+
+  ⟦⟧*⇓≤ : ∀ {Β Γ Δ Δ′} (η : Β ≤ Γ) {σ : Sub Δ′ Δ} {ρ : Env Γ Δ′} {θ : Env Γ Δ}
+    (⇓θ : ⟦ σ ⟧* ρ ⇓ θ) →
+    ⟦ σ ⟧* env≤ η ρ ⇓ env≤ η θ
+  ⟦⟧*⇓≤ η ι⇓ = ι⇓
+  ⟦⟧*⇓≤ η (○⇓ ⇓θ₁ ⇓θ₂) = ○⇓ (⟦⟧*⇓≤ η ⇓θ₁) (⟦⟧*⇓≤ η ⇓θ₂)
+  ⟦⟧*⇓≤ η (∷⇓ ⇓u ⇓θ) = ∷⇓ (⟦⟧⇓≤ η ⇓u) (⟦⟧*⇓≤ η ⇓θ)
+  ⟦⟧*⇓≤ η ↑⇓ = ↑⇓
+
+  ⟨∙⟩⇓≤ : ∀ {α β Β Γ} (η : Β ≤ Γ)
+    {u : Val Γ (α ⇒ β)} {v : Val Γ α} {w : Val Γ β}
+    (⇓w : u ⟨∙⟩ v ⇓ w) →
+    val≤ η u ⟨∙⟩ val≤ η v ⇓ val≤ η w
+  ⟨∙⟩⇓≤ η ne⇓ = ne⇓
+  ⟨∙⟩⇓≤ η (lam⇓ ⇓v) = lam⇓ (⟦⟧⇓≤ η ⇓v)
+
+  fst⇓≤ : ∀ {α β Β Γ} (η : Β ≤ Γ) {uv : Val Γ (α * β)} {w}
+    (⇓w : Fst uv ⇓ w) → Fst val≤ η uv ⇓ val≤ η w
+  fst⇓≤ η fst-pair⇓ = fst-pair⇓
+  fst⇓≤ η fst-ne⇓ = fst-ne⇓
+
+  snd⇓≤ : ∀ {α β Β Γ} (η : Β ≤ Γ) {uv : Val Γ (α * β)} {w}
+    (⇓w : Snd uv ⇓ w) → Snd val≤ η uv ⇓ val≤ η w
+  snd⇓≤ η snd-pair⇓ = snd-pair⇓
+  snd⇓≤ η snd-ne⇓ = snd-ne⇓
+
+mutual
+
+  quote≤ : ∀ {α Β Γ} (η : Β ≤ Γ) {u : Val Γ α} {n : Nf Γ α}
+    (⇓n : Quote u ⇓ n) →
+      Quote val≤ η u ⇓ nf≤ η n
+
+  quote≤ η (⋆⇓ us ⇓ns) =
+    ⋆⇓ (neVal≤ η us) (quote*≤ η ⇓ns)
+  quote≤ η (⇒⇓ {f = f} {u} {n} ⇓u ⇓n) =
+    ⇒⇓ ⇓u′′′ ⇓n′
+    where
+      ⇓u′ : val≤ (≤lift η) (val≤ wk f) ⟨∙⟩ ne (var zero) ⇓ val≤ (≤lift η) u
+      ⇓u′ = ⟨∙⟩⇓≤ (≤lift η) ⇓u
+      ⇓u′′′ : val≤ wk (val≤ η f) ⟨∙⟩ ne (var zero) ⇓ val≤ (≤lift η) u
+      ⇓u′′′ = subst (λ w → w ⟨∙⟩ ne (var zero) ⇓ val≤ (≤lift η) u)
+                    (sym $ wk∘val≤ η f) ⇓u′
+      ⇓n′ : Quote val≤ (≤lift η) u ⇓ nf≤ (≤lift η) n
+      ⇓n′ = quote≤ (≤lift η) ⇓n
+  quote≤ η One⇓ = One⇓
+  quote≤ η (Prod⇓ ⇓u ⇓na ⇓v ⇓nb) =
+    Prod⇓ (fst⇓≤ η ⇓u) (quote≤ η ⇓na) (snd⇓≤ η ⇓v) (quote≤ η ⇓nb)
+
+  quote*≤ : ∀ {α Β Γ} (η : Β ≤ Γ) {us : NeVal Γ α} {ns : NeNf Γ α}
+    (⇓ns : Quote* us ⇓ ns) →
+      Quote* neVal≤ η us ⇓ neNf≤ η ns
+
+  quote*≤ η var⇓ = var⇓
+  quote*≤ η (app⇓ ⇓ns ⇓n) =
+    app⇓ (quote*≤ η ⇓ns) (quote≤ η ⇓n)
+  quote*≤ η (fst⇓ ⇓ns) =
+    fst⇓ (quote*≤ η ⇓ns)
+  quote*≤ η (snd⇓ ⇓ns) =
+    snd⇓ (quote*≤ η ⇓ns)
+
+-- embNeVal (neVal≤ η us) ≈ embNeNf (neNf≤ η ns)
+
+embNe≈≤ : ∀ {α Β Γ} (η : Β ≤ Γ) (us : NeVal Γ α) (ns : NeNf Γ α) →
+  (p : embNeVal us ≈ embNeNf ns) →
+     embNeVal (neVal≤ η us) ≈ embNeNf (neNf≤ η ns)
+embNe≈≤ η us ns p = begin
+  embNeVal (neVal≤ η us)
+    ≈⟨ embNeVal∘≤ η us ⟩
+  embNeVal us [ ≤2sub η ]
+    ≈⟨ ≈cong[] p ≈≈refl ⟩
+  embNeNf ns [ ≤2sub η ]
+    ≈⟨ ≈sym (embNeNf∘≤ η ns) ⟩
+  embNeNf (neNf≤ η ns)
+  ∎
+  where open ≈-Reasoning
+
+-- fst (embVal u) ≈ embVal w
+
+fst∘embVal≈ : ∀ {α β Γ} {u : Val Γ (α * β)} {w}
+  (⇓w : Fst u ⇓ w) → fst (embVal u) ≈ embVal w
+fst∘embVal≈ fst-pair⇓ = ≈βfst
+fst∘embVal≈ fst-ne⇓ = ≈refl
+
+-- snd (embVal u) ≈ embVal w
+
+snd∘embVal≈ : ∀ {α β Γ} {u : Val Γ (α * β)} {w}
+  (⇓w : Snd u ⇓ w) → snd (embVal u) ≈ embVal w
+snd∘embVal≈ snd-pair⇓ = ≈βsnd
+snd∘embVal≈ snd-ne⇓ = ≈refl
+
