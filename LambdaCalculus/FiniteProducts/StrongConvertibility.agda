@@ -144,24 +144,24 @@ mutual
 
 mutual
 
-  ~confl : ∀ {α Γ} (u₁ u₂ : Val Γ α) (u₁~u₂ : u₁ ~ u₂) →
+  ~confl : ∀ {α Γ} {u₁ u₂ : Val Γ α} (u₁~u₂ : u₁ ~ u₂) →
     ∃₂ λ n₁ n₂ → n₁ ≡ n₂ × Quote u₁ ⇓ n₁ × Quote u₂ ⇓ n₂
 
-  ~confl {⋆} (ne us₁) (ne us₂) (ns₁ , ns₂ , ns₁≡ns₂ , ⇓ns₁ , ⇓ns₂) =
+  ~confl {⋆} {Γ} {ne us₁} {ne us₂} (ns₁ , ns₂ , ns₁≡ns₂ , ⇓ns₁ , ⇓ns₂) =
     ne⋆ ns₁ , ne⋆ ns₂ , cong ne⋆ ns₁≡ns₂ , ⋆⇓ us₁ ⇓ns₁ , ⋆⇓ us₂ ⇓ns₂
-  ~confl {α ⇒ β} {Γ} u₁ u₂ u₁~u₂
+  ~confl {α ⇒ β} {Γ} u₁~u₂
     with u₁~u₂ wk (_~_ {α} (ne (var zero)) (ne (var zero))
          ∋ ne~ne {α} var⇓ var⇓ refl)
   ... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
-    with ~confl w₁ w₂ w₁~w₂
+    with ~confl w₁~w₂
   ... | n₁ , n₂ , n₁≡n₂ , ⇓n₁ , ⇓n₂
     = lam n₁ , lam n₂ , cong lam n₁≡n₂ ,
       ⇒⇓ ⇓w₁ ⇓n₁ , ⇒⇓ ⇓w₂ ⇓n₂
-  ~confl {One} u₁ u₂ u₁~u₂ =
+  ~confl {One} u₁~u₂ =
     void , void , refl , One⇓ , One⇓
-  ~confl {α * β} u₁ u₂
+  ~confl {α * β}
     ((f₁ , f₂ , ⇓f₁ , ⇓f₂ , f₁~f₂) , (s₁ , s₂ , ⇓s₁ , ⇓s₂ , s₁~s₂))
-    with ~confl f₁ f₂ f₁~f₂ | ~confl s₁ s₂ s₁~s₂
+    with ~confl f₁~f₂ | ~confl s₁~s₂
   ... | na₁ , na₂ , na₁≡na₂ , ⇓na₁ , ⇓na₂ | nb₁ , nb₂ , nb₁≡nb₂ , ⇓nb₁ , ⇓nb₂
     = pair na₁ nb₁ , pair na₂ nb₂ , cong₂ pair na₁≡na₂ nb₁≡nb₂ ,
       Prod⇓ ⇓f₁ ⇓na₁ ⇓s₁ ⇓nb₁ , Prod⇓ ⇓f₂ ⇓na₂ ⇓s₂ ⇓nb₂
@@ -175,7 +175,7 @@ mutual
     ns₁ , ns₂ , ns₁≡ns₂ , ⇓ns₁ , ⇓ns₂
   ne~ne {α ⇒ β} {Γ} {us₁} {ns₁} ⇓ns₁ {us₂} {ns₂} ⇓ns₂ ns₁≡ns₂
                 {Β} η {v₁} {v₂} v₁~v₂
-    with ~confl v₁ v₂ v₁~v₂
+    with ~confl v₁~v₂
   ... | n₁ , n₂ , n₁≡n₂ , ⇓n₁ , ⇓n₂
     with ne (app (neVal≤ η us₁) v₁) ~ ne (app (neVal≤ η us₂) v₂) ∋
       ne~ne {β}

@@ -34,9 +34,9 @@ mutual
     ƛ_  : ∀ {α β Γ} (t : Tm (α ∷ Γ) β) → Tm Γ (α ⇒ β)
     _[_] : ∀ {α Γ Δ} (t : Tm Δ α) (σ : Sub Γ Δ) → Tm Γ α
     void  : ∀ {Γ} → Tm Γ One
-    pair : ∀ {α β Γ} → Tm Γ α → Tm Γ β → Tm Γ (α * β)
-    fst  : ∀ {α β Γ} → Tm Γ (α * β) → Tm Γ α
-    snd  : ∀ {α β Γ} → Tm Γ (α * β) → Tm Γ β
+    pair : ∀ {α β Γ} (a : Tm Γ α) (b : Tm Γ β) → Tm Γ (α * β)
+    fst  : ∀ {α β Γ} (t : Tm Γ (α * β)) → Tm Γ α
+    snd  : ∀ {α β Γ} (t : Tm Γ (α * β)) → Tm Γ β
 
   -- Substitutions: `Sub Γ Δ` transforms `Tm Δ α` into `Tm Γ α`.
 
@@ -107,8 +107,8 @@ sub-from-[] {α ∷ Γ} = sub-from-[] ○ ↑
 mutual
 
   embVal : ∀ {α Γ} (u : Val Γ α) → Tm Γ α
-  embVal (lam t ρ) = (ƛ t) [ embEnv ρ ]
   embVal (ne us) = embNeVal us
+  embVal (lam t ρ) = (ƛ t) [ embEnv ρ ]
   embVal void = void
   embVal (pair u v) = pair (embVal u) (embVal v)
 
@@ -125,8 +125,8 @@ mutual
 mutual
 
   embNf : ∀ {α Γ} (n : Nf Γ α) → Tm Γ α
-  embNf (lam n) = ƛ embNf n
   embNf (ne⋆ ns) = embNeNf ns
+  embNf (lam n) = ƛ embNf n
   embNf void = void
   embNf (pair na nb) = pair (embNf na) (embNf nb)
 

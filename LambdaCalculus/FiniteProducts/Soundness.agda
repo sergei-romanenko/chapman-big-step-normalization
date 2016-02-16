@@ -357,7 +357,7 @@ sound {α} {Γ} {t₁} {t₂} t₁≈t₂
 ... | m₁ , ⇓m₁ , ≈m₁ | m₂ , ⇓m₂ , ≈m₂
   with ~cong⟦⟧ t₁≈t₂ ~~refl-id-env
 ... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
-  with ~confl w₁ w₂ w₁~w₂
+  with ~confl {α} w₁~w₂
 ... | n₁ , n₂ , n₁≡n₂ , ⇓n₁ , ⇓n₂
   with nf t₁ & nf⇓ ⇓u₁ ⇓m₁ | nf t₂ & nf⇓ ⇓u₂ ⇓m₂
 ... | n′ , n′≡m₁ | n′′ , n′′≡m₂

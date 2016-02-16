@@ -5,159 +5,469 @@ open import FullSystem.Syntax
 open import FullSystem.Conversion
 open import FullSystem.OPE
 open import FullSystem.OPELemmas
-open import FullSystem.IdentityEnvironment
-open import FullSystem.RecursiveNormaliser
-open import FullSystem.OPERecursive
+open import FullSystem.BigStepSemantics
+open import FullSystem.OPEBigStep
+open import FullSystem.StrongComputability
+open import FullSystem.StructuralNormaliser 
 open import FullSystem.StrongConvertibility
 
+--
+-- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
+-- (Normalisation takes convertible terms to identical normal forms.)
+--
+
+--
+-- ρ₁ ~~ ρ₂ →
+--     ∃₂ λ u₁ u₂ → u₁ ~ u₂ × ⟦ t ⟧ ρ₁ ⇓ u₁ × ⟦ t ⟧ ρ₂ ⇓ u₂
+-- ρ₁ ~~ ρ₂ →
+--     ∃₂ λ θ₁ θ₂ → θ₁ ~~ θ₂ × (⟦ σ ⟧* ρ₁ ⇓ θ₁) × (⟦ σ ⟧* ρ₂ ⇓ θ₂)
+--
+
+~cong-prim⟦⟧ : ∀ {α Γ}
+  {u₁ u₂ : Val Γ α} (u₁~u₂ : u₁ ~ u₂)
+  {v₁ v₂ : Val Γ (N ⇒ α ⇒ α)} (v₁~v₂ : v₁ ~ v₂)
+  {w₁ w₂ : Val Γ N} (w₁~N~w₂ : w₁ ~N~ w₂) →
+  ∃₂ λ z₁ z₂ → z₁ ~ z₂
+    × Prim u₁ & v₁ & w₁ ⇓ z₁ × Prim u₂ & v₂ & w₂ ⇓ z₂
+~cong-prim⟦⟧ {α} {Γ} {u₁} {u₂} u₁~u₂ {v₁} {v₂} v₁~v₂
+                          (neN~ {us₁} {us₂} ⇓ns₁ ⇓ns₂ ns₁≡ns₂)
+  with ~confl u₁~u₂
+... | nu₁ , nu₂ , nu₁≡nu₂ , ⇓nu₁ , ⇓nu₂
+  with v₁~v₂ wk (neN~ var⇓ var⇓ refl)
+... | v0₁ , v0₂ , v0₁~v0₂ , ⇓v0₁ , ⇓v0₂
+  with v0₁~v0₂ wk (ne~ne {α} var⇓ var⇓ refl)
+... | v00₁ , v00₂ , v00₁~v00₂ , ⇓v00₁ , ⇓v00₂
+  with ~confl v00₁~v00₂
+... | nv00₁ , nv00₂ , nv00₁≡nv00₂ , ⇓nv00₁ , ⇓nv00₂
+  = ne (prim u₁ v₁ us₁) , ne (prim u₂ v₂ us₂) ,
+    ne~ne (prim⇓ ⇓nu₁ (⇒⇓ ⇓v0₁ (⇒⇓ ⇓v00₁ ⇓nv00₁)) ⇓ns₁)
+          (prim⇓ ⇓nu₂ (⇒⇓ ⇓v0₂ (⇒⇓ ⇓v00₂ ⇓nv00₂)) ⇓ns₂)
+          (cong₃ prim nu₁≡nu₂
+                      (cong (lam ∘′ lam) nv00₁≡nv00₂) ns₁≡ns₂) ,
+    primn⇓ , primn⇓
+~cong-prim⟦⟧ {α} {Γ} {u₁} {u₂} u₁~u₂ v₁~v₂ zero~ =
+  u₁ , u₂ , u₁~u₂ , primz⇓ , primz⇓
+~cong-prim⟦⟧ u₁~u₂ {v₁} {v₂} v₁~v₂ (suc~ w₁~N~w₂)
+  with ~cong-prim⟦⟧ u₁~u₂ v₁~v₂ w₁~N~w₂
+... | z₁ , z₂ , z₁~z₂ , ⇓z₁ , ⇓z₂
+  with v₁~v₂ ≤id w₁~N~w₂
+... | vw₁ , vw₂ , vw₁~vw₂ , ⇓vw₁ , ⇓vw₂
+  with vw₁~vw₂ ≤id z₁~z₂
+... | vwz₁ , vwz₂ , vwz₁~vwz₂ , ⇓vwz₁ , ⇓vwz₂
+  rewrite val≤-≤id v₁ | val≤-≤id v₂ | val≤-≤id vw₁ | val≤-≤id vw₂
+  = vwz₁ , vwz₂ , vwz₁~vwz₂ ,
+    prims⇓ ⇓vw₁ ⇓z₁ ⇓vwz₁ , prims⇓ ⇓vw₂ ⇓z₂ ⇓vwz₂
+
 mutual
-  squotlema : ∀ {Γ σ}{v v' : Val Γ σ} → 
-               v ∼ v' → quot v ≡ quot v'
-  squotlema {σ = ⋆}    {nev n}{nev n'} p = cong ne⋆ p 
-  squotlema {Γ}{σ ⇒ τ}                 p = 
-    cong λn (squotlema {σ = τ} (p (weak σ) q)) 
+
+  ~cong⟦≡⟧ : ∀ {α Γ Δ} (t : Tm Δ α) {ρ₁ ρ₂ : Env Γ Δ}
+    (ρ₁~~ρ₂ : ρ₁ ~~ ρ₂) →
+    ∃₂ λ u₁ u₂ → u₁ ~ u₂ × ⟦ t ⟧ ρ₁ ⇓ u₁ × ⟦ t ⟧ ρ₂ ⇓ u₂
+
+  ~cong⟦≡⟧ ø {u₁ ∷ ρ₁} {u₂ ∷ ρ₂} (u₁~u₂ ∷ ρ₁~~ρ₂) =
+    u₁ , u₂ , u₁~u₂ , ø⇓ , ø⇓
+  ~cong⟦≡⟧ (t ∙ t′) ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂ | ~cong⟦≡⟧ t′ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    with u₁~u₂ ≤id v₁~v₂
+  ... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+    rewrite val≤ ≤id u₁ ≡ u₁ ∋ val≤-≤id u₁ |
+            val≤ ≤id u₂ ≡ u₂ ∋ val≤-≤id u₂
+    = w₁ , w₂ , w₁~w₂ , ∙⇓ ⇓u₁ ⇓v₁ ⇓w₁ , ∙⇓ ⇓u₂ ⇓v₂ ⇓w₂
+  ~cong⟦≡⟧ {α ⇒ β} {Γ} (ƛ t) {ρ₁} {ρ₂} ρ₁~~ρ₂ =
+    lam t ρ₁ , lam t ρ₂ , h , ƛ⇓ , ƛ⇓
     where
-    q = squotlemb refl
-  squotlema {Γ} {N} ∼zero    = refl 
-  squotlema {Γ} {N} (∼suc p) = cong sucn (squotlema {σ = N} p) 
-  squotlema {Γ} {N} (∼nev p) = cong neN p 
-  squotlema {σ = One}                  p = refl 
-  squotlema {σ = σ * τ} (p , q) = cong₂ <_,_>n (squotlema p) (squotlema q) 
+    h : ∀ {Β} (η : Β ≤ Γ) {u₁ u₂ : Val Β α} → u₁ ~ u₂ →
+          ∃₂ (λ w₁ w₂ → w₁ ~ w₂
+            × lam t (env≤ η ρ₁) ⟨∙⟩ u₁ ⇓ w₁
+            × lam t (env≤ η ρ₂) ⟨∙⟩ u₂ ⇓ w₂)
+    h {Β} η u₁~u₂
+      with ~cong⟦≡⟧ t (u₁~u₂ ∷ ~~≤ η ρ₁~~ρ₂)
+    ... | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+      = v₁ , v₂ , v₁~v₂ , lam⇓ ⇓v₁ , lam⇓ ⇓v₂
+  ~cong⟦≡⟧ (t [ σ ]) ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ t θ₁~~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = u₁ , u₂ , u₁~u₂ , []⇓ ⇓θ₁ ⇓u₁ , []⇓ ⇓θ₂ ⇓u₂
+  ~cong⟦≡⟧ void ρ₁~~ρ₂ =
+    void , void , tt , void⇓ , void⇓
+  ~cong⟦≡⟧ (pair tu tv) ρ₁~~ρ₂
+    with ~cong⟦≡⟧ tu ρ₁~~ρ₂ | ~cong⟦≡⟧ tv ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = pair u₁ v₁ , pair u₂ v₂ ,
+           ((u₁ , u₂ , fst-pair⇓ , fst-pair⇓ , u₁~u₂) ,
+             (v₁ , v₂ , snd-pair⇓ , snd-pair⇓ , v₁~v₂)) ,
+             pair⇓ ⇓u₁ ⇓v₁ , pair⇓ ⇓u₂ ⇓v₂
+  ~cong⟦≡⟧ (fst t) ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ... | u₁ , u₂ ,
+    ((f₁ , f₂ , ⇓f₁ , ⇓f₂ , f₁~f₂) , (s₁ , s₂ , ⇓s₁ , ⇓s₂ , s₁~s₂)) ,
+      ⇓u₁ , ⇓u₂
+    = f₁ , f₂ , f₁~f₂ , fst⇓ ⇓u₁ ⇓f₁ , fst⇓ ⇓u₂ ⇓f₂
+  ~cong⟦≡⟧ (snd t) ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ... | u₁ , u₂ ,
+    ((f₁ , f₂ , ⇓f₁ , ⇓f₂ , f₁~f₂) , (s₁ , s₂ , ⇓s₁ , ⇓s₂ , s₁~s₂)) ,
+      ⇓u₁ , ⇓u₂
+    = s₁ , s₂ , s₁~s₂ , snd⇓ ⇓u₁ ⇓s₁ , snd⇓ ⇓u₂ ⇓s₂
+  ~cong⟦≡⟧ zero ρ₁~~ρ₂ =
+    zero , zero , zero~ , zero⇓ , zero⇓
+  ~cong⟦≡⟧ (suc t) ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = suc u₁ , suc u₂ , suc~ u₁~u₂ , suc⇓ ⇓u₁ , suc⇓ ⇓u₂
+  ~cong⟦≡⟧ (prim a b k) ρ₁~~ρ₂
+    with ~cong⟦≡⟧ a ρ₁~~ρ₂ | ~cong⟦≡⟧ b ρ₁~~ρ₂ | ~cong⟦≡⟧ k ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+      | w₁ , w₂ , w₁~N~w₂ , ⇓w₁ , ⇓w₂
+      with ~cong-prim⟦⟧ u₁~u₂ v₁~v₂ w₁~N~w₂
+  ... | z₁ , z₂ , z₁~z₂ , ⇓z₁ , ⇓z₂
+    = z₁ , z₂ , z₁~z₂ ,
+      prim⇓ ⇓u₁ ⇓v₁ ⇓w₁ ⇓z₁ , prim⇓ ⇓u₂ ⇓v₂ ⇓w₂ ⇓z₂
 
-  squotlemb : ∀ {Γ σ}{n n' : NeV Γ σ} → 
-               quotⁿ n ≡ quotⁿ n' → nev n ∼ nev n'
-  squotlemb {σ = ⋆}     p = p 
-  squotlemb {σ = σ ⇒ τ}{n}{n'} p = λ f q → 
-    let q' = squotlema {σ = σ} q     
-    in  squotlemb {σ = τ} 
-                   (cong₂ appN 
-                          (trans (qⁿmaplem f n) 
-                                  (trans (cong (nenmap f) p) 
-                                          (sym (qⁿmaplem f n')))) 
-                          q')   
-  squotlemb {σ = N} p = ∼nev p  
-  squotlemb {σ = One}   p = tt
-  squotlemb {σ = σ * τ} p = squotlemb (cong fstN p) , squotlemb (cong sndN p)
+  ~~cong⟦≡⟧* : ∀ {Γ Δ Δ′} (σ : Sub Δ Δ′)
+    {ρ₁ ρ₂ : Env Γ Δ} (ρ₁~~ρ₂ : ρ₁ ~~ ρ₂) →
+    ∃₂ λ θ₁ θ₂ → θ₁ ~~ θ₂ × (⟦ σ ⟧* ρ₁ ⇓ θ₁) × (⟦ σ ⟧* ρ₂ ⇓ θ₂)
 
-sndvar : ∀ {Γ σ}(x : Var Γ σ) → nev (varV x) ∼ nev (varV x)
-sndvar x = squotlemb refl
+  ~~cong⟦≡⟧* ı {ρ₁} {ρ₂} ρ₁~~ρ₂ =
+    ρ₁ , ρ₂ , ρ₁~~ρ₂ , ι⇓ , ι⇓
+  ~~cong⟦≡⟧* (σ ○ σ′) ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ′ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~~cong⟦≡⟧* σ θ₁~θ₂
+  ... | φ₁ , φ₂ , φ₁~φ₂ , ⇓φ₁ , ⇓φ₂
+    = φ₁ , φ₂ , φ₁~φ₂ , ○⇓ ⇓θ₁ ⇓φ₁ , ○⇓ ⇓θ₂ ⇓φ₂
+  ~~cong⟦≡⟧* (t ∷ σ) ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂ | ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | θ₁ , θ₂ , θ₁~~θ₂ , ⇓θ₁ , ⇓θ₂
+    = u₁ ∷ θ₁ , u₂ ∷ θ₂ , u₁~u₂ ∷ θ₁~~θ₂ , ∷⇓ ⇓u₁ ⇓θ₁ , ∷⇓ ⇓u₂ ⇓θ₂
+  ~~cong⟦≡⟧* ↑ {u₁ ∷ ρ₁} {u₂ ∷ ρ₂} (u₁~u₂ ∷ ρ₁~~ρ₂) =
+    ρ₁ , ρ₂ , ρ₁~~ρ₂ , ↑⇓ , ↑⇓
 
-sndid : ∀ Γ → (vid {Γ}) ∼ˢ (vid {Γ})
-sndid ε       = ∼ε 
-sndid (Γ < σ) = ∼<< (∼ˢmap (skip σ oid) (sndid Γ)) (sndvar vZ) 
-
-primlem : ∀ {Γ σ}{z z' : Val Γ σ}{s s' : Val Γ (N ⇒ σ ⇒ σ)}{v v' : Val Γ N} → 
-          z ∼ z' → s ∼ s' → v ∼ v' →
-          vprim z s v ∼ vprim z' s' v'
-primlem p p' ∼zero    = p 
-primlem {s = s}{s'}{sucv v}{sucv v'} p p' (∼suc p'') with p' oid p'' oid (primlem {s = s}{s'} p p' p'')
-... | q with vmap oid s | oidvmap s | vmap oid s' | oidvmap s'
-... | ._ | refl | ._ | refl with vmap oid (s ∙∙ v) | oidvmap (s ∙∙ v) | vmap oid (s' ∙∙ v') | oidvmap (s' ∙∙ v') 
-... | ._ | refl | ._ | refl = q 
-primlem {σ = σ} p p' (∼nev p'') =
-  squotlemb (cong₃ primN 
-                    (squotlema p) 
-                    (cong (λ n → λn (λn n)) 
-                          (squotlema (p' (weak N) (sndvar (vZ {σ = N})) (weak σ) (sndvar (vZ {σ = σ}))))) 
-                    p'')  
-
+--
+-- t₁ ≈ t₂ → ρ₁ ~~ ρ₂ →
+--     ∃₂ λ u₁ u₂ → u₁ ~ u₂ × ⟦ t₁ ⟧ ρ₁ ⇓ u₁ × ⟦ t₂ ⟧ ρ₂ ⇓ u₂
+--
+-- σ₁ ≈≈ σ₂ → ρ₁ ~~ ρ₂ →
+--     ∃₂ λ θ₁ θ₂ → θ₁ ~~ θ₂ × ⟦ σ₁ ⟧* ρ₁ ⇓ θ₁ × ⟦ σ₂ ⟧* ρ₂ ⇓ θ₂
+--
 
 mutual
-  idext : ∀ {Γ Δ σ}(t : Tm Δ σ){vs vs' : Env Γ Δ} → vs ∼ˢ vs' →
-          eval t vs ∼ eval t vs'
-  idext ø              (∼<< p q) = q 
-  idext (t [ ts ])       p         = idext t (idextˢ ts p)
-  idext (ƛ t)            p         = λ f p' → idext t (∼<< (∼ˢmap f p) p')   
-  idext (t ∙ u){vs}{vs'} p         = 
-    helper (sym (oidvmap (eval t vs))) 
-           (sym (oidvmap (eval t vs'))) 
-           (idext t p oid (idext u p)) 
-  idext zero             p         = ∼zero 
-  idext (suc t)          p         = ∼suc (idext t p)  
-  idext (prim z s t)     p         = primlem (idext z p) (idext s p) (idext t p)
-  idext void             p         = tt
-  idext < t , u >        p         = idext t p , idext u p
-  idext (fst t)          p         = proj₁ (idext t p) 
-  idext (snd t)          p         = proj₂ (idext t p) 
 
-  idextˢ : ∀ {B Γ Δ}(ts : Sub Γ Δ){vs vs' : Env B Γ} → vs ∼ˢ vs' →
-           evalˢ ts vs ∼ˢ evalˢ ts vs' 
-  idextˢ (↑ σ)   (∼<< p q) = p 
-  idextˢ (ts < t)  p         = ∼<< (idextˢ ts p) (idext t p) 
-  idextˢ ı        p         = p 
-  idextˢ (ts ○ us) p         = idextˢ ts (idextˢ us p)
+  ~cong⟦⟧ : ∀ {α Γ Δ}
+    {t₁ t₂ : Tm Δ α} (t₁≈t₂ : t₁ ≈ t₂)
+    {ρ₁ ρ₂ : Env Γ Δ} (ρ₁~~ρ₂ : ρ₁ ~~ ρ₂) →
+    ∃₂ λ u₁ u₂ → u₁ ~ u₂ × ⟦ t₁ ⟧ ρ₁ ⇓ u₁ × ⟦ t₂ ⟧ ρ₂ ⇓ u₂
 
-mutual
-  sfundthrm : ∀ {Γ Δ σ}{t t' : Tm Δ σ} → t ≈ t' →
-              {vs vs' : Env Γ Δ} → vs ∼ˢ vs' → eval t vs ∼ eval t' vs'
-  sfundthrm {t = t} ≈refl  q = idext t q
-  sfundthrm (≈sym p)       q = sym∼ (sfundthrm p (sym∼ˢ q)) 
-  sfundthrm (≈trans p p')  q = 
-    trans∼ (sfundthrm p (trans∼ˢ q (sym∼ˢ q))) 
-           (sfundthrm p' q)  
-  sfundthrm (cong[] p p') q = sfundthrm p (sfundthrmˢ p' q) 
-  sfundthrm (congλ p)     q = λ f p' → sfundthrm p (∼<< (∼ˢmap f q) p')  
-  sfundthrm (cong∙ {t = t}{t' = t'} p p')  q = 
-    helper (sym (oidvmap (eval t  _)))
-           (sym (oidvmap (eval t' _)))
-           (sfundthrm p q oid (sfundthrm p' q)) 
-  sfundthrm {t' = t'} ø<          q = idext t' q 
-  sfundthrm {t = t [ ts ] [ us ]} [][]          q = idext t (idextˢ ts (idextˢ us q))  
-  sfundthrm {t' = t} []id          q = idext t q 
-  sfundthrm (λ[] {t = t}{ts = ts}){vs}{vs'} q = λ f p → 
-    helper' {t = t}
-            (evˢmaplem f ts vs') 
-            (idext t (∼<< (∼ˢmap f (idextˢ ts q)) p)) 
-  sfundthrm (∙[]{t = t}{u = u}{ts = ts}) q =
-    helper (sym (oidvmap (eval t (evalˢ ts _))))
-           (sym (oidvmap (eval t (evalˢ ts _))))
-           (idext t (idextˢ ts q) oid (idext u (idextˢ ts q))) 
-  sfundthrm (β {t = t}{u = u}) q = idext t (∼<< q (idext u q)) 
-  sfundthrm (η {t = t}){vs = vs}{vs' = vs'} q = λ f {a} {a'} p → 
-    helper {f = vmap f (eval t vs)} 
-           refl
-           (evmaplem f t vs')
-           (idext t q f p) 
-  sfundthrm (congsuc p)         q = ∼suc (sfundthrm p q) 
-  sfundthrm (congprim p p' p'') q = primlem (sfundthrm p q) (sfundthrm p' q) (sfundthrm p'' q)  
-  sfundthrm zero[]              p = ∼zero 
-  sfundthrm (suc[] {t = t}{ts}) p = ∼suc (idext t (idextˢ ts p) ) 
-  sfundthrm (prim[] {z = z}{s}{t}{ts}) p = 
-    primlem (idext z (idextˢ ts p)) (idext s (idextˢ ts p)) (idext t (idextˢ ts p)) 
-  sfundthrm (primz {z = t})     p = idext t p 
-  sfundthrm (prims {z = z}{s}{t}){vs}{vs'} p with idext s p oid (idext t p) oid (primlem {s = eval s vs}{eval s vs'}(idext z p) (idext s p) (idext t p))
-  ... | q with vmap oid (eval s vs) | oidvmap (eval s vs)  | vmap oid (eval s vs') | oidvmap (eval s vs') 
-  ... | ._ | refl | ._ | refl with vmap oid (eval s vs ∙∙ eval t vs) | oidvmap (eval s vs ∙∙ eval t vs) | vmap oid (eval s vs' ∙∙ eval t vs') | oidvmap (eval s vs' ∙∙ eval t vs')
-  ... | ._ | refl | ._ | refl = q 
-  sfundthrm (cong<,> p q) r = sfundthrm p r , sfundthrm q r 
-  sfundthrm (congfst p)   q = proj₁ (sfundthrm p q) 
-  sfundthrm (congsnd p)   q = proj₂ (sfundthrm p q) 
-  sfundthrm void[]        p = tt
-  sfundthrm (<,>[] {t = t}{u}{ts}) p =
-    idext t (idextˢ ts p) , idext u (idextˢ ts p)
-  sfundthrm (fst[] {t = t}{ts}) p = proj₁ (idext t (idextˢ ts p)) 
-  sfundthrm (snd[] {t = t}{ts}) p = proj₂ (idext t (idextˢ ts p))
-  sfundthrm {t' = t} βfst          p = idext t p 
-  sfundthrm {t' = u} βsnd          p = idext u p 
-  sfundthrm (η<,> {t = t}) p = idext t p 
-  sfundthrm ηvoid         p = tt
+  ~cong⟦⟧ {t₁ = t} ≈refl ρ₁~~ρ₂ =
+    ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ~cong⟦⟧ {α} (≈sym t₁≈t₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ (~~sym ρ₁~~ρ₂)
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = u₂ , u₁ , ~sym {α} u₁~u₂ , ⇓u₂ , ⇓u₁
+  ~cong⟦⟧ {α} (≈trans t₁≈t₂ t₂≈t₃) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ (~~refl′ ρ₁~~ρ₂) | ~cong⟦⟧ t₂≈t₃ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    rewrite u₂ ≡ v₁ ∋ ⟦⟧⇓-det ⇓u₂ ⇓v₁ refl
+    = u₁ , v₂ , ~trans {α} u₁~u₂ v₁~v₂ , ⇓u₁ , ⇓v₂
+  ~cong⟦⟧ {t₁ = f₁ ∙ t₁} {t₂ = f₂ ∙ t₂} (≈cong∙ f₁≈f₂ t₁≈t₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ f₁≈f₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
+  ... | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    with u₁~u₂ ≤id v₁~v₂
+  ... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+    rewrite val≤ ≤id u₁ ≡ u₁ ∋ val≤-≤id u₁ |
+            val≤ ≤id u₂ ≡ u₂ ∋ val≤-≤id u₂
+    = w₁ , w₂ , w₁~w₂ , ∙⇓ ⇓u₁ ⇓v₁ ⇓w₁ , ∙⇓ ⇓u₂ ⇓v₂ ⇓w₂
+  ~cong⟦⟧ (≈cong[] t₁≈t₂ σ₁≈≈σ₂) ρ₁~~ρ₂
+    with ~~cong⟦⟧* σ₁≈≈σ₂ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦⟧ t₁≈t₂ θ₁~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = u₁ , u₂ , u₁~u₂ , []⇓ ⇓θ₁ ⇓u₁ , []⇓ ⇓θ₂ ⇓u₂
+  ~cong⟦⟧ {t₁ = (ƛ t₁)} {t₂ = (ƛ t₂)} (≈congƛ t₁≈t₂) {ρ₁} {ρ₂} ρ₁~~ρ₂
+    = lam t₁ ρ₁ , lam t₂ ρ₂ , h , ƛ⇓ , ƛ⇓
+    where
+    h : lam t₁ ρ₁ ~ lam t₂ ρ₂
+    h {Β} η {u₁} {u₂} u₁~u₂
+      with ~cong⟦⟧ t₁≈t₂ (u₁~u₂ ∷ ~~≤ η ρ₁~~ρ₂)
+    ... | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+      = v₁ , v₂ , v₁~v₂ , lam⇓ ⇓v₁ , lam⇓ ⇓v₂
+  ~cong⟦⟧ {t₁ = ø [ t ∷ σ ]} ≈proj ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂ | ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = u₁ , u₂ , u₁~u₂ , []⇓ (∷⇓ ⇓u₁ ⇓θ₁) ø⇓ , ⇓u₂
+  ~cong⟦⟧ {t₁ = t [ ı ]} ≈id ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = u₁ , u₂ , u₁~u₂ , []⇓ ι⇓ ⇓u₁ , ⇓u₂
+  ~cong⟦⟧ {t₁ = t [ σ ○ σ′ ]} ≈comp ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ′ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~~cong⟦≡⟧* σ θ₁~θ₂
+  ... | φ₁ , φ₂ , φ₁~φ₂ , ⇓φ₁ , ⇓φ₂
+    with ~cong⟦≡⟧ t φ₁~φ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = u₁ , u₂ , u₁~u₂ ,
+         []⇓ (○⇓ ⇓θ₁ ⇓φ₁) ⇓u₁ , []⇓ ⇓θ₂ ([]⇓ ⇓φ₂ ⇓u₂)
+  ~cong⟦⟧ {α ⇒ β} {Γ} {t₁ = (ƛ t) [ σ ]} ≈lam {ρ₁} {ρ₂} ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ (ƛ t) θ₁~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = u₁ , lam (t [ ø ∷ (σ ○ ↑) ]) ρ₂ , h , []⇓ ⇓θ₁ ⇓u₁ , ƛ⇓
+    where
+    h : ∀ {Β} (η : Β ≤ Γ) {v₁ v₂ : Val Β α} (v₁~v₂ : v₁ ~ v₂) →
+          ∃₂ λ w₁ w₃ → w₁ ~ w₃
+               × val≤ η u₁ ⟨∙⟩ v₁ ⇓ w₁
+               × lam (t [ ø ∷ (σ ○ ↑) ]) (env≤ η ρ₂) ⟨∙⟩ v₂ ⇓ w₃
+    h {Β} η {v₁} {v₂} v₁~v₂
+      with ~cong⟦≡⟧ t (v₁~v₂ ∷ ~~≤ η θ₁~θ₂)
+    ... | y₁ , y₂ , y₁~y₂ , ⇓y₁ , ⇓y₂
+      rewrite val≤ η u₁ ≡ lam t (env≤ η θ₁)
+                   ∋ ⟦⟧⇓-det (⟦⟧⇓≤ η ⇓u₁) ƛ⇓ refl
+      = y₁ , y₂ , y₁~y₂ , lam⇓ ⇓y₁ ,
+           lam⇓ ([]⇓ (∷⇓ ø⇓ (○⇓ ↑⇓ (⟦⟧*⇓≤ η ⇓θ₂))) ⇓y₂)
+  ~cong⟦⟧ {t₁ = (t ∙ t′) [ σ ]} ≈app {ρ₁} {ρ₂} ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ t θ₁~θ₂ | ~cong⟦≡⟧ t′ θ₁~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    with u₁~u₂ ≤id v₁~v₂
+  ... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+    rewrite val≤ ≤id u₁ ≡ u₁ ∋ val≤-≤id u₁ |
+            val≤ ≤id u₂ ≡ u₂ ∋ val≤-≤id u₂
+    = w₁ , w₂ , w₁~w₂ ,
+         []⇓ ⇓θ₁ (∙⇓ ⇓u₁ ⇓v₁ ⇓w₁) ,
+           ∙⇓ ([]⇓ ⇓θ₂ ⇓u₂) ([]⇓ ⇓θ₂ ⇓v₂) ⇓w₂
+  ~cong⟦⟧ {t₁ = (ƛ t) [ σ ] ∙ t′} ≈βσ {ρ₁} {ρ₂} ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t′ ρ₁~~ρ₂ | ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ t (u₁~u₂ ∷ θ₁~θ₂)
+  ... | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = v₁ , v₂ , v₁~v₂ ,
+      ∙⇓ ([]⇓ ⇓θ₁ ƛ⇓) ⇓u₁ (lam⇓ ⇓v₁) , []⇓ (∷⇓ ⇓u₂ ⇓θ₂) ⇓v₂
+  ~cong⟦⟧ {α ⇒ β} {Γ} {Δ} {t₂ = ƛ (t [ ↑ ] ∙ ø)} ≈η {ρ₁} {ρ₂} ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = u₁ , lam (t [ ↑ ] ∙ ø) ρ₂ , h , ⇓u₁ , ƛ⇓
+    where
+    h : ∀ {Β} (η : Β ≤ Γ) {v₁ v₂ : Val Β α} (v₁~v₂ : v₁ ~ v₂) →
+          ∃₂ λ w₁ w₃ → w₁ ~ w₃
+               × val≤ η u₁ ⟨∙⟩ v₁ ⇓ w₁
+               × val≤ η (lam (t [ ↑ ] ∙ ø) ρ₂) ⟨∙⟩ v₂ ⇓ w₃
+    h {Β} η {v₁} {v₂} v₁~v₂
+      with ~≤ η {u₁} u₁~u₂ {Β} ≤id v₁~v₂
+    ... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+      rewrite val≤ ≤id (val≤ η u₁) ≡ val≤ η u₁ ∋ val≤-≤id (val≤ η u₁) |
+              val≤ ≤id (val≤ η u₂) ≡ val≤ η u₂ ∋ val≤-≤id (val≤ η u₂)
+      = w₁ , w₂ , w₁~w₂ , ⇓w₁ , g
+      where
+      g : lam (t [ ↑ ] ∙ ø) (env≤ η ρ₂) ⟨∙⟩ v₂ ⇓ w₂
+      g = lam⇓ (∙⇓ ([]⇓ ↑⇓ (⟦⟧⇓≤ η ⇓u₂)) ø⇓ ⇓w₂)
+  ~cong⟦⟧ {t₁ = pair f₁ s₁} {t₂ = pair f₂ s₂} (≈cong-pair f₁≈f₂ s₁≈s₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ f₁≈f₂ ρ₁~~ρ₂ | ~cong⟦⟧ s₁≈s₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = pair u₁ v₁ , pair u₂ v₂ ,
+           ((u₁ , u₂ , fst-pair⇓ , fst-pair⇓ , u₁~u₂) ,
+             (v₁ , v₂ , snd-pair⇓ , snd-pair⇓ , v₁~v₂)) ,
+           pair⇓ ⇓u₁ ⇓v₁ , pair⇓ ⇓u₂ ⇓v₂
+  ~cong⟦⟧ {t₁ = fst t₁} {t₂ = fst t₂} (≈cong-fst t₁≈t₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , ((f₁ , f₂ , ⇓f₁ , ⇓f₂ , f₁~f₂) , _) , ⇓u₁ , ⇓u₂
+    = f₁ , f₂ , f₁~f₂ , fst⇓ ⇓u₁ ⇓f₁ , fst⇓ ⇓u₂ ⇓f₂
+  ~cong⟦⟧ (≈cong-snd t₁≈t₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , (_ , (s₁ , s₂ , ⇓s₁ , ⇓s₂ , s₁~s₂)) , ⇓u₁ , ⇓u₂
+    = s₁ , s₂ , s₁~s₂ , snd⇓ ⇓u₁ ⇓s₁ , snd⇓ ⇓u₂ ⇓s₂
+  ~cong⟦⟧ {t₁ = void [ σ ]} ≈void[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = void , void , tt , []⇓ ⇓θ₁ void⇓ , void⇓
+  ~cong⟦⟧ {t₁ = pair f s [ σ ]} ≈pair[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ f θ₁~θ₂ | ~cong⟦≡⟧ s θ₁~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = pair u₁ v₁ , pair u₂ v₂ ,
+      ((u₁ , u₂ , fst-pair⇓ , fst-pair⇓ , u₁~u₂) ,
+        (v₁ , v₂ , snd-pair⇓ , snd-pair⇓ , v₁~v₂)) ,
+      []⇓ ⇓θ₁ (pair⇓ ⇓u₁ ⇓v₁) , pair⇓ ([]⇓ ⇓θ₂ ⇓u₂) ([]⇓ ⇓θ₂ ⇓v₂)
+  ~cong⟦⟧ {t₁ = fst t [ σ ]} ≈fst[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ t θ₁~θ₂
+  ... | u₁ , u₂ ,
+        ((x₁ , x₂ , ⇓x₁ , ⇓x₂ , x₁~x₂) , (y₁ , y₂ , ⇓y₁ , ⇓y₂ , y₁~y₂)) ,
+        ⇓u₁ , ⇓u₂
+    = x₁ , x₂ , x₁~x₂ ,
+      []⇓ ⇓θ₁ (fst⇓ ⇓u₁ ⇓x₁) , fst⇓ ([]⇓ ⇓θ₂ ⇓u₂) ⇓x₂
+  ~cong⟦⟧ {t₁ = snd t [ σ ]} ≈snd[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ t θ₁~θ₂
+  ... | u₁ , u₂ ,
+        ((x₁ , x₂ , ⇓x₁ , ⇓x₂ , x₁~x₂) , (y₁ , y₂ , ⇓y₁ , ⇓y₂ , y₁~y₂)) ,
+        ⇓u₁ , ⇓u₂
+    = y₁ , y₂ , y₁~y₂ ,
+      []⇓ ⇓θ₁ (snd⇓ ⇓u₁ ⇓y₁) , snd⇓ ([]⇓ ⇓θ₂ ⇓u₂) ⇓y₂
+  ~cong⟦⟧ {t₁ = fst (pair f s)} ≈βfst ρ₁~~ρ₂
+    with ~cong⟦≡⟧ f ρ₁~~ρ₂ | ~cong⟦≡⟧ s ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = u₁ , u₂ , u₁~u₂ , fst⇓ (pair⇓ ⇓u₁ ⇓v₁) fst-pair⇓ , ⇓u₂
+  ~cong⟦⟧ {t₁ = snd (pair f s)} ≈βsnd ρ₁~~ρ₂
+    with ~cong⟦≡⟧ f ρ₁~~ρ₂ | ~cong⟦≡⟧ s ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = v₁ , v₂ , v₁~v₂ , snd⇓ (pair⇓ ⇓u₁ ⇓v₁) snd-pair⇓ , ⇓v₂
+  ~cong⟦⟧ {t₁ = t} ≈ηpair ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ... | u₁ , u₂ ,
+        ((x₁ , x₂ , ⇓x₁ , ⇓x₂ , x₁~x₂) , (y₁ , y₂ , ⇓y₁ , ⇓y₂ , y₁~y₂)) ,
+        ⇓u₁ , ⇓u₂
+    = u₁ , pair x₂ y₂ ,
+      ((x₁ , x₂ , ⇓x₁ , fst-pair⇓ , x₁~x₂) ,
+           y₁ , y₂ , ⇓y₁ , snd-pair⇓ , y₁~y₂) ,
+      ⇓u₁ , pair⇓ (fst⇓ ⇓u₂ ⇓x₂) (snd⇓ ⇓u₂ ⇓y₂)
+  ~cong⟦⟧ {t₁ = t} ≈ηvoid ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂ | ~cong⟦≡⟧ void ρ₁~~ρ₂
+  ... | u₁ , u₂ , tt , ⇓u₁ , ⇓u₂ | v₁ , v₂ , tt , ⇓v₁ , ⇓v₂
+    = u₁ , void , tt , ⇓u₁ , void⇓
+  ~cong⟦⟧ {t₁ = suc t₁} {t₂ = suc t₂} (≈cong-suc t₁≈t₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    =  suc u₁ , suc u₂ , suc~ u₁~u₂ , suc⇓ ⇓u₁ , suc⇓ ⇓u₂
+  ~cong⟦⟧ {t₁ = prim a₁ b₁ k₁} {t₂ = prim a₂ b₂ k₂}
+          (≈cong-prim a₁≈a₂ b₁≈b₂ k₁≈k₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ a₁≈a₂ ρ₁~~ρ₂ | ~cong⟦⟧ b₁≈b₂ ρ₁~~ρ₂ |
+         ~cong⟦⟧ k₁≈k₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+      | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+    with ~cong-prim⟦⟧ u₁~u₂ v₁~v₂ w₁~w₂
+  ... | z₁ , z₂ , z₁~z₂ , ⇓z₁ , ⇓z₂
+    = z₁ , z₂ , z₁~z₂ , prim⇓ ⇓u₁ ⇓v₁ ⇓w₁ ⇓z₁ , prim⇓ ⇓u₂ ⇓v₂ ⇓w₂ ⇓z₂
+  ~cong⟦⟧ {t₁ = zero [ σ ]} ≈zero[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = zero , zero , zero~ , []⇓ ⇓θ₁ zero⇓ , zero⇓
+  ~cong⟦⟧ {t₁ = suc t [ σ ]} ≈suc[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ t θ₁~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂
+    = suc u₁ , suc u₂ , suc~ u₁~u₂ ,
+      []⇓ ⇓θ₁ (suc⇓ ⇓u₁) , suc⇓ ([]⇓ ⇓θ₂ ⇓u₂)
+  ~cong⟦⟧ {t₁ = prim a b k [ σ ]} ≈prim[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ a θ₁~θ₂ | ~cong⟦≡⟧ b θ₁~θ₂ |
+         ~cong⟦≡⟧ k θ₁~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+      | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+    with ~cong-prim⟦⟧ u₁~u₂ v₁~v₂ w₁~w₂
+  ... | z₁ , z₂ , z₁~z₂ , ⇓z₁ , ⇓z₂
+    = z₁ , z₂ , z₁~z₂ ,
+      []⇓ ⇓θ₁ (prim⇓ ⇓u₁ ⇓v₁ ⇓w₁ ⇓z₁) ,
+      prim⇓ ([]⇓ ⇓θ₂ ⇓u₂) ([]⇓ ⇓θ₂ ⇓v₂) ([]⇓ ⇓θ₂ ⇓w₂) ⇓z₂
+  ~cong⟦⟧ {t₁ = prim a b zero} ≈primz ρ₁~~ρ₂
+    with ~cong⟦≡⟧ a ρ₁~~ρ₂ | ~cong⟦≡⟧ b ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = u₁ , u₂ , u₁~u₂ , prim⇓ ⇓u₁ ⇓v₁ zero⇓ primz⇓ , ⇓u₂
+  ~cong⟦⟧ {t₁ = prim a b (suc k)} ≈prims ρ₁~~ρ₂
+    with ~cong⟦≡⟧ a ρ₁~~ρ₂ | ~cong⟦≡⟧ b ρ₁~~ρ₂ |
+         ~cong⟦≡⟧ k ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+      | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+    with ~cong-prim⟦⟧ u₁~u₂ v₁~v₂ w₁~w₂
+  ... | z₁ , z₂ , z₁~z₂ , ⇓z₁ , ⇓z₂
+    with v₁~v₂ ≤id w₁~w₂
+  ... | vw₁ , vw₂ , vw₁~vw₂ , ⇓vw₁ , ⇓vw₂
+    with vw₁~vw₂ ≤id z₁~z₂
+  ... | vwz₁ , vwz₂ , vwz₁~vwz₂ , ⇓vwz₁ , ⇓vwz₂
+    rewrite val≤-≤id v₁ | val≤-≤id v₂ | val≤-≤id vw₁ | val≤-≤id vw₂
+    = vwz₁ , vwz₂ , vwz₁~vwz₂ ,
+    prim⇓ ⇓u₁ ⇓v₁ (suc⇓ ⇓w₁) (prims⇓ ⇓vw₁ ⇓z₁ ⇓vwz₁) ,
+    ∙⇓ (∙⇓ ⇓v₂ ⇓w₂ ⇓vw₂) (prim⇓ ⇓u₂ ⇓v₂ ⇓w₂ ⇓z₂) ⇓vwz₂
 
-  sfundthrmˢ : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ ts' →
-               {vs vs' : Env B Γ} → vs ∼ˢ vs' → evalˢ ts vs ∼ˢ evalˢ ts' vs'
-  sfundthrmˢ {ts = ts} ≃refl         q = idextˢ ts q 
-  sfundthrmˢ (≃sym p)      q = sym∼ˢ (sfundthrmˢ p (sym∼ˢ q)) 
-  sfundthrmˢ (≃trans p p') q = 
-    trans∼ˢ (sfundthrmˢ p (trans∼ˢ q (sym∼ˢ q)))
-             (sfundthrmˢ p' q)  
-  sfundthrmˢ (cong< p p')  q = ∼<< (sfundthrmˢ p q) (sfundthrm p' q) 
-  sfundthrmˢ (cong○ p p')  q = sfundthrmˢ p (sfundthrmˢ p' q ) 
-  sfundthrmˢ idcomp        (∼<< q q') = ∼<< q q' 
-  sfundthrmˢ {ts' = ts} ↑comp       q = idextˢ ts q 
-  sfundthrmˢ {ts' = ts} leftidˢ       q = idextˢ ts q 
-  sfundthrmˢ {ts' = ts} rightidˢ      q = idextˢ ts q 
-  sfundthrmˢ {ts = (ts ○ ts') ○ ts''} assoc         q = idextˢ ts (idextˢ ts' (idextˢ ts'' q)) 
-  sfundthrmˢ {ts = (ts < t) ○ ts'} comp<         q = 
-   ∼<< (idextˢ ts (idextˢ ts' q)) (idext t (idextˢ ts' q)) 
+  ~~cong⟦⟧* : ∀ {Γ Δ Δ′}
+    {σ₁ σ₂ : Sub Δ Δ′} (σ₁≈≈σ₂ : σ₁ ≈≈ σ₂)
+    {ρ₁ ρ₂ : Env Γ Δ} (ρ₁~~ρ₂ : ρ₁ ~~ ρ₂) →
+    ∃₂ λ θ₁ θ₂ → θ₁ ~~ θ₂ × ⟦ σ₁ ⟧* ρ₁ ⇓ θ₁ × ⟦ σ₂ ⟧* ρ₂ ⇓ θ₂
 
-soundthrm : ∀ {Γ σ}{t t' : Tm Γ σ} → t ≈ t' → nf t ≡ nf t'
-soundthrm {Γ}{σ} p = squotlema {σ = σ} (sfundthrm p (sndid Γ)) 
+  ~~cong⟦⟧* {σ₁ = σ} ≈≈refl ρ₁~~ρ₂ =
+    ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ~~cong⟦⟧* (≈≈sym σ₁≈≈σ₂) ρ₁~~ρ₂
+    with ~~cong⟦⟧* σ₁≈≈σ₂ (~~sym ρ₁~~ρ₂)
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = θ₂ , θ₁ , ~~sym θ₁~θ₂ , ⇓θ₂ , ⇓θ₁
+  ~~cong⟦⟧* (≈≈trans σ₁≈≈σ₂ σ₂≈≈σ₃) ρ₁~~ρ₂
+    with ~~cong⟦⟧* σ₁≈≈σ₂ (~~refl′ ρ₁~~ρ₂) | ~~cong⟦⟧* σ₂≈≈σ₃ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂ | φ₁ , φ₂ , φ₁~φ₂ , ⇓φ₁ , ⇓φ₂
+    rewrite θ₂ ≡ φ₁ ∋ ⟦⟧*⇓-det ⇓θ₂ ⇓φ₁ refl
+    = θ₁ , φ₂ , ~~trans θ₁~θ₂ φ₁~φ₂ , ⇓θ₁ , ⇓φ₂
+  ~~cong⟦⟧* (≈≈cong○ σ₁≈≈σ₂ τ₁≈≈τ₂) ρ₁~~ρ₂
+    with ~~cong⟦⟧* τ₁≈≈τ₂ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~~cong⟦⟧* σ₁≈≈σ₂ θ₁~θ₂
+  ... | φ₁ , φ₂ , φ₁~φ₂ , ⇓φ₁ , ⇓φ₂
+    = φ₁ , φ₂ , φ₁~φ₂ , ○⇓ ⇓θ₁ ⇓φ₁ , ○⇓ ⇓θ₂ ⇓φ₂
+  ~~cong⟦⟧* (≈≈cong∷ t₁≈t₂ σ₁≈≈σ₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂ | ~~cong⟦⟧* σ₁≈≈σ₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = u₁ ∷ θ₁ , u₂ ∷ θ₂ , u₁~u₂ ∷ θ₁~θ₂ , ∷⇓ ⇓u₁ ⇓θ₁ , ∷⇓ ⇓u₂ ⇓θ₂
+  ~~cong⟦⟧* {σ₁ = (σ₁ ○ σ₂) ○ σ₃} ≈≈assoc ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ₃ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~~cong⟦≡⟧* σ₂ θ₁~θ₂
+  ... | φ₁ , φ₂ , φ₁~φ₂ , ⇓φ₁ , ⇓φ₂
+    with ~~cong⟦≡⟧* σ₁ φ₁~φ₂
+  ... | ψ₁ , ψ₂ , ψ₁~ψ₂ , ⇓ψ₁ , ⇓ψ₂
+    = ψ₁ , ψ₂ , ψ₁~ψ₂ , ○⇓ ⇓θ₁ (○⇓ ⇓φ₁ ⇓ψ₁) , ○⇓ (○⇓ ⇓θ₂ ⇓φ₂) ⇓ψ₂
+  ~~cong⟦⟧* {σ₂ = σ} ≈≈idl ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = θ₁ , θ₂ , θ₁~θ₂ , ○⇓ ⇓θ₁ ι⇓ , ⇓θ₂
+  ~~cong⟦⟧* {σ₂ = σ} ≈≈idr ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = θ₁ , θ₂ , θ₁~θ₂ , ○⇓ ι⇓ ⇓θ₁ , ⇓θ₂
+  ~~cong⟦⟧* {σ₁ = ↑ ○ (t ∷ σ)} ≈≈wk {ρ₁} {ρ₂} ρ₁~~ρ₂
+    with ~cong⟦≡⟧ t ρ₁~~ρ₂ | ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    = θ₁ , θ₂ , θ₁~θ₂ , ○⇓ (∷⇓ ⇓u₁ ⇓θ₁) ↑⇓ , ⇓θ₂
+  ~~cong⟦⟧*  {σ₁ = (t ∷ σ) ○ σ′} ≈≈cons ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ′ ρ₁~~ρ₂
+  ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
+    with ~cong⟦≡⟧ t θ₁~θ₂ | ~~cong⟦≡⟧* σ θ₁~θ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | φ₁ , φ₂ , φ₁~φ₂ , ⇓φ₁ , ⇓φ₂
+    = u₁ ∷ φ₁ , u₂ ∷ φ₂ , u₁~u₂ ∷ φ₁~φ₂ ,
+      ○⇓ ⇓θ₁ (∷⇓ ⇓u₁ ⇓φ₁) , ∷⇓ ([]⇓ ⇓θ₂ ⇓u₂) (○⇓ ⇓θ₂ ⇓φ₂)
+  ~~cong⟦⟧* ≈≈id∷ (_∷_ {u₁ = u₁} {u₂} {ρ₁} {ρ₂} u₁~u₂ ρ₁~~ρ₂)
+    = u₁ ∷ ρ₁ , u₂ ∷ ρ₂ , u₁~u₂ ∷ ρ₁~~ρ₂ , ι⇓ , ∷⇓ ø⇓ (○⇓ ↑⇓ ι⇓)
+
+--
+-- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
+--
+
+sound : ∀ {α Γ} {t₁ t₂ : Tm Γ α} →
+  t₁ ≈ t₂ → nf t₁ ≡ nf t₂
+
+sound {α} {Γ} {t₁} {t₂} t₁≈t₂
+  with all-scv t₁ id-env sce-id-env | all-scv t₂ id-env sce-id-env
+... | u₁ , p₁ , ⇓u₁ , ≈u₁ | u₂ , p₂ , ⇓u₂ , ≈u₂
+  with all-quote u₁ p₁ | all-quote u₂ p₂
+... | m₁ , ⇓m₁ , ≈m₁ | m₂ , ⇓m₂ , ≈m₂
+  with ~cong⟦⟧ t₁≈t₂ ~~refl-id-env
+... | w₁ , w₂ , w₁~w₂ , ⇓w₁ , ⇓w₂
+  with ~confl {α} w₁~w₂
+... | n₁ , n₂ , n₁≡n₂ , ⇓n₁ , ⇓n₂
+  with nf t₁ & nf⇓ ⇓u₁ ⇓m₁ | nf t₂ & nf⇓ ⇓u₂ ⇓m₂
+... | n′ , n′≡m₁ | n′′ , n′′≡m₂
+  rewrite n′ ≡ m₁ ∋ n′≡m₁ | n′′ ≡ m₂ ∋ n′′≡m₂ |
+          u₁ ≡ w₁ ∋ ⟦⟧⇓-det ⇓u₁ ⇓w₁ refl |
+          u₂ ≡ w₂ ∋ ⟦⟧⇓-det ⇓u₂ ⇓w₂ refl |
+          m₁ ≡ n₁ ∋ quote⇓-det ⇓m₁ ⇓n₁ refl |
+          m₂ ≡ n₂ ∋ quote⇓-det ⇓m₂ ⇓n₂ refl
+  = n₁≡n₂

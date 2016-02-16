@@ -45,7 +45,7 @@ mutual
   scv≤ :  ∀ {α Γ Β} (η : Β ≤ Γ) (u : Val Γ α) (p : SCV u) →
     SCV (val≤ η u)
   scv≤ {⋆}  η (ne us) (ns , p , q) =
-    neNf≤ η ns , quote*≤ η p , embNe≈≤ η us ns q
+    neNf≤ η ns , quote*≤ η p , embNe≤≈ η us ns q
   scv≤ {α ⇒ β} {Γ} {Β} η u p {Β′} η′ v q with p (η′ ● η) v q
   ... | w , r , ●⇓w , ●≈w =
     w , r , ∘⇓w , ∘≈w≤
@@ -149,26 +149,25 @@ mutual
     Quote* us ⇓ ns → embNeVal us ≈ embNeNf ns → SCV (ne us)
   all-scv-ne {⋆} us ns ⇓ns ≈ns =
     ns , ⇓ns , ≈ns
-  all-scv-ne {α ⇒ β} {Γ} us ns ⇓ns ≈ns {Β} η u p with all-quote u p
-  ... | m , ⇓m , u≈m =
+  all-scv-ne {α ⇒ β} {Γ} us ns ⇓ns ≈ns {Β} η u p
+    with all-quote u p
+  ... | n , ⇓n , ≈n =
     ne (app us≤ u) , r , ne⇓ , ≈refl
     where
     open ≈-Reasoning
 
-    us≤ : NeVal Β (α ⇒ β)
     us≤ = neVal≤ η us
-
-    ns≤ : NeNf Β (α ⇒ β)
     ns≤ = neNf≤ η ns
+    ⇓ns≤ = quote*≤ η ⇓ns
 
-    us∙u≈ns∙m = begin
+    us∙u≈ns∙n = begin
       embNeVal us≤ ∙ embVal u
-        ≈⟨ ≈cong∙ (embNe≈≤ η us ns ≈ns) u≈m ⟩
-      embNeNf ns≤ ∙ embNf m ∎
+        ≈⟨ ≈cong∙ (embNe≤≈ η us ns ≈ns) ≈n ⟩
+      embNeNf ns≤ ∙ embNf n ∎
 
     r : SCV (ne (app us≤ u))
-    r = all-scv-ne (app us≤ u) (app ns≤ m)
-                        (app⇓ (quote*≤ η ⇓ns) ⇓m) us∙u≈ns∙m
+    r = all-scv-ne (app us≤ u) (app ns≤ n)
+                        (app⇓ ⇓ns≤ ⇓n) us∙u≈ns∙n
   all-scv-ne {One} us ns ⇓ns ≈ns = tt
   all-scv-ne {α * β} {Γ} us ns ⇓ns ≈ns =
     (ne (fst us) ,

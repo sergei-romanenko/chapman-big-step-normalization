@@ -2,155 +2,462 @@ module FullSystem.OPELemmas where
 
 open import FullSystem.Utils
 open import FullSystem.Syntax
-open import FullSystem.Embeddings
 open import FullSystem.Conversion
 open import FullSystem.OPE
 
-rightid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp f oid ≡ f
-rightid done     = refl 
-rightid (keep σ f) = cong (keep σ) (rightid f) 
-rightid (skip σ f) = cong (skip σ) (rightid f)
 
-leftid : ∀ {Γ Δ} (f : OPE Γ Δ) → comp oid f ≡ f
-leftid done       = refl 
-leftid (keep σ f) = cong (keep σ)  (leftid f) 
-leftid (skip σ f) = cong (skip σ) (leftid f)
+--
+-- Composing OPEs.
+--
 
--- Variables
-oidxmap : ∀ {Γ σ}(x : Var Γ σ) → xmap oid x ≡ x
-oidxmap vZ       = refl 
-oidxmap (vS σ x) = cong (vS σ) (oidxmap x) 
+η●≤id : ∀ {Γ Δ} (η : Γ ≤ Δ) → η ● ≤id ≡ η
+η●≤id ≤[]     = refl 
+η●≤id (≤lift η) = cong ≤lift (η●≤id η) 
+η●≤id (≤weak η) = cong ≤weak (η●≤id η)
 
-compxmap : ∀ {B Γ Δ σ}(f : OPE B Γ)(g : OPE Γ Δ)(x : Var Δ σ) → 
-           xmap f (xmap g x) ≡ xmap (comp f g) x
-compxmap done     done     ()
-compxmap (skip σ f) g           x         = cong (vS σ) (compxmap f g x)  
-compxmap (keep σ f) (keep .σ g) vZ        = refl 
-compxmap (keep σ f) (keep .σ g) (vS .σ x) = cong (vS σ) (compxmap f g x) 
-compxmap (keep σ f) (skip .σ g) x         = cong (vS σ) (compxmap f g x) 
+≤id●η : ∀ {Γ Δ} (η : Γ ≤ Δ) → ≤id ● η ≡ η
+≤id●η ≤[]       = refl 
+≤id●η (≤lift η) = cong ≤lift (≤id●η η) 
+≤id●η (≤weak η) = cong ≤weak (≤id●η η)
 
--- Values
-mutual
-  oidvmap : ∀ {Γ σ}(v : Val Γ σ) → vmap oid v ≡ v
-  oidvmap (λv t vs) = cong (λv t) (oidemap vs) 
-  oidvmap (nev n)   = cong nev (oidnevmap n) 
-  oidvmap zerov     = refl 
-  oidvmap (sucv v)  = cong sucv (oidvmap v) 
-  oidvmap voidv      = refl 
-  oidvmap < v , w >v = cong₂ <_,_>v (oidvmap v) (oidvmap w) 
+assoc● :  ∀ {Β Γ₁ Γ₂ Δ} (η : Β ≤ Γ₁) (η′ : Γ₁ ≤ Γ₂) (η′′ : Γ₂ ≤ Δ) →
+  (η ● η′) ● η′′ ≡ η ● (η′ ● η′′)
+assoc● ≤[] ≤[] ≤[] = refl
+assoc● (≤weak η) η′ η′′ = cong ≤weak (assoc● η η′ η′′)
+assoc● (≤lift η) (≤weak η′) η′′ = cong ≤weak (assoc● η η′ η′′)
+assoc● (≤lift η) (≤lift η′) (≤weak η′′) = cong ≤weak (assoc● η η′ η′′)
+assoc● (≤lift η) (≤lift η′) (≤lift η′′) = cong ≤lift (assoc● η η′ η′′)
 
-  oidnevmap : ∀ {Γ σ}(n : NeV Γ σ) → nevmap oid n ≡ n
-  oidnevmap (varV x)      = cong varV (oidxmap x) 
-  oidnevmap (appV n v)    = cong₂ appV (oidnevmap n) (oidvmap v) 
-  oidnevmap (primV z f n) = cong₃ primV (oidvmap z) (oidvmap f) (oidnevmap n) 
-  oidnevmap (fstV n)   = cong fstV (oidnevmap n) 
-  oidnevmap (sndV n)   = cong sndV (oidnevmap n) 
 
-  
-  oidemap : ∀ {Γ Δ}(vs : Env Γ Δ) → emap oid vs ≡ vs
-  oidemap ε        = refl 
-  oidemap (vs << v) = cong₂ _<<_ (oidemap vs) (oidvmap v) 
+--
+-- Applying ≤id.
+--
+
+var≤-≤id : ∀ {α Γ} (x : Var Γ α) → var≤ ≤id x ≡ x
+var≤-≤id zero = refl
+var≤-≤id (suc x) = cong suc (var≤-≤id x)
 
 mutual
-  compvmap : ∀ {B Γ Δ σ}(f : OPE B Γ)(g : OPE Γ Δ)(v : Val Δ σ) → 
-             vmap f (vmap g v) ≡ vmap (comp f g) v
-  compvmap f g (λv t vs) = cong (λv t) (compemap f g vs) 
-  compvmap f g (nev n)   = cong nev (compnevmap f g n) 
-  compvmap f g zerov     = refl 
-  compvmap f g (sucv v)  = cong sucv (compvmap f g v) 
-  compvmap f g voidv      = refl 
-  compvmap f g < v , w >v = cong₂ <_,_>v (compvmap f g v) (compvmap f g w)  
 
+  val≤-≤id : ∀ {α Γ} (u : Val Γ α) → val≤ ≤id u ≡ u
+  val≤-≤id (ne us) = cong ne (neVal≤-≤id us)
+  val≤-≤id (lam t ρ) = cong (lam t) (env≤-≤id ρ)
+  val≤-≤id void = refl
+  val≤-≤id (pair u v) = cong₂ pair (val≤-≤id u) (val≤-≤id v)
+  val≤-≤id zero = refl
+  val≤-≤id (suc u) = cong suc (val≤-≤id u)
 
-  compnevmap : ∀ {B Γ Δ σ}(f : OPE B Γ)(g : OPE Γ Δ)(n : NeV Δ σ) → 
-               nevmap f (nevmap g n) ≡ nevmap (comp f g) n
-  compnevmap f g (varV x)      = cong varV (compxmap f g x) 
-  compnevmap f g (appV n v)    = cong₂ appV (compnevmap f g n) (compvmap f g v)
-  compnevmap f g (primV z s n) = 
-    cong₃ primV (compvmap f g z) (compvmap f g s) (compnevmap f g n) 
-  compnevmap f g (fstV n)   = cong fstV (compnevmap f g n) 
-  compnevmap f g (sndV n)   = cong sndV (compnevmap f g n) 
+  neVal≤-≤id : ∀ {α Γ} (us : NeVal Γ α) → neVal≤ ≤id us ≡ us
+  neVal≤-≤id (var x) =
+    cong var (var≤-≤id x)
+  neVal≤-≤id (app us u) =
+    cong₂ app (neVal≤-≤id us) (val≤-≤id u)
+  neVal≤-≤id (fst us) =
+    cong fst (neVal≤-≤id us)
+  neVal≤-≤id (snd us) =
+    cong snd (neVal≤-≤id us)
+  neVal≤-≤id (prim u v us) =
+    cong₃ prim (val≤-≤id u) (val≤-≤id v) (neVal≤-≤id us)
 
+  env≤-≤id : ∀ {Γ Δ} (ρ : Env Δ Γ) → env≤ ≤id ρ ≡ ρ
+  env≤-≤id [] = refl
+  env≤-≤id (u ∷ ρ) = cong₂ _∷_ (val≤-≤id u) (env≤-≤id ρ)
 
-  compemap : ∀ {A B Γ Δ}(f : OPE A B)(g : OPE B Γ)(vs : Env Γ Δ) → 
-             emap f (emap g vs) ≡ emap (comp f g) vs
-  compemap f g ε         = refl 
-  compemap f g (vs << v) = cong₂ _<<_ (compemap f g vs) (compvmap f g v) 
+--
+-- Composing OPEs.
+--
 
-quotlemma : ∀ {Γ Δ σ} τ (f : OPE Γ Δ)(v : Val Δ σ) →
-             vmap (keep τ f) (vmap (skip τ oid) v) ≡ vwk τ (vmap f v)
-quotlemma τ f v = 
-  trans (trans (compvmap (keep τ f) (skip τ oid) v)
-                 (cong (λ f → vmap (skip τ f) v)
-                       (trans (rightid f) 
-                               (sym (leftid f)))))
-         (sym (compvmap (skip τ oid) f v))
+-- Variables.
 
--- Embedding and conversion
--- Variables
-oxemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(x : Var Δ σ) →
-        embˣ (xmap f x) ≈ embˣ x [ oemb f ]
-oxemb (keep σ f) vZ       = ≈sym ø< 
-oxemb (skip σ f) vZ       = ≈trans (cong[] (oxemb f vZ) ≃refl) [][] 
-oxemb (keep .τ f) (vS τ x) = 
-  ≈trans (cong[] (oxemb f x) ≃refl)
-        (≈trans (≈trans [][] (cong[] ≈refl (≃sym ↑comp))) (≈sym [][])) 
-oxemb (skip σ  f) (vS τ x) = ≈trans (cong[] (oxemb f (vS τ x)) ≃refl) [][] 
-oxemb done ()
+var≤∘ : ∀ {α Γ₁ Γ₂ Γ₃}
+  (η : Γ₁ ≤ Γ₂) (η′ : Γ₂ ≤ Γ₃) (x : Var Γ₃ α) →
+  var≤ η (var≤ η′ x) ≡ var≤ (η ● η′) x
+var≤∘ ≤[] ≤[] x = refl
+var≤∘ (≤weak η) η′ x = cong suc (var≤∘ η η′ x)
+var≤∘ (≤lift η) (≤weak η′) x = cong suc (var≤∘ η η′ x)
+var≤∘ (≤lift η) (≤lift η′) zero = refl
+var≤∘ (≤lift η) (≤lift η′) (suc x) = cong suc (var≤∘ η η′ x)
 
--- Values
+-- Values and environments.
+
 mutual
-  ovemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(v : Val Δ σ) →
-            emb (vmap f v) ≈ emb v [ oemb f ]
-  ovemb f (λv t vs) = ≈trans (cong[] ≈refl (oeemb f vs)) (≈sym [][]) 
-  ovemb f (nev n)   = onevemb f n 
-  ovemb f zerov     = ≈sym zero[] 
-  ovemb f (sucv v)  = ≈trans (congsuc (ovemb f v)) (≈sym suc[]) 
-  ovemb f voidv      = ≈sym void[] 
-  ovemb f < m , n >v = ≈trans (cong<,> (ovemb f m) (ovemb f n) ) 
-                             (≈sym <,>[]) 
 
-  onevemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : NeV Δ σ) →
-            embⁿ (nevmap f n) ≈ embⁿ n [ oemb f ]
-  onevemb f (varV x)      = oxemb f x 
-  onevemb f (appV n v)    = ≈trans (cong∙ (onevemb f n) (ovemb f v)) (≈sym ∙[]) 
-  onevemb f (primV z s n) = 
-    ≈trans (congprim (ovemb f z) (ovemb f s) (onevemb f n)) (≈sym prim[]) 
-  onevemb f (fstV n)   = ≈trans (congfst (onevemb f n)) (≈sym fst[]) 
-  onevemb f (sndV n)   = ≈trans (congsnd (onevemb f n)) (≈sym snd[]) 
+  val≤∘ : ∀ {α Γ₁ Γ₂ Γ₃}
+    (η : Γ₁ ≤ Γ₂) (η′ : Γ₂ ≤ Γ₃) (u : Val Γ₃ α) →
+    val≤ η (val≤ η′ u) ≡ val≤ (η ● η′) u
+  val≤∘ η η′ (ne us) = cong ne (neVal≤∘ η η′ us)
+  val≤∘ η η′ (lam t ρ) = cong (lam t) (env≤∘ η η′ ρ)
+  val≤∘ η η′ void = refl
+  val≤∘ η η′ (pair u v) =
+    cong₂ pair (val≤∘ η η′ u) (val≤∘ η η′ v)
+  val≤∘ η η′ zero = refl
+  val≤∘ η η′ (suc u) = cong suc (val≤∘ η η′ u)
 
-  oeemb : ∀ {B Γ Δ}(f : OPE B Γ)(vs : Env Γ Δ) →
-           embˢ (emap f vs) ≃ embˢ vs ○ oemb f
-  oeemb f (vs << v) = ≃trans (cong< (oeemb f vs) (ovemb f v)) (≃sym comp<) 
-  oeemb {Γ = Γ < σ} (keep .σ f) ε = 
-    ≃trans (≃trans (≃trans (cong○ (oeemb f ε) ≃refl) assoc) 
-                   (cong○ ≃refl (≃sym ↑comp))) 
-           (≃sym assoc) 
-  oeemb {Γ = Γ < σ} (skip τ  f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
-  oeemb {Γ = ε} done       ε = ≃sym leftidˢ 
-  oeemb {Γ = ε} (skip σ f) ε = ≃trans (cong○ (oeemb f ε) ≃refl) assoc 
+  neVal≤∘ : ∀ {α Γ₁ Γ₂ Γ₃}
+    (η : Γ₁ ≤ Γ₂) (η′ : Γ₂ ≤ Γ₃) (us : NeVal Γ₃ α) →
+    neVal≤ η (neVal≤ η′ us) ≡ neVal≤ (η ● η′) us
+  neVal≤∘ η η′ (var x) =
+    cong var (var≤∘ η η′ x)
+  neVal≤∘ η η′ (app us u) =
+    cong₂ app (neVal≤∘ η η′ us) (val≤∘ η η′ u)
+  neVal≤∘ η η′ (fst us) =
+    cong fst (neVal≤∘ η η′ us)
+  neVal≤∘ η η′ (snd us) =
+    cong snd (neVal≤∘ η η′ us)
+  neVal≤∘ η η′ (prim u v us) =
+    cong₃ prim (val≤∘ η η′ u) (val≤∘ η η′ v) (neVal≤∘ η η′ us)
 
-lemoid : ∀ {Γ} → ı {Γ} ≃ oemb oid
-lemoid {ε}     = ≃refl 
-lemoid {Γ < σ} = ≃trans idcomp (cong< (cong○ (lemoid {Γ}) ≃refl) ≈refl) 
+  env≤∘ : ∀ {α Γ₁ Γ₂ Γ₃}
+    (η : Γ₁ ≤ Γ₂) (η′ : Γ₂ ≤ Γ₃) (ρ : Env Γ₃ α) →
+    env≤ η (env≤ η′ ρ) ≡ env≤ (η ● η′) ρ
+  env≤∘ η η′ [] = refl
+  env≤∘ η η′ (u ∷ ρ) =
+    cong₂ _∷_ (val≤∘ η η′ u) (env≤∘ η η′ ρ)
 
--- Normal Forms
+
+--
+-- ≤2sub ≤id ≈≈ ı
+--
+
+ı≈≈≤2sub-≤id : ∀ {Γ} → ≤2sub {Γ} ≤id ≈≈ ı
+ı≈≈≤2sub-≤id {[]} = ≈≈refl
+ı≈≈≤2sub-≤id {α ∷ Γ} = begin
+  ø ∷ ≤2sub ≤id ○ ↑
+    ≈⟨ ≈≈cong∷ ≈refl (≈≈cong○ ı≈≈≤2sub-≤id ≈≈refl) ⟩
+  ø ∷ ı ○ ↑
+    ≈⟨ ≈≈sym ≈≈id∷ ⟩
+  ı
+  ∎
+  where open ≈≈-Reasoning
+
+--
+-- OPEs commute with val≤ wk.
+--
+
+wk∘val≤ : ∀ {Β Γ α β} (η : Β ≤ Γ) (u : Val Γ α) →
+  val≤ wk (val≤ η u) ≡ val≤ (≤lift {β} η) (val≤ wk u)
+wk∘val≤ η u = begin
+  val≤ wk (val≤ η u)
+    ≡⟨⟩
+  val≤ wk (val≤ η u)
+    ≡⟨ val≤∘ wk η u ⟩
+  val≤ (≤weak (≤id ● η)) u
+    ≡⟨ cong (λ η′ → val≤ (≤weak η′) u) (≤id●η η) ⟩
+  val≤ (≤weak η) u
+    ≡⟨ cong (λ η′ → val≤ (≤weak η′) u) (sym $ η●≤id η) ⟩
+  val≤ (≤weak (η ● ≤id)) u
+    ≡⟨⟩
+  val≤ (≤lift η ● wk) u
+    ≡⟨ sym $ val≤∘ (≤lift η) wk u ⟩
+  val≤ (≤lift η) (val≤ wk u)
+    ≡⟨⟩
+  val≤ (≤lift η) (val≤ wk u)
+  ∎
+  where open ≡-Reasoning
+
+
+--
+-- OPEs commute with embeddings.
+--
+
+-- Variables.
+
+embVar∘≤ :  ∀ {α Β Γ} (η : Β ≤ Γ) (x : Var Γ α) →
+  embVar (var≤ η x) ≈ embVar x [ ≤2sub η ]
+embVar∘≤ ≤[] x = ≈sym ≈id
+embVar∘≤ (≤weak η) zero = begin
+  embVar (var≤ (≤weak η) zero)
+    ≡⟨⟩
+  embVar (var≤ η zero) [ ↑ ]
+    ≈⟨ ≈cong[] (embVar∘≤ η zero) ≈≈refl ⟩
+  ø [ ≤2sub η ] [ ↑ ]
+    ≈⟨ ≈sym ≈comp ⟩
+  ø [ ≤2sub η ○ ↑ ]
+    ≡⟨⟩
+  embVar zero [ ≤2sub (≤weak η) ]
+  ∎
+  where open ≈-Reasoning
+embVar∘≤ (≤weak η) (suc x) = begin
+  embVar (var≤ (≤weak η) (suc x))
+    ≡⟨⟩
+  embVar (var≤ η (suc x)) [ ↑ ]
+    ≈⟨ ≈cong[] (embVar∘≤ η (suc x)) ≈≈refl ⟩
+  embVar x [ ↑ ] [ ≤2sub η ] [ ↑ ]
+    ≈⟨ ≈sym ≈comp ⟩
+  embVar x [ ↑ ] [ ≤2sub η ○ ↑ ]
+    ≡⟨⟩
+  embVar (suc x) [ ≤2sub (≤weak η) ]
+  ∎
+  where open ≈-Reasoning
+embVar∘≤ (≤lift η) zero = begin
+  embVar (var≤ (≤lift η) zero)
+    ≡⟨⟩
+  ø
+    ≈⟨ ≈sym ≈proj ⟩
+  ø [ ø ∷ ≤2sub η ○ ↑ ]
+    ≡⟨⟩
+  embVar zero [ ≤2sub (≤lift η) ]
+  ∎
+  where open ≈-Reasoning
+embVar∘≤ (≤lift η) (suc x) = begin
+  embVar (var≤ (≤lift η) (suc x))
+    ≡⟨⟩
+  embVar (var≤ η x) [ ↑ ]
+    ≈⟨ ≈cong[] (embVar∘≤ η x) ≈≈refl ⟩
+  embVar x [ ≤2sub η ] [ ↑ ]
+    ≈⟨ ≈sym ≈comp ⟩
+  embVar x [ ≤2sub η ○ ↑ ]
+    ≈⟨ ≈cong[] ≈refl (≈≈sym ≈≈wk) ⟩
+  embVar x [ ↑ ○ (ø ∷ ≤2sub η ○ ↑) ]
+    ≈⟨ ≈comp ⟩
+  embVar x [ ↑ ] [ ø ∷ ≤2sub η ○ ↑ ]
+    ≡⟨⟩
+  embVar (suc x) [ ≤2sub (≤lift η) ]
+  ∎
+  where open ≈-Reasoning
+
+-- Values.
+
 mutual
-  onfemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : Nf Δ σ) →
-           nemb (nfmap f n) ≈ nemb n [ oemb f ]
-  onfemb f (λn n)   = ≈trans (congλ (onfemb (keep _ f) n)) (≈sym λ[]) 
-  onfemb f (ne⋆ n)  = onenemb f n 
-  onfemb f (neN n)  = onenemb f n 
-  onfemb f zeron    = ≈sym zero[] 
-  onfemb f (sucn n) = ≈trans (congsuc (onfemb f n)) (≈sym suc[]) 
-  onfemb f voidn      = ≈sym void[] 
-  onfemb f < m , n >n = ≈trans (cong<,> (onfemb f m) (onfemb f n)) (≈sym <,>[]) 
-  
-  onenemb : ∀ {Γ Δ σ}(f : OPE Γ Δ)(n : NeN Δ σ) →
-            nembⁿ (nenmap f n) ≈ nembⁿ n [ oemb f ]
-  onenemb f (varN x)      = oxemb f x 
-  onenemb f (appN n n')   = ≈trans (cong∙ (onenemb f n) (onfemb f n')) (≈sym ∙[])
-  onenemb f (primN z s n) =
-    ≈trans (congprim (onfemb f z) (onfemb f s) (onenemb f n)) (≈sym prim[]) 
-  onenemb f (fstN n)    = ≈trans (congfst (onenemb f n)) (≈sym fst[]) 
-  onenemb f (sndN n)    = ≈trans (congsnd (onenemb f n)) (≈sym snd[]) 
+
+  embVal∘≤ : ∀ {α Β Γ} (η : Β ≤ Γ) (u : Val Γ α) →
+    embVal (val≤ η u) ≈ embVal u [ ≤2sub η ]
+  embVal∘≤ η (ne us) =
+    embNeVal∘≤ η us
+  embVal∘≤ η (lam t ρ) = begin
+    embVal (val≤ η (lam t ρ))
+      ≡⟨⟩
+    (ƛ t) [ embEnv (env≤ η ρ) ]
+      ≈⟨ ≈cong[] ≈refl (embEnv∘≤ η ρ) ⟩
+    (ƛ t) [ embEnv ρ ○ ≤2sub η ]
+      ≈⟨ ≈comp  ⟩
+    (ƛ t) [ embEnv ρ ] [ ≤2sub η ]
+      ≡⟨⟩
+    embVal (lam t ρ) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embVal∘≤ η void = begin
+    void
+      ≈⟨ ≈sym ≈void[] ⟩
+    void [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embVal∘≤ η (pair u v) = begin
+    pair (embVal (val≤ η u)) (embVal (val≤ η v))
+      ≈⟨ ≈cong-pair (embVal∘≤ η u) (embVal∘≤ η v) ⟩
+    pair (embVal u [ ≤2sub η ]) (embVal v [ ≤2sub η ])
+      ≈⟨ ≈sym ≈pair[] ⟩
+    pair (embVal u) (embVal v) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embVal∘≤ η zero =
+    ≈sym ≈zero[]
+  embVal∘≤ η (suc u) = begin
+    suc (embVal (val≤ η u))
+      ≈⟨ ≈cong-suc (embVal∘≤ η u) ⟩
+    suc (embVal u [ ≤2sub η ])
+      ≈⟨ ≈sym ≈suc[] ⟩
+    suc (embVal u) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+
+  embNeVal∘≤ : ∀ {α Β Γ} (η : Β ≤ Γ) (us : NeVal Γ α) →
+    embNeVal (neVal≤ η us) ≈ embNeVal us [ ≤2sub η ]
+  embNeVal∘≤ η (var x) = embVar∘≤ η x
+  embNeVal∘≤ η (app us u) = begin
+    embNeVal (neVal≤ η (app us u))
+      ≡⟨⟩
+    embNeVal (neVal≤ η us) ∙ embVal (val≤ η u)
+      ≈⟨ ≈cong∙ (embNeVal∘≤ η us) (embVal∘≤ η u) ⟩
+    embNeVal us [ ≤2sub η ] ∙ embVal u [ ≤2sub η ]
+      ≈⟨ ≈sym ≈app ⟩
+    (embNeVal us ∙ embVal u) [ ≤2sub η ]
+      ≡⟨⟩
+    embNeVal (app us u) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNeVal∘≤ η (fst us) = begin
+    fst (embNeVal (neVal≤ η us))
+      ≈⟨ ≈cong-fst (embNeVal∘≤ η us) ⟩
+    fst (embNeVal us [ ≤2sub η ])
+      ≈⟨ ≈sym ≈fst[] ⟩
+    fst (embNeVal us) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNeVal∘≤ η (snd us) = begin
+    snd (embNeVal (neVal≤ η us))
+      ≈⟨ ≈cong-snd (embNeVal∘≤ η us) ⟩
+    snd (embNeVal us [ ≤2sub η ])
+      ≈⟨ ≈sym ≈snd[] ⟩
+    snd (embNeVal us) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNeVal∘≤ η (prim u v us) = begin
+    prim (embVal (val≤ η u)) (embVal (val≤ η v)) (embNeVal (neVal≤ η us))
+      ≈⟨ ≈cong-prim (embVal∘≤ η u) (embVal∘≤ η v) (embNeVal∘≤ η us) ⟩
+    prim (embVal u [ ≤2sub η ]) (embVal v [ ≤2sub η ]) (embNeVal us [ ≤2sub η ])
+      ≈⟨ ≈sym ≈prim[] ⟩
+    prim (embVal u) (embVal v) (embNeVal us) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+
+  embEnv∘≤ : ∀ {Β Γ Δ} (η : Β ≤ Γ) (ρ : Env Γ Δ) →
+    embEnv (env≤ η ρ) ≈≈ embEnv ρ ○ ≤2sub η
+  embEnv∘≤ ≤[] [] = ≈≈sym ≈≈idr
+  embEnv∘≤ {Γ = []} (≤weak η) [] = begin
+    embEnv (env≤ (≤weak η) [])
+      ≡⟨⟩
+    sub-from-[] ○ ↑
+      ≈⟨ ≈≈cong○ (embEnv∘≤ η []) ≈≈refl ⟩
+    (ı ○ ≤2sub η) ○ ↑
+      ≈⟨ ≈≈assoc ⟩
+    ı ○ ≤2sub η ○ ↑
+      ≡⟨⟩
+    embEnv [] ○ ≤2sub (≤weak η)
+    ∎
+    where open ≈≈-Reasoning
+  embEnv∘≤ {Γ = α ∷ Γ} (≤weak η) [] = begin
+    embEnv (env≤ (≤weak η) [])
+      ≡⟨⟩
+    sub-from-[] ○ ↑
+      ≈⟨ ≈≈cong○ (embEnv∘≤ η []) ≈≈refl ⟩
+    ((sub-from-[] ○ ↑) ○ ≤2sub η) ○ ↑
+      ≈⟨ ≈≈assoc ⟩
+    (sub-from-[] ○ ↑) ○ (≤2sub η ○ ↑)
+      ≡⟨⟩
+    embEnv [] ○ ≤2sub (≤weak η)
+    ∎
+    where open ≈≈-Reasoning
+  embEnv∘≤ (≤lift η) [] = begin
+    embEnv (env≤ (≤lift η) [])
+      ≡⟨⟩
+    sub-from-[] ○ ↑
+      ≈⟨ ≈≈cong○ (embEnv∘≤ η []) ≈≈refl ⟩
+    (sub-from-[] ○ ≤2sub η) ○ ↑
+      ≈⟨ ≈≈assoc ⟩
+    sub-from-[] ○ (≤2sub η ○ ↑)
+      ≈⟨ ≈≈cong○ ≈≈refl (≈≈sym ≈≈wk) ⟩
+    sub-from-[] ○ (↑ ○ (ø ∷ ≤2sub η ○ ↑))
+      ≈⟨ ≈≈sym ≈≈assoc ⟩
+    (sub-from-[] ○ ↑) ○ (ø ∷ ≤2sub η ○ ↑)
+      ≡⟨⟩
+    embEnv [] ○ ≤2sub (≤lift η)
+    ∎
+    where open ≈≈-Reasoning
+  embEnv∘≤ η (u ∷ ρ) = begin
+    embEnv (env≤ η (u ∷ ρ))
+      ≡⟨⟩
+    embVal (val≤ η u) ∷ embEnv (env≤ η ρ)
+      ≈⟨ ≈≈cong∷ (embVal∘≤ η u) (embEnv∘≤ η ρ) ⟩
+    embVal u [ ≤2sub η ] ∷ embEnv ρ ○ ≤2sub η
+      ≈⟨ ≈≈sym ≈≈cons ⟩
+    (embVal u ∷ embEnv ρ) ○ ≤2sub η
+      ≡⟨⟩
+    embEnv (u ∷ ρ) ○ ≤2sub η
+    ∎
+    where open ≈≈-Reasoning
+
+-- Normal forms.
+
+mutual
+
+  embNf∘≤ : ∀ {α Β Γ} (η : Β ≤ Γ) (n : Nf Γ α) →
+    embNf (nf≤ η n) ≈ embNf n [ ≤2sub η ]
+  embNf∘≤ η (ne⋆ ns) =
+    embNeNf∘≤ η ns
+  embNf∘≤ η (lam n) = begin
+    embNf (nf≤ η (lam n))
+      ≡⟨⟩
+    ƛ embNf (nf≤ (≤lift η) n)
+      ≈⟨ ≈congƛ (embNf∘≤ (≤lift η) n) ⟩
+    ƛ embNf n [ ø ∷ ≤2sub η ○ ↑ ]
+      ≈⟨ ≈sym ≈lam ⟩
+    (ƛ embNf n) [ ≤2sub η ]
+      ≡⟨⟩
+    embNf (lam n) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNf∘≤ η void =
+    ≈sym ≈void[]
+  embNf∘≤ η (pair na nb) = begin
+    pair (embNf (nf≤ η na)) (embNf (nf≤ η nb))
+      ≈⟨ ≈cong-pair (embNf∘≤ η na) (embNf∘≤ η nb) ⟩
+    pair (embNf na [ ≤2sub η ]) (embNf nb [ ≤2sub η ])
+      ≈⟨ ≈sym ≈pair[] ⟩
+    pair (embNf na) (embNf nb) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNf∘≤ η (neN ns) =
+    embNeNf∘≤ η ns
+  embNf∘≤ η zero =
+    ≈sym ≈zero[]
+  embNf∘≤ η (suc n) = begin
+    suc (embNf (nf≤ η n))
+      ≈⟨ ≈cong-suc (embNf∘≤ η n) ⟩
+    suc (embNf n [ ≤2sub η ])
+      ≈⟨ ≈sym ≈suc[] ⟩
+    suc (embNf n) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+
+  embNeNf∘≤ : ∀ {α Β Γ} (η : Β ≤ Γ) (ns : NeNf Γ α) →
+    embNeNf (neNf≤ η ns) ≈ embNeNf ns [ ≤2sub η ]
+  embNeNf∘≤ η (var x) =
+    embVar∘≤ η x
+  embNeNf∘≤ η (app ns u) = begin
+    embNeNf (neNf≤ η (app ns u))
+      ≡⟨⟩
+    embNeNf (neNf≤ η ns) ∙ embNf (nf≤ η u)
+      ≈⟨ ≈cong∙ (embNeNf∘≤ η ns) (embNf∘≤ η u) ⟩
+    (embNeNf ns [ ≤2sub η ]) ∙ (embNf u [ ≤2sub η ])
+      ≈⟨ ≈sym ≈app ⟩
+    (embNeNf ns ∙ embNf u) [ ≤2sub η ]
+      ≡⟨⟩
+    embNeNf (app ns u) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNeNf∘≤ η (fst ns) = begin
+    fst (embNeNf (neNf≤ η ns))
+      ≈⟨ ≈cong-fst (embNeNf∘≤ η ns) ⟩
+    fst (embNeNf ns [ ≤2sub η ])
+      ≈⟨ ≈sym ≈fst[] ⟩
+    fst (embNeNf ns) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNeNf∘≤ η (snd ns) = begin
+    snd (embNeNf (neNf≤ η ns))
+      ≈⟨ ≈cong-snd (embNeNf∘≤ η ns) ⟩
+    snd (embNeNf ns [ ≤2sub η ])
+      ≈⟨ ≈sym ≈snd[] ⟩
+    snd (embNeNf ns) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+  embNeNf∘≤ η (prim na nb ns) = begin
+    prim (embNf (nf≤ η na)) (embNf (nf≤ η nb)) (embNeNf (neNf≤ η ns))
+      ≈⟨ ≈cong-prim (embNf∘≤ η na) (embNf∘≤ η nb) (embNeNf∘≤ η ns) ⟩
+    prim (embNf na [ ≤2sub η ]) (embNf nb [ ≤2sub η ]) (embNeNf ns [ ≤2sub η ])
+      ≈⟨ ≈sym ≈prim[] ⟩
+    prim (embNf na) (embNf nb) (embNeNf ns) [ ≤2sub η ]
+    ∎
+    where open ≈-Reasoning
+
+--
+-- embEnv id-env ≈≈ ı
+--
+
+embEnv∘id-env : ∀ {Γ} → embEnv (id-env {Γ}) ≈≈ ı
+embEnv∘id-env {[]} = ≈≈refl
+embEnv∘id-env {γ ∷ Γ} = begin
+  ø ∷ embEnv (env≤ wk id-env)
+    ≡⟨⟩
+  ø ∷ embEnv (env≤ wk id-env)
+    ≈⟨ ≈≈cong∷ ≈refl (embEnv∘≤ wk id-env) ⟩
+  ø ∷ embEnv id-env ○ (≤2sub ≤id ○ ↑)
+    ≈⟨ ≈≈cong∷ ≈refl (≈≈cong○ ≈≈refl (≈≈cong○ ı≈≈≤2sub-≤id ≈≈refl)) ⟩
+  ø ∷ embEnv id-env ○ (ı ○ ↑)
+    ≈⟨ ≈≈cong∷ ≈refl (≈≈cong○ embEnv∘id-env ≈≈idl) ⟩
+  ø ∷ (ı ○ ↑)
+    ≈⟨ ≈≈sym ≈≈id∷ ⟩
+  ı
+  ∎
+  where open ≈≈-Reasoning

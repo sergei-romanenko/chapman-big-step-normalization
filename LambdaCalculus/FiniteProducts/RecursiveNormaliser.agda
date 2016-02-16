@@ -359,6 +359,9 @@ mutual
   quote*∘≤ η (snd us) =
     cong snd (quote*∘≤ η us)
 
+--
+-- Strong convertibility.
+--
 
 infix 4 _~_ _~~_
 
@@ -465,6 +468,46 @@ mutual
 ~~≤ η [] = []
 ~~≤ η (u₁~u₂ ∷ ρ₁~~ρ₂) = ~≤ η u₁~u₂ ∷ ~~≤ η ρ₁~~ρ₂
 
+--
+-- u₁ ~ u₂ → ⌜ u₁ ⌝* ≡ ⌜ u₂ ⌝*
+-- ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ∼ ne us₂
+--
+
+mutual
+
+  ~confl : ∀ {α Γ} {u₁ u₂ : Val Γ α} → 
+    u₁ ~ u₂ → ⌜ u₁ ⌝ ≡ ⌜ u₂ ⌝
+
+  ~confl {⋆} {Γ} {ne us₁} {ne us₂} ns₁≡ns₂ =
+    cong ne⋆ ns₁≡ns₂
+  ~confl {α ⇒ β} {Γ} {u₁} {u₂} u₁~u₂ =
+    lam ⌜ val≤ wk u₁ ⟨∙⟩ ne (var zero) ⌝ ≡ lam ⌜ val≤ wk u₂ ⟨∙⟩ ne (var zero) ⌝
+      ∋ cong lam (~confl {β} (u₁~u₂ wk (ne~ne refl)))
+  ~confl {One} tt = refl
+  ~confl {α * β} (fst₁~fst₂ , snd₁~snd₂) =
+    cong₂ pair (~confl fst₁~fst₂) (~confl snd₁~snd₂)
+
+  ne~ne : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} → 
+    ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ~ ne us₂
+
+  ne~ne {⋆} ns₁≡ns₂ = ns₁≡ns₂
+  ne~ne {α ⇒ β} {Γ} {us₁} {us₂} ns₁≡ns₂ η v₁~v₂ =
+    ne~ne {β} (cong₂ app q (~confl v₁~v₂))
+    where
+    open ≡-Reasoning
+    q : ⌜ neVal≤ η us₁ ⌝* ≡ ⌜ neVal≤ η us₂ ⌝*
+    q = begin
+      ⌜ neVal≤ η us₁ ⌝*
+        ≡⟨ quote*∘≤ η us₁ ⟩
+      neNf≤ η ⌜ us₁ ⌝*
+        ≡⟨ cong (neNf≤ η) ns₁≡ns₂ ⟩
+      neNf≤ η ⌜ us₂ ⌝*
+        ≡⟨ sym $ quote*∘≤ η us₂ ⟩
+      ⌜ neVal≤ η us₂ ⌝*
+      ∎
+  ne~ne {One} ns₁≡ns₂ = tt
+  ne~ne {α * β} {Γ} {us₁} {us₂} ns₁≡ns₂ =
+    ne~ne {α} (cong fst ns₁≡ns₂) , ne~ne {β} (cong snd ns₁≡ns₂)
 
 mutual
 
@@ -612,49 +655,13 @@ mutual
   ~~cong⟦⟧* ≈≈id∷ (u₁~u₂ ∷ ρ₁~~ρ₂) =
     u₁~u₂ ∷ ρ₁~~ρ₂
 
-mutual
-
-  ~confl : ∀ {α Γ} {u₁ u₂ : Val Γ α} → 
-    u₁ ~ u₂ → ⌜ u₁ ⌝ ≡ ⌜ u₂ ⌝
-
-  ~confl {⋆} {Γ} {ne us₁} {ne us₂} ns₁≡ns₂ =
-    cong ne⋆ ns₁≡ns₂
-  ~confl {α ⇒ β} {Γ} {u₁} {u₂} u₁~u₂ =
-    lam ⌜ val≤ wk u₁ ⟨∙⟩ ne (var zero) ⌝ ≡ lam ⌜ val≤ wk u₂ ⟨∙⟩ ne (var zero) ⌝
-      ∋ cong lam (~confl {β} (u₁~u₂ wk (confl-ne→~ refl)))
-  ~confl {One} tt = refl
-  ~confl {α * β} (fst₁~fst₂ , snd₁~snd₂) =
-    cong₂ pair (~confl fst₁~fst₂) (~confl snd₁~snd₂)
-
-  confl-ne→~ : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} → 
-    ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ~ ne us₂
-
-  confl-ne→~ {⋆} ns₁≡ns₂ = ns₁≡ns₂
-  confl-ne→~ {α ⇒ β} {Γ} {us₁} {us₂} ns₁≡ns₂ η v₁~v₂ =
-    confl-ne→~ {β} (cong₂ app q (~confl v₁~v₂))
-    where
-    open ≡-Reasoning
-    q : ⌜ neVal≤ η us₁ ⌝* ≡ ⌜ neVal≤ η us₂ ⌝*
-    q = begin
-      ⌜ neVal≤ η us₁ ⌝*
-        ≡⟨ quote*∘≤ η us₁ ⟩
-      neNf≤ η ⌜ us₁ ⌝*
-        ≡⟨ cong (neNf≤ η) ns₁≡ns₂ ⟩
-      neNf≤ η ⌜ us₂ ⌝*
-        ≡⟨ sym $ quote*∘≤ η us₂ ⟩
-      ⌜ neVal≤ η us₂ ⌝*
-      ∎
-  confl-ne→~ {One} ns₁≡ns₂ = tt
-  confl-ne→~ {α * β} {Γ} {us₁} {us₂} ns₁≡ns₂ =
-    confl-ne→~ {α} (cong fst ns₁≡ns₂) , confl-ne→~ {β} (cong snd ns₁≡ns₂)
-
 
 -- id-env ~~ id-env
 
 ~~refl-id-env : ∀ {Γ} → id-env {Γ} ~~ id-env
 ~~refl-id-env {[]} = []
 ~~refl-id-env {γ ∷ Γ} =
-  confl-ne→~ refl ∷ ~~≤ wk ~~refl-id-env
+  ne~ne refl ∷ ~~≤ wk ~~refl-id-env
 
 --
 -- t ≈ t′ → nf t ≡ nf t′
