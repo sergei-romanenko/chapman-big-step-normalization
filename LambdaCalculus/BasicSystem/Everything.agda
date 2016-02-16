@@ -13,4 +13,5 @@ import BasicSystem.OPEBigStep
 import BasicSystem.StrongComputability
 import BasicSystem.StructuralNormaliser
 import BasicSystem.StabilityAndCompleteness
+import BasicSystem.StrongConvertibility
 import BasicSystem.Soundness

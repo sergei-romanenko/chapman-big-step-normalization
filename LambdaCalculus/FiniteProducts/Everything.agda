@@ -13,4 +13,5 @@ import FiniteProducts.OPEBigStep
 import FiniteProducts.StrongComputability
 import FiniteProducts.StructuralNormaliser
 import FiniteProducts.StabilityAndCompleteness
+import FiniteProducts.StrongConvertibility
 import FiniteProducts.Soundness
