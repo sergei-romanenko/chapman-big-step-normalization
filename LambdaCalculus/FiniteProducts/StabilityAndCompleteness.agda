@@ -44,7 +44,7 @@ var≤∘suc (≤lift η) x
 mutual
 
   stable⇓ : ∀ {α Γ} (n : Nf Γ α) → Nf embNf n ⇓ n
-  stable⇓ (ne ns)
+  stable⇓ (ne⋆ ns)
     with stable*⇓ ns
   ... | us , ⇓us , ⇓ns
     = nf⇓ ⇓us (⋆⇓ us ⇓ns)

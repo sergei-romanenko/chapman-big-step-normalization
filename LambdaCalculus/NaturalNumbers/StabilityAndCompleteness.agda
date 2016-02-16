@@ -1,13 +1,13 @@
-module BasicSystem.StabilityAndCompleteness where
+module NaturalNumbers.StabilityAndCompleteness where
 
-open import BasicSystem.Utils
-open import BasicSystem.Syntax
-open import BasicSystem.Conversion
-open import BasicSystem.OPE
-open import BasicSystem.OPELemmas
-open import BasicSystem.BigStepSemantics
-open import BasicSystem.StrongComputability
-open import BasicSystem.StructuralNormaliser
+open import NaturalNumbers.Utils
+open import NaturalNumbers.Syntax
+open import NaturalNumbers.Conversion
+open import NaturalNumbers.OPE
+open import NaturalNumbers.OPELemmas
+open import NaturalNumbers.BigStepSemantics
+open import NaturalNumbers.StrongComputability
+open import NaturalNumbers.StructuralNormaliser
 
 
 --
@@ -52,6 +52,16 @@ mutual
     with stable⇓ n
   ... | nf⇓ ⇓u ⇓n
     = nf⇓ ƛ⇓ (⇒⇓ (lam⇓ ⇓u) ⇓n)
+  stable⇓ (neN ns)
+    with stable*⇓ ns
+  ... | us , ⇓us , ⇓ns
+    = nf⇓ ⇓us (N⇓ ⇓ns)
+  stable⇓ zero =
+    nf⇓ zero⇓ zero⇓
+  stable⇓ (suc n)
+    with stable⇓ n
+  ... | nf⇓ ⇓u ⇓n
+    = nf⇓ (suc⇓ ⇓u) (suc⇓ ⇓n)
 
   stable*⇓ : ∀ {α Γ} (ns : NeNf Γ α) →
     ∃ λ (us : NeVal Γ α) →
@@ -61,6 +71,10 @@ mutual
   stable*⇓ (app ns n) with stable*⇓ ns | stable⇓ n
   ... | us , ⇓us , ⇓ns | nf⇓ {u = u} ⇓u ⇓n =
     app us u , ∙⇓ ⇓us ⇓u ne⇓ , app⇓ ⇓ns ⇓n
+  stable*⇓ (prim nu nv ns)
+    with stable⇓ nu | stable⇓ nv | stable*⇓ ns
+  ... | nf⇓ {u = u} ⇓u ⇓nu | nf⇓ {u = v} ⇓v ⇓nv | us , ⇓us , ⇓ns
+    = prim u v us , prim⇓ ⇓u ⇓v ⇓us primn⇓ , prim⇓ ⇓nu ⇓nv ⇓ns
 
 
 -- nf (embNf n) ≡ n

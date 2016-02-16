@@ -67,10 +67,10 @@ mutual
 
 
 
-embNe≈≤ : ∀ {α Β Γ} (η : Β ≤ Γ) (us : NeVal Γ α) (ns : NeNf Γ α) →
+embNe≤≈ : ∀ {α Β Γ} (η : Β ≤ Γ) (us : NeVal Γ α) (ns : NeNf Γ α) →
   (p : embNeVal us ≈ embNeNf ns) →
      embNeVal (neVal≤ η us) ≈ embNeNf (neNf≤ η ns)
-embNe≈≤ η us ns p = begin
+embNe≤≈ η us ns p = begin
   embNeVal (neVal≤ η us)
     ≈⟨ embNeVal∘≤ η us ⟩
   embNeVal us [ ≤2sub η ]

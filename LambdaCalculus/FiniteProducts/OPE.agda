@@ -52,7 +52,7 @@ mutual
 mutual
 
   nf≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {α} (n : Nf Δ α) → Nf Γ α
-  nf≤ η (ne ns) = ne (neNf≤ η ns)
+  nf≤ η (ne⋆ ns) = ne⋆ (neNf≤ η ns)
   nf≤ η (lam n) = lam (nf≤ (≤lift η) n)
   nf≤ η void = void
   nf≤ η (pair na nb) = pair (nf≤ η na) (nf≤ η nb)

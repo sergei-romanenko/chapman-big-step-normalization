@@ -73,7 +73,7 @@ mutual
   data Quote_⇓_ : ∀ {α Γ} (u : Val Γ α) (n : Nf Γ α) → Set where
     ⋆⇓ : ∀ {Γ} (us : NeVal Γ ⋆) {ns}
       (⇓ns : Quote* us ⇓ ns) →
-      Quote (ne us) ⇓ ne ns
+      Quote (ne us) ⇓ ne⋆ ns
     ⇒⇓ : ∀ {α β Γ} {f : Val Γ (α ⇒ β)} {u n} →
       (⇓u : val≤ wk f ⟨∙⟩ ne (var zero) ⇓ u) (⇓n : Quote u ⇓ n) →
       Quote f ⇓ lam n
@@ -171,7 +171,7 @@ mutual
     (u₁≡u₂ : u₁ ≡ u₂) →
     n₁ ≡ n₂
   quote⇓-det (⋆⇓ us₁ ⇓ns₁) (⋆⇓ .us₁ ⇓ns₂) refl =
-    cong ne (quote*⇓-det ⇓ns₁ ⇓ns₂ refl)
+    cong ne⋆ (quote*⇓-det ⇓ns₁ ⇓ns₂ refl)
   quote⇓-det (⇒⇓ ⇓u₁ ⇓n₁) (⇒⇓ ⇓u₂ ⇓n₂) refl =
     cong lam (quote⇓-det ⇓n₁ ⇓n₂ (⟨∙⟩⇓-det ⇓u₁ ⇓u₂ refl refl))
   quote⇓-det One⇓ One⇓ refl = refl

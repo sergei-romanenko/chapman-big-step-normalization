@@ -268,21 +268,6 @@ mutual
       with ~cong⟦⟧ t₁≈t₂ (u₁~u₂ ∷ ~~≤ η ρ₁~~ρ₂)
     ... | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
       = v₁ , v₂ , v₁~v₂ , lam⇓ ⇓v₁ , lam⇓ ⇓v₂
-  ~cong⟦⟧ {t₁ = pair f₁ s₁} {t₂ = pair f₂ s₂} (≈cong-pair f₁≈f₂ s₁≈s₂) ρ₁~~ρ₂
-    with ~cong⟦⟧ f₁≈f₂ ρ₁~~ρ₂ | ~cong⟦⟧ s₁≈s₂ ρ₁~~ρ₂
-  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
-    = pair u₁ v₁ , pair u₂ v₂ ,
-           ((u₁ , u₂ , fst-pair⇓ , fst-pair⇓ , u₁~u₂) ,
-             (v₁ , v₂ , snd-pair⇓ , snd-pair⇓ , v₁~v₂)) ,
-           pair⇓ ⇓u₁ ⇓v₁ , pair⇓ ⇓u₂ ⇓v₂
-  ~cong⟦⟧ {t₁ = fst t₁} {t₂ = fst t₂} (≈cong-fst t₁≈t₂) ρ₁~~ρ₂
-    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
-  ... | u₁ , u₂ , ((f₁ , f₂ , ⇓f₁ , ⇓f₂ , f₁~f₂) , _) , ⇓u₁ , ⇓u₂
-    = f₁ , f₂ , f₁~f₂ , fst⇓ ⇓u₁ ⇓f₁ , fst⇓ ⇓u₂ ⇓f₂
-  ~cong⟦⟧ (≈cong-snd t₁≈t₂) ρ₁~~ρ₂
-    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
-  ... | u₁ , u₂ , (_ , (s₁ , s₂ , ⇓s₁ , ⇓s₂ , s₁~s₂)) , ⇓u₁ , ⇓u₂
-    = s₁ , s₂ , s₁~s₂ , snd⇓ ⇓u₁ ⇓s₁ , snd⇓ ⇓u₂ ⇓s₂
   ~cong⟦⟧ {t₁ = ø [ t ∷ σ ]} ≈proj ρ₁~~ρ₂
     with ~cong⟦≡⟧ t ρ₁~~ρ₂ | ~~cong⟦≡⟧* σ ρ₁~~ρ₂
   ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
@@ -355,6 +340,21 @@ mutual
       where
       g : lam (t [ ↑ ] ∙ ø) (env≤ η ρ₂) ⟨∙⟩ v₂ ⇓ w₂
       g = lam⇓ (∙⇓ ([]⇓ ↑⇓ (⟦⟧⇓≤ η ⇓u₂)) ø⇓ ⇓w₂)
+  ~cong⟦⟧ {t₁ = pair f₁ s₁} {t₂ = pair f₂ s₂} (≈cong-pair f₁≈f₂ s₁≈s₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ f₁≈f₂ ρ₁~~ρ₂ | ~cong⟦⟧ s₁≈s₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , u₁~u₂ , ⇓u₁ , ⇓u₂ | v₁ , v₂ , v₁~v₂ , ⇓v₁ , ⇓v₂
+    = pair u₁ v₁ , pair u₂ v₂ ,
+           ((u₁ , u₂ , fst-pair⇓ , fst-pair⇓ , u₁~u₂) ,
+             (v₁ , v₂ , snd-pair⇓ , snd-pair⇓ , v₁~v₂)) ,
+           pair⇓ ⇓u₁ ⇓v₁ , pair⇓ ⇓u₂ ⇓v₂
+  ~cong⟦⟧ {t₁ = fst t₁} {t₂ = fst t₂} (≈cong-fst t₁≈t₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , ((f₁ , f₂ , ⇓f₁ , ⇓f₂ , f₁~f₂) , _) , ⇓u₁ , ⇓u₂
+    = f₁ , f₂ , f₁~f₂ , fst⇓ ⇓u₁ ⇓f₁ , fst⇓ ⇓u₂ ⇓f₂
+  ~cong⟦⟧ (≈cong-snd t₁≈t₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
+  ... | u₁ , u₂ , (_ , (s₁ , s₂ , ⇓s₁ , ⇓s₂ , s₁~s₂)) , ⇓u₁ , ⇓u₂
+    = s₁ , s₂ , s₁~s₂ , snd⇓ ⇓u₁ ⇓s₁ , snd⇓ ⇓u₂ ⇓s₂
   ~cong⟦⟧ {t₁ = void [ σ ]} ≈void[] ρ₁~~ρ₂
     with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
   ... | θ₁ , θ₂ , θ₁~θ₂ , ⇓θ₁ , ⇓θ₂
@@ -473,7 +473,7 @@ mutual
     ∃₂ λ n₁ n₂ → n₁ ≡ n₂ × Quote u₁ ⇓ n₁ × Quote u₂ ⇓ n₂
 
   ~confl {⋆} (ne us₁) (ne us₂) (ns₁ , ns₂ , ns₁≡ns₂ , ⇓ns₁ , ⇓ns₂) =
-    ne ns₁ , ne ns₂ , cong ne ns₁≡ns₂ , ⋆⇓ us₁ ⇓ns₁ , ⋆⇓ us₂ ⇓ns₂
+    ne⋆ ns₁ , ne⋆ ns₂ , cong ne⋆ ns₁≡ns₂ , ⋆⇓ us₁ ⇓ns₁ , ⋆⇓ us₂ ⇓ns₂
   ~confl {α ⇒ β} {Γ} u₁ u₂ u₁~u₂
     with u₁~u₂ wk (_~_ {α} (ne (var zero)) (ne (var zero))
          ∋ confl-ne→~ {α} var⇓ var⇓ refl)

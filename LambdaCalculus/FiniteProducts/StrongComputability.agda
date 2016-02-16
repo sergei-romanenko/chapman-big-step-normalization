@@ -103,9 +103,9 @@ mutual
   all-quote : ∀ {α Γ} (u : Val Γ α) (p : SCV u) →
     ∃ λ n → Quote u ⇓ n × embVal u ≈ embNf n
   all-quote {⋆} (ne us) (ns , ⇓ns , ≈ns) =
-    ne ns , ⋆⇓ us ⇓ns , ≈ns
+    ne⋆ ns , ⋆⇓ us ⇓ns , ≈ns
   all-quote {α ⇒ β} {Γ} u p
-    with quote*→scv-ne {α} {α ∷ Γ} (var zero) (var zero) var⇓ ≈refl
+    with all-scv-ne {α} {α ∷ Γ} (var zero) (var zero) var⇓ ≈refl
   ... | r with p wk (ne (var zero)) r
   ... | v , q , ⇓v , ≈v with all-quote {β} v q
   ... | m , ⇓m , ≈m =
@@ -145,11 +145,11 @@ mutual
       pair (embNf nu) (embNf nv)
       ∎
         
-  quote*→scv-ne : ∀ {α Γ} (us : NeVal Γ α) (ns : NeNf Γ α) →
+  all-scv-ne : ∀ {α Γ} (us : NeVal Γ α) (ns : NeNf Γ α) →
     Quote* us ⇓ ns → embNeVal us ≈ embNeNf ns → SCV (ne us)
-  quote*→scv-ne {⋆} us ns ⇓ns ≈ns =
+  all-scv-ne {⋆} us ns ⇓ns ≈ns =
     ns , ⇓ns , ≈ns
-  quote*→scv-ne {α ⇒ β} {Γ} us ns ⇓ns ≈ns {Β} η u p with all-quote u p
+  all-scv-ne {α ⇒ β} {Γ} us ns ⇓ns ≈ns {Β} η u p with all-quote u p
   ... | m , ⇓m , u≈m =
     ne (app us≤ u) , r , ne⇓ , ≈refl
     where
@@ -167,22 +167,22 @@ mutual
       embNeNf ns≤ ∙ embNf m ∎
 
     r : SCV (ne (app us≤ u))
-    r = quote*→scv-ne (app us≤ u) (app ns≤ m)
+    r = all-scv-ne (app us≤ u) (app ns≤ m)
                         (app⇓ (quote*≤ η ⇓ns) ⇓m) us∙u≈ns∙m
-  quote*→scv-ne {One} us ns ⇓ns ≈ns = tt
-  quote*→scv-ne {α * β} {Γ} us ns ⇓ns ≈ns =
+  all-scv-ne {One} us ns ⇓ns ≈ns = tt
+  all-scv-ne {α * β} {Γ} us ns ⇓ns ≈ns =
     (ne (fst us) ,
-      quote*→scv-ne (fst us) (fst ns) (fst⇓ ⇓ns) (≈cong-fst ≈ns) ,
+      all-scv-ne (fst us) (fst ns) (fst⇓ ⇓ns) (≈cong-fst ≈ns) ,
       fst-ne⇓ , ≈refl) ,
     (ne (snd us) ,
-      quote*→scv-ne (snd us) (snd ns) (snd⇓ ⇓ns) (≈cong-snd ≈ns) ,
+      all-scv-ne (snd us) (snd ns) (snd⇓ ⇓ns) (≈cong-snd ≈ns) ,
       snd-ne⇓ , ≈refl)
 
 
 -- SCE id-env
 
 scv-var : ∀ {α Γ} (x : Var Γ α) → SCV (ne (var x))
-scv-var x = quote*→scv-ne (var x) (var x) var⇓ ≈refl
+scv-var x = all-scv-ne (var x) (var x) var⇓ ≈refl
 
 sce-id-env : ∀ {Γ} → SCE (id-env {Γ})
 sce-id-env {[]} = []

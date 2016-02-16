@@ -332,7 +332,7 @@ mutual
 
   embNf∘≤ : ∀ {α Β Γ} (η : Β ≤ Γ) (n : Nf Γ α) →
     embNf (nf≤ η n) ≈ embNf n [ ≤2sub η ]
-  embNf∘≤ η (ne ns) =
+  embNf∘≤ η (ne⋆ ns) =
     embNeNf∘≤ η ns
   embNf∘≤ η (lam n) = begin
     embNf (nf≤ η (lam n))
@@ -396,7 +396,7 @@ mutual
 
 embEnv∘id-env : ∀ {Γ} → embEnv (id-env {Γ}) ≈≈ ı
 embEnv∘id-env {[]} = ≈≈refl
-embEnv∘id-env {x ∷ Γ} = begin
+embEnv∘id-env {γ ∷ Γ} = begin
   ø ∷ embEnv (env≤ wk id-env)
     ≡⟨⟩
   ø ∷ embEnv (env≤ wk id-env)

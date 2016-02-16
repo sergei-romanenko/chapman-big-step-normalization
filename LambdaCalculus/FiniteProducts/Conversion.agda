@@ -28,12 +28,6 @@ mutual
       t₁ ≈ t₂ → σ₁ ≈≈ σ₂ → t₁ [ σ₁ ] ≈ t₂ [ σ₂ ]
     ≈congƛ : ∀ {α β Γ} {t₁ t₂ : Tm (α ∷ Γ) β} →
       t₁ ≈ t₂ → (ƛ t₁) ≈ (ƛ t₂)
-    ≈cong-pair : ∀ {α β Γ} {f₁ f₂ : Tm Γ α} {s₁ s₂ : Tm Γ β} → 
-      f₁ ≈ f₂ → s₁ ≈ s₂ → pair f₁ s₁ ≈ pair f₂ s₂
-    ≈cong-fst  : ∀ {α β Γ} {t₁ t₂ : Tm Γ (α * β)} →
-      t₁ ≈ t₂ → fst t₁ ≈ fst t₂
-    ≈cong-snd  : ∀ {α β Γ} {t₁ t₂ : Tm Γ (α * β)} →
-      t₁ ≈ t₂ → snd t₁ ≈ snd t₂
     ≈proj : ∀ {α Γ Δ} {t : Tm Γ α } {σ : Sub Γ Δ} →
       ø [ t ∷ σ ] ≈ t
     ≈id : ∀ {α Γ} {t : Tm Γ α} →
@@ -48,6 +42,12 @@ mutual
       (ƛ t) [ σ ] ∙ t′ ≈ t [ t′ ∷ σ ]
     ≈η : ∀ {α β Γ} {t : Tm Γ (α ⇒ β)} →
       t ≈ (ƛ (t [ ↑ ] ∙ ø))
+    ≈cong-pair : ∀ {α β Γ} {f₁ f₂ : Tm Γ α} {s₁ s₂ : Tm Γ β} → 
+      f₁ ≈ f₂ → s₁ ≈ s₂ → pair f₁ s₁ ≈ pair f₂ s₂
+    ≈cong-fst  : ∀ {α β Γ} {t₁ t₂ : Tm Γ (α * β)} →
+      t₁ ≈ t₂ → fst t₁ ≈ fst t₂
+    ≈cong-snd  : ∀ {α β Γ} {t₁ t₂ : Tm Γ (α * β)} →
+      t₁ ≈ t₂ → snd t₁ ≈ snd t₂
     ≈void[] : ∀ {Γ Δ} {σ : Sub Γ Δ} →
       void [ σ ] ≈ void 
     ≈pair[] : ∀ {α β Γ Δ} {f : Tm Δ α} {s : Tm Δ β} {σ : Sub Γ Δ} →

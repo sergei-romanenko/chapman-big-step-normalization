@@ -362,7 +362,7 @@ mutual
     ∃₂ λ n₁ n₂ → n₁ ≡ n₂ × Quote u₁ ⇓ n₁ × Quote u₂ ⇓ n₂
 
   ~confl {⋆} (ne us₁) (ne us₂) (ns₁ , ns₂ , ns₁≡ns₂ , ⇓ns₁ , ⇓ns₂) =
-    ne ns₁ , ne ns₂ , cong ne ns₁≡ns₂ , ⋆⇓ us₁ ⇓ns₁ , ⋆⇓ us₂ ⇓ns₂
+    ne⋆ ns₁ , ne⋆ ns₂ , cong ne⋆ ns₁≡ns₂ , ⋆⇓ us₁ ⇓ns₁ , ⋆⇓ us₂ ⇓ns₂
   ~confl {α ⇒ β} {Γ} u₁ u₂ u₁~u₂
     with u₁~u₂ wk (_~_ {α} (ne (var zero)) (ne (var zero))
          ∋ confl-ne→~ {α} var⇓ var⇓ refl)

@@ -70,7 +70,7 @@ mutual
 mutual
 
   data Nf (Γ : Ctx) : Ty → Set where
-    ne  : ∀ (ns : NeNf Γ ⋆) → Nf Γ ⋆
+    ne⋆ : ∀ (ns : NeNf Γ ⋆) → Nf Γ ⋆
     lam : ∀ {α β} (n : Nf (α ∷ Γ) β) → Nf Γ (α ⇒ β)
 
   data NeNf (Γ : Ctx) : Ty → Set where
@@ -109,7 +109,7 @@ mutual
 
   embNf : ∀ {α Γ} (n : Nf Γ α) → Tm Γ α
   embNf (lam n) = ƛ embNf n
-  embNf (ne ns) = embNeNf ns
+  embNf (ne⋆ ns) = embNeNf ns
 
   embNeNf : ∀ {α Γ} (ns : NeNf Γ α) → Tm Γ α
   embNeNf (var x) = embVar x

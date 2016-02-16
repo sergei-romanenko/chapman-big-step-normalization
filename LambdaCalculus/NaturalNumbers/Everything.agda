@@ -3,18 +3,15 @@ module NaturalNumbers.Everything where
 import NaturalNumbers.Utils
 import NaturalNumbers.Syntax
 import NaturalNumbers.Conversion
-import NaturalNumbers.Embeddings
 import NaturalNumbers.OPE 
 import NaturalNumbers.OPELemmas
-import NaturalNumbers.IdentityEnvironment
 --
 import NaturalNumbers.RecursiveNormaliser
-import NaturalNumbers.OPERecursive
-import NaturalNumbers.StrongConvertibility
-import NaturalNumbers.Soundness
 --
 import NaturalNumbers.BigStepSemantics
 import NaturalNumbers.OPEBigStep
-import NaturalNumbers.StructuralNormaliser 
 import NaturalNumbers.StrongComputability
-import NaturalNumbers.TerminationandCompleteness
+import NaturalNumbers.StructuralNormaliser
+import NaturalNumbers.StabilityAndCompleteness
+import NaturalNumbers.StrongConvertibility
+import NaturalNumbers.Soundness

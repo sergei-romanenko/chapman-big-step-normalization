@@ -83,7 +83,7 @@ III = I {⋆ ⇒ ⋆} ∙ (I {⋆ ⇒ ⋆} ∙ I {⋆})
 mutual
 
   ⌜_⌝ : ∀ {α Γ} (u : Val Γ α) → Nf Γ α
-  ⌜_⌝ {⋆} (ne us) = ne ⌜ us ⌝*
+  ⌜_⌝ {⋆} (ne us) = ne⋆ ⌜ us ⌝*
   ⌜_⌝ {α ⇒ β} f =
     lam ⌜ val≤ wk f ⟨∙⟩ ne (var zero) ⌝
 
@@ -96,13 +96,13 @@ mutual
 nf : ∀ {α Γ} (t : Tm Γ α) → Nf Γ α
 nf t = ⌜ ⟦ t ⟧ id-env ⌝
 
-nf-III : nf III ≡ lam (ne (var zero))
+nf-III : nf III ≡ lam (ne⋆ (var zero))
 nf-III = refl
 
-nf-SKK : nf (SKK {⋆}) ≡ lam (ne (var zero))
+nf-SKK : nf (SKK {⋆}) ≡ lam (ne⋆ (var zero))
 nf-SKK = refl
 
-nf-SKK∙I : nf (SKK ∙ I {⋆}) ≡ lam (ne (var zero))
+nf-SKK∙I : nf (SKK ∙ I {⋆}) ≡ lam (ne⋆ (var zero))
 nf-SKK∙I = refl
 
 
@@ -141,16 +141,16 @@ var≤∘suc (≤lift η) x
 mutual
 
   stable : ∀ {α Γ} (n : Nf Γ α) → nf (embNf n) ≡ n
-  stable (ne ns)
+  stable (ne⋆ ns)
     with stable* ns
   ... | us , ≡ne-us , ≡ns = begin
     ⌜ ⟦ embNeNf ns ⟧ id-env ⌝
       ≡⟨ cong ⌜_⌝ ≡ne-us ⟩
     ⌜ ne us ⌝
       ≡⟨⟩
-    ne ⌜ us ⌝*
-      ≡⟨ cong ne ≡ns ⟩
-    ne ns
+    ne⋆ ⌜ us ⌝*
+      ≡⟨ cong ne⋆ ≡ns ⟩
+    ne⋆ ns
     ∎
     where open ≡-Reasoning
   stable (lam n) =
@@ -229,7 +229,7 @@ mutual
     ⌜ val≤ η u ⌝ ≡ nf≤ η ⌜ u ⌝
 
   quote∘≤ {⋆} η (ne us) =
-    cong ne (quote*∘≤ η us)
+    cong ne⋆ (quote*∘≤ η us)
   quote∘≤ {α ⇒ β} η u = cong lam r
     where
     open ≡-Reasoning
@@ -361,6 +361,44 @@ mutual
 ~~≤ η [] = []
 ~~≤ η (u₁~u₂ ∷ ρ₁~~ρ₂) = ~≤ η u₁~u₂ ∷ ~~≤ η ρ₁~~ρ₂
 
+--
+-- u₁ ~ u₂ → ⌜ u₁ ⌝* ≡ ⌜ u₂ ⌝*
+-- ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ∼ ne us₂
+--
+
+mutual
+
+  ~confl : ∀ {α Γ} {u₁ u₂ : Val Γ α} → 
+    u₁ ~ u₂ → ⌜ u₁ ⌝ ≡ ⌜ u₂ ⌝
+
+  ~confl {⋆} {Γ} {ne us₁} {ne us₂} ns₁≡ns₂ =
+    cong ne⋆ ns₁≡ns₂
+  ~confl {α ⇒ β} {Γ} {u₁} {u₂} u₁~u₂ =
+    lam ⌜ val≤ wk u₁ ⟨∙⟩ ne (var zero) ⌝ ≡ lam ⌜ val≤ wk u₂ ⟨∙⟩ ne (var zero) ⌝
+      ∋ cong lam (~confl {β} (u₁~u₂ wk (confl-ne→~ refl)))
+
+  confl-ne→~ : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} → 
+    ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ~ ne us₂
+
+  confl-ne→~ {⋆} ns₁≡ns₂ = ns₁≡ns₂
+  confl-ne→~ {α ⇒ β} {Γ} {us₁} {us₂} ns₁≡ns₂ η v₁~v₂ =
+    confl-ne→~ {β} (cong₂ app q (~confl v₁~v₂))
+    where
+    open ≡-Reasoning
+    q : ⌜ neVal≤ η us₁ ⌝* ≡ ⌜ neVal≤ η us₂ ⌝*
+    q = begin
+      ⌜ neVal≤ η us₁ ⌝*
+        ≡⟨ quote*∘≤ η us₁ ⟩
+      neNf≤ η ⌜ us₁ ⌝*
+        ≡⟨ cong (neNf≤ η) ns₁≡ns₂ ⟩
+      neNf≤ η ⌜ us₂ ⌝*
+        ≡⟨ sym $ quote*∘≤ η us₂ ⟩
+      ⌜ neVal≤ η us₂ ⌝*
+      ∎
+
+--
+-- ρ₁ ~~ ρ₂ → ⟦ t ⟧ ρ₁ ~ ⟦ t ⟧ ρ₂
+--
 
 mutual
 
@@ -479,36 +517,6 @@ mutual
     ~cong⟦≡⟧ t (~~cong⟦≡⟧* σ′ ρ₁~~ρ₂) ∷ ~~cong⟦≡⟧* σ (~~cong⟦≡⟧* σ′ ρ₁~~ρ₂)
   ~~cong⟦⟧* ≈≈id∷ (u₁~u₂ ∷ ρ₁~~ρ₂) =
     u₁~u₂ ∷ ρ₁~~ρ₂
-
-mutual
-
-  ~confl : ∀ {α Γ} {u₁ u₂ : Val Γ α} → 
-    u₁ ~ u₂ → ⌜ u₁ ⌝ ≡ ⌜ u₂ ⌝
-
-  ~confl {⋆} {Γ} {ne us₁} {ne us₂} ns₁≡ns₂ =
-    cong ne ns₁≡ns₂
-  ~confl {α ⇒ β} {Γ} {u₁} {u₂} u₁~u₂ =
-    lam ⌜ val≤ wk u₁ ⟨∙⟩ ne (var zero) ⌝ ≡ lam ⌜ val≤ wk u₂ ⟨∙⟩ ne (var zero) ⌝
-      ∋ cong lam (~confl {β} (u₁~u₂ wk (confl-ne→~ refl)))
-
-  confl-ne→~ : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} → 
-    ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ~ ne us₂
-
-  confl-ne→~ {⋆} ns₁≡ns₂ = ns₁≡ns₂
-  confl-ne→~ {α ⇒ β} {Γ} {us₁} {us₂} ns₁≡ns₂ η v₁~v₂ =
-    confl-ne→~ {β} (cong₂ app q (~confl v₁~v₂))
-    where
-    open ≡-Reasoning
-    q : ⌜ neVal≤ η us₁ ⌝* ≡ ⌜ neVal≤ η us₂ ⌝*
-    q = begin
-      ⌜ neVal≤ η us₁ ⌝*
-        ≡⟨ quote*∘≤ η us₁ ⟩
-      neNf≤ η ⌜ us₁ ⌝*
-        ≡⟨ cong (neNf≤ η) ns₁≡ns₂ ⟩
-      neNf≤ η ⌜ us₂ ⌝*
-        ≡⟨ sym $ quote*∘≤ η us₂ ⟩
-      ⌜ neVal≤ η us₂ ⌝*
-      ∎
 
 
 mutual

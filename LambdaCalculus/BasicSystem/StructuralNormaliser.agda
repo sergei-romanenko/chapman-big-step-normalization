@@ -65,7 +65,7 @@ mutual
   ⌜_&_⌝ {⋆} (ne us) (⋆⇓ .us ⇓ns)
     with ⌜ us & ⇓ns ⌝*
   ... | ns′ , refl
-    = ne ns′ , refl
+    = ne⋆ ns′ , refl
   ⌜_&_⌝ {α ⇒ β} f (⇒⇓ ⇓u ⇓n)
     with val≤ wk f ⟨∙⟩ ne (var zero) & ⇓u
   ... | u′ , refl

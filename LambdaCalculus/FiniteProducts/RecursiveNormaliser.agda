@@ -95,7 +95,7 @@ III = I {⋆ ⇒ ⋆} ∙ (I {⋆ ⇒ ⋆} ∙ I {⋆})
 mutual
 
   ⌜_⌝ : ∀ {α Γ} (u : Val Γ α) → Nf Γ α
-  ⌜_⌝ {⋆} (ne us) = ne ⌜ us ⌝*
+  ⌜_⌝ {⋆} (ne us) = ne⋆ ⌜ us ⌝*
   ⌜_⌝ {α ⇒ β} f =
     lam ⌜ val≤ wk f ⟨∙⟩ ne (var zero) ⌝
   ⌜_⌝ {One} u = void
@@ -113,13 +113,13 @@ mutual
 nf : ∀ {α Γ} (t : Tm Γ α) → Nf Γ α
 nf t = ⌜ ⟦ t ⟧ id-env ⌝
 
-nf-III : nf III ≡ lam (ne (var zero))
+nf-III : nf III ≡ lam (ne⋆ (var zero))
 nf-III = refl
 
-nf-SKK : nf (SKK {⋆}) ≡ lam (ne (var zero))
+nf-SKK : nf (SKK {⋆}) ≡ lam (ne⋆ (var zero))
 nf-SKK = refl
 
-nf-SKK∙I : nf (SKK ∙ I {⋆}) ≡ lam (ne (var zero))
+nf-SKK∙I : nf (SKK ∙ I {⋆}) ≡ lam (ne⋆ (var zero))
 nf-SKK∙I = refl
 
 
@@ -158,16 +158,16 @@ var≤∘suc (≤lift η) x
 mutual
 
   stable : ∀ {α Γ} (n : Nf Γ α) → nf (embNf n) ≡ n
-  stable (ne ns)
+  stable (ne⋆ ns)
     with stable* ns
   ... | us , ≡ne-us , ≡ns = begin
     ⌜ ⟦ embNeNf ns ⟧ id-env ⌝
       ≡⟨ cong ⌜_⌝ ≡ne-us ⟩
     ⌜ ne us ⌝
       ≡⟨⟩
-    ne ⌜ us ⌝*
-      ≡⟨ cong ne ≡ns ⟩
-    ne ns
+    ne⋆ ⌜ us ⌝*
+      ≡⟨ cong ne⋆ ≡ns ⟩
+    ne⋆ ns
     ∎
     where open ≡-Reasoning
   stable (lam n) =
@@ -304,7 +304,7 @@ mutual
     ⌜ val≤ η u ⌝ ≡ nf≤ η ⌜ u ⌝
 
   quote∘≤ {⋆} η (ne us) =
-    cong ne (quote*∘≤ η us)
+    cong ne⋆ (quote*∘≤ η us)
   quote∘≤ {α ⇒ β} η u = cong lam r
     where
     open ≡-Reasoning
@@ -530,12 +530,6 @@ mutual
     ~cong⟦⟧ t₁≈t₂ (~~cong⟦⟧* σ₁≈≈σ₂ ρ₁~~ρ₂)
   ~cong⟦⟧ (≈congƛ t₁≈t₂) ρ₁~~ρ₂ η v₁~v₂ =
     ~cong⟦⟧ t₁≈t₂ (v₁~v₂ ∷ ~~≤ η ρ₁~~ρ₂)
-  ~cong⟦⟧ (≈cong-pair t₁≈t₂ t₁≈t₃) ρ₁~~ρ₂ =
-    ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂ , ~cong⟦⟧ t₁≈t₃ ρ₁~~ρ₂
-  ~cong⟦⟧ (≈cong-fst t₁≈t₂) ρ₁~~ρ₂ =
-    proj₁ $ ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
-  ~cong⟦⟧ (≈cong-snd t₁≈t₂) ρ₁~~ρ₂ =
-    proj₂ $ ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
   ~cong⟦⟧ {t₁ = ø [ t ∷ σ ]} ≈proj ρ₁~~ρ₂ =
     ~cong⟦≡⟧ t ρ₁~~ρ₂
   ~cong⟦⟧ {t₁ = t [ ı ]} ≈id ρ₁~~ρ₂ =
@@ -568,6 +562,12 @@ mutual
             val≤ ≤id (⟦ t ⟧ env≤ η ρ₂) ≡ ⟦ t ⟧ env≤ η ρ₂ ∋ val≤-≤id _ |
             ⟦ t ⟧ env≤ η ρ₁ ≡ val≤ η (⟦ t ⟧ ρ₁) ∋ ⟦⟧∘≤ η t ρ₁
     = w₁~w₂
+  ~cong⟦⟧ (≈cong-pair t₁≈t₂ t₁≈t₃) ρ₁~~ρ₂ =
+    ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂ , ~cong⟦⟧ t₁≈t₃ ρ₁~~ρ₂
+  ~cong⟦⟧ (≈cong-fst t₁≈t₂) ρ₁~~ρ₂ =
+    proj₁ $ ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
+  ~cong⟦⟧ (≈cong-snd t₁≈t₂) ρ₁~~ρ₂ =
+    proj₂ $ ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
   ~cong⟦⟧ ≈void[] ρ₁~~ρ₂ = tt
   ~cong⟦⟧ {t₁ = pair f s [ σ ]} ≈pair[] ρ₁~~ρ₂ =
     ~cong⟦≡⟧ f (~~cong⟦≡⟧* σ ρ₁~~ρ₂) , ~cong⟦≡⟧ s (~~cong⟦≡⟧* σ ρ₁~~ρ₂)
@@ -618,7 +618,7 @@ mutual
     u₁ ~ u₂ → ⌜ u₁ ⌝ ≡ ⌜ u₂ ⌝
 
   ~confl {⋆} {Γ} {ne us₁} {ne us₂} ns₁≡ns₂ =
-    cong ne ns₁≡ns₂
+    cong ne⋆ ns₁≡ns₂
   ~confl {α ⇒ β} {Γ} {u₁} {u₂} u₁~u₂ =
     lam ⌜ val≤ wk u₁ ⟨∙⟩ ne (var zero) ⌝ ≡ lam ⌜ val≤ wk u₂ ⟨∙⟩ ne (var zero) ⌝
       ∋ cong lam (~confl {β} (u₁~u₂ wk (confl-ne→~ refl)))

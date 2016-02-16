@@ -1,72 +1,113 @@
 module NaturalNumbers.Conversion where
 
+import Relation.Binary.EqReasoning as EqReasoning
+
+open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
 
-infix 4 _≈_
-infix 4 _≃_
+--
+-- Convertibility.
+--
+
+infix 4 _≈_ _≈≈_
 
 mutual
-  data _≈_ : ∀ {Γ σ} → Tm Γ σ → Tm Γ σ → Set where
-    -- equivalence closure
-    ≈refl  : ∀ {Γ σ}{t : Tm Γ σ} → t ≈ t
-    ≈sym   : ∀ {Γ σ}{t t' : Tm Γ σ} → t ≈ t' → t' ≈ t
-    ≈trans : ∀ {Γ σ}{t t' t'' : Tm Γ σ} → t ≈ t' → t' ≈ t'' → t ≈ t''
 
-    -- congruence closure
-    cong[]   : ∀ {Γ Δ σ}{t t' : Tm Δ σ}{ts ts' : Sub Γ Δ} → t ≈ t' →
-               ts ≃ ts' → t [ ts ] ≈ t' [ ts' ]
+  -- t₁ ≈ t₂
 
-    congλ    : ∀ {Γ σ τ}{t t' : Tm (Γ < σ) τ} → t ≈ t' → ƛ t ≈ ƛ t'
-    cong∙    : ∀ {Γ σ τ}{t t' : Tm Γ (σ ⇒ τ)}{u u' : Tm Γ σ} → t ≈ t' →
-                u ≈ u' → t ∙ u ≈ t' ∙ u'
+  data _≈_  : ∀ {α Γ} (t₁ t₂ : Tm Γ α) → Set where
+    ≈refl : ∀ {α Γ} {t : Tm Γ α} →
+      t ≈ t
+    ≈sym : ∀ {α Γ} {t₁ t₂ : Tm Γ α} →
+      t₁ ≈ t₂ → t₂ ≈ t₁
+    ≈trans : ∀ {α Γ} {t₁ t₂ t₃ : Tm Γ α} →
+      t₁ ≈ t₂ → t₂ ≈ t₃ → t₁ ≈ t₃
+    ≈cong∙ : ∀ {α β Γ} {f₁ f₂ : Tm Γ (α ⇒ β)} {t₁ t₂ : Tm Γ α} →
+      f₁ ≈ f₂ → t₁ ≈ t₂ → f₁ ∙ t₁ ≈ f₂ ∙ t₂
+    ≈cong[] : ∀ {α Γ Δ} {t₁ t₂ : Tm Δ α } {σ₁ σ₂ : Sub Γ Δ} →
+      t₁ ≈ t₂ → σ₁ ≈≈ σ₂ → t₁ [ σ₁ ] ≈ t₂ [ σ₂ ]
+    ≈congƛ : ∀ {α β Γ} {t₁ t₂ : Tm (α ∷ Γ) β} →
+      t₁ ≈ t₂ → (ƛ t₁) ≈ (ƛ t₂)
+    ≈proj : ∀ {α Γ Δ} {t : Tm Γ α } {σ : Sub Γ Δ} →
+      ø [ t ∷ σ ] ≈ t
+    ≈id : ∀ {α Γ} {t : Tm Γ α} →
+      t [ ı ] ≈ t
+    ≈comp : ∀ {α Γ Δ Γ′} {t : Tm Δ α} {σ : Sub Γ Δ} {σ′ : Sub Γ′ Γ} →
+      t [ σ ○ σ′ ] ≈ t [ σ ] [ σ′ ]
+    ≈lam : ∀ {α β Γ Δ} {t : Tm (α ∷ Δ) β} {σ : Sub Γ Δ} →
+      (ƛ t) [ σ ] ≈ (ƛ t [ ø ∷ (σ ○ ↑) ])
+    ≈app : ∀ {α β Γ Δ} {f : Tm Δ (α ⇒ β)} {t : Tm Δ α} {σ : Sub Γ Δ} →
+      (f ∙ t) [ σ ] ≈ f [ σ ] ∙ t [ σ ]
+    ≈βσ : ∀ {α β Γ Δ} {t : Tm (α ∷ Δ) β} {σ : Sub Γ Δ} {t′ : Tm Γ α} →
+      (ƛ t) [ σ ] ∙ t′ ≈ t [ t′ ∷ σ ]
+    ≈η : ∀ {α β Γ} {t : Tm Γ (α ⇒ β)} →
+      t ≈ (ƛ (t [ ↑ ] ∙ ø))
+    ≈cong-suc  : ∀ {Γ} {t₁ t₂ : Tm Γ N} (t₁≈t₂ : t₁ ≈ t₂) →
+      suc t₁ ≈ suc t₂
+    ≈cong-prim : ∀ {α Γ} {a₁ a₂ : Tm Γ α} {b₁ b₂} {k₁ k₂} → 
+      (a₁≈a₂ : a₁ ≈ a₂) (b₁≈b₂ : b₁ ≈ b₂) (k₁≈k₂ : k₁ ≈ k₂) →
+      prim a₁ b₁ k₁ ≈ prim a₂ b₂ k₂
+    ≈zero[] : ∀ {Γ Δ} {σ : Sub Γ Δ} →
+      zero [ σ ] ≈ zero
+    ≈suc[]  : ∀ {Γ Δ} {t : Tm Δ N} {σ : Sub Γ Δ} →
+      suc t [ σ ] ≈ suc (t [ σ ])
+    ≈prim[] : ∀ {α Γ Δ} {a : Tm Δ α} {b k} {σ : Sub Γ Δ} → 
+      prim a b k [ σ ] ≈ prim (a [ σ ]) (b [ σ ]) (k [ σ ])
+    ≈primz : ∀ {α Γ} {a : Tm Γ α} {b} →
+      prim a b zero ≈ a
+    ≈prims : ∀ {α Γ} {a : Tm Γ α} {b k} → 
+      prim a b (suc k) ≈ ((b ∙ k) ∙ prim a b k)
 
-    congsuc  : ∀ {Γ}{t t' : Tm Γ N} → t ≈ t' → suc t ≈ suc t'
-    congprim : ∀ {Γ σ}{z z' : Tm Γ σ}{s s'}{n n'} → 
-               z ≈ z' → s ≈ s' → n ≈ n' → prim z s n ≈ prim z' s' n'
-               
+  -- σ₁ ≈≈ σ₂
 
-    -- computation rules
-    ø<   : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → ø [ ts < t ] ≈ t 
-    [][] : ∀ {B Γ Δ σ}{t : Tm Δ σ}{ts : Sub Γ Δ}{us : Sub B Γ} →
-           t [ ts ] [ us ] ≈ t [ ts ○ us ]
-    []id : ∀ {Γ σ}{t : Tm Γ σ} → t [ ı ] ≈ t
+  data _≈≈_ : ∀ {Γ Δ} (σ₁ σ₂ : Sub Γ Δ) → Set where
+    ≈≈refl : ∀ {Γ Δ} {σ : Sub Γ Δ} →
+      σ ≈≈ σ
+    ≈≈sym : ∀ {Γ Δ} {σ₁ σ₂ : Sub Γ Δ} →
+      σ₁ ≈≈ σ₂ → σ₂ ≈≈ σ₁
+    ≈≈trans : ∀ {Γ Δ} {σ₁ σ₂ σ₃ : Sub Γ Δ} →
+      σ₁ ≈≈ σ₂ → σ₂ ≈≈ σ₃ → σ₁ ≈≈ σ₃
+    ≈≈cong○ : ∀ {Γ Δ Γ′} {σ₁ σ₂ : Sub Δ Γ} {τ₁ τ₂ : Sub Γ′ Δ} →
+      σ₁ ≈≈ σ₂ → τ₁ ≈≈ τ₂ → σ₁ ○ τ₁ ≈≈ σ₂ ○ τ₂
+    ≈≈cong∷ : ∀ {α Γ Δ} {t₁ t₂ : Tm Δ α} {σ₁ σ₂ : Sub Δ Γ} →
+      t₁ ≈ t₂ → σ₁ ≈≈ σ₂ → t₁ ∷ σ₁ ≈≈ t₂ ∷ σ₂
+    ≈≈assoc : ∀ {Γ Δ Δ′ Γ′} {σ₁ : Sub Δ Γ} {σ₂ : Sub Δ′ Δ} {σ₃ : Sub Γ′ Δ′} →
+      (σ₁ ○ σ₂) ○ σ₃ ≈≈ σ₁ ○ (σ₂ ○ σ₃)
+    ≈≈idl : ∀ {Γ Δ} {σ : Sub Γ Δ} →
+      ı ○ σ ≈≈ σ
+    ≈≈idr : ∀ {Γ Δ} {σ : Sub Γ Δ} →
+      σ ○ ı ≈≈ σ
+    ≈≈wk : ∀ {α Γ Δ} {σ : Sub Γ Δ} {t : Tm Γ α} →
+      ↑ ○ (t ∷ σ) ≈≈ σ
+    ≈≈cons : ∀ {α Γ Δ Γ′} {σ : Sub Δ Γ} {t : Tm Δ α} {σ′ : Sub Γ′ Δ} →
+      (t ∷ σ) ○ σ′ ≈≈ t [ σ′ ] ∷ (σ ○ σ′)
+    ≈≈id∷ : ∀ {α Γ} →
+      ı {α ∷ Γ} ≈≈ ø ∷ (ı ○ ↑)
 
-    λ[]  : ∀ {Γ Δ σ τ}{t : Tm (Δ < σ) τ}{ts : Sub Γ Δ} → 
-           ƛ t [ ts ] ≈ ƛ (t [ (ts ○ ↑ σ) < ø ])
-    ∙[]  : ∀ {Γ Δ σ τ}{t : Tm Δ (σ ⇒ τ)}{u : Tm Δ σ}{ts : Sub Γ Δ} →
-           (t ∙ u) [ ts ] ≈ t [ ts ] ∙ (u [ ts ])
-    β    : ∀ {Γ σ τ}{t : Tm (Γ < σ) τ}{u : Tm Γ σ} →
-           ƛ t ∙ u ≈ t [ ı < u ]
-    η    : ∀ {Γ σ τ}{t : Tm Γ (σ ⇒ τ)} → t ≈  ƛ (t [ ↑ σ ] ∙ ø)
+-- ≈-Reasoning
 
-    zero[] : ∀ {Γ Δ}{ts : Sub Γ Δ} → zero [ ts ] ≈ zero
-    suc[]  : ∀ {Γ Δ t}{ts : Sub Γ Δ} → suc t [ ts ] ≈ suc (t [ ts ])
-    prim[] : ∀ {Γ Δ σ}{z : Tm Δ σ}{s n}{ts : Sub Γ Δ} → 
-             prim z s n [ ts ] ≈ prim (z [ ts ]) (s [ ts ]) (n [ ts ])
-    primz : ∀ {Γ σ}{z : Tm Γ σ}{s} → prim z s zero ≈ z
-    prims : ∀ {Γ σ}{z : Tm Γ σ}{s n} → 
-            prim z s (suc n) ≈ ((s ∙ n) ∙ prim z s n)
+≈setoid : {Γ : Ctx} {α : Ty} → Setoid _ _
 
-  data _≃_ : ∀ {Γ Δ} → Sub Γ Δ → Sub Γ Δ → Set where
-    -- equivalence closure
-    ≃refl  : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ≃ ts
-    ≃sym   : ∀ {Γ Δ}{ts ts' : Sub Γ Δ} → ts ≃ ts' → ts' ≃ ts
-    ≃trans : ∀ {Γ Δ}{ts ts' ts'' : Sub Γ Δ} → ts ≃ ts' → 
-             ts' ≃ ts'' → ts ≃ ts''
-  
-    -- congruence closure
-    cong<  : ∀ {Γ Δ σ}{ts ts' : Sub Γ Δ}{t t' : Tm Γ σ} → ts ≃ ts' →
-             t ≈ t' → ts < t ≃ ts' < t'
-    cong○  : ∀ {B Γ Δ}{ts ts' : Sub Γ Δ}{us us' : Sub B Γ} → ts ≃ ts' →
-             us ≃ us' → ts ○ us ≃ ts' ○ us'
+≈setoid {Γ} {α} = record
+  { Carrier = Tm Γ α
+  ; _≈_ = _≈_
+  ; isEquivalence = record
+    { refl = ≈refl
+    ; sym = ≈sym
+    ; trans = ≈trans } }
 
-    -- computation rules
-    idcomp  : ∀ {Γ σ} → ı ≃ (ı {Γ} ○ ↑ σ) < ø
-    ↑comp : ∀ {Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ} → 
-              ↑ σ ○ (ts < t) ≃ ts
-    leftidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ı ○ ts ≃ ts
-    rightidˢ : ∀ {Γ Δ}{ts : Sub Γ Δ} → ts ○ ı ≃ ts
-    assoc   : ∀ {A B Γ Δ}{ts : Sub Γ Δ}{us : Sub B Γ}{vs : Sub A B} →
-              (ts ○ us) ○ vs ≃ ts ○ (us ○ vs)
-    comp<   : ∀ {B Γ Δ σ}{ts : Sub Γ Δ}{t : Tm Γ σ}{us : Sub B Γ} →
-              (ts < t) ○ us ≃ (ts ○ us) < t [ us ]
+module ≈-Reasoning {Γ} {α : Ty} = EqReasoning (≈setoid {Γ} {α})
+
+-- ≈≈-Reasoning
+
+≈≈setoid : {Γ Δ : Ctx} → Setoid _ _
+
+≈≈setoid {Γ} {Δ} = record
+  { Carrier = Sub Γ Δ
+  ; _≈_ = _≈≈_
+  ; isEquivalence = record
+    { refl = ≈≈refl
+    ; sym = ≈≈sym
+    ; trans = ≈≈trans } }
+
+module ≈≈-Reasoning {Γ} {Δ} = EqReasoning (≈≈setoid {Γ} {Δ})
