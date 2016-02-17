@@ -25,6 +25,13 @@ is easier to understand, and can be considered as a draft of the final proof.
 Mathematical. Structures in Comp. Sci. 7, 1 (February 1997), 75-94.
 DOI=10.1017/S0960129596002150 <http://dx.doi.org/10.1017/S0960129596002150>
 
+* Ana Bove and Venanzio Capretta. 2001.
+**Nested General Recursion and Partiality in Type Theory.**
+In *Proceedings of the 14th International Conference on Theorem Proving
+in Higher Order Logics (TPHOLs '01)*,
+Richard J. Boulton and Paul B. Jackson (Eds.).
+Springer-Verlag, London, UK, UK, 121-135. 
+
 * Thorsten Altenkirch and James Chapman. 2009.
 **Big-step normalisation.**
 J. Funct. Program. 19, 3-4 (July 2009), 311-333.
