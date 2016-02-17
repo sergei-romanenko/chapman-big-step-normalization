@@ -141,14 +141,14 @@ wk∘val≤ η u = begin
 
 embVar∘≤ :  ∀ {α Β Γ} (η : Β ≤ Γ) (x : Var Γ α) →
   embVar (var≤ η x) ≈ embVar x [ ≤2sub η ]
-embVar∘≤ ≤[] x = ≈sym ≈id
+embVar∘≤ ≤[] x = ≈sym ≈[ı]
 embVar∘≤ (≤weak η) zero = begin
   embVar (var≤ (≤weak η) zero)
     ≡⟨⟩
   embVar (var≤ η zero) [ ↑ ]
     ≈⟨ ≈cong[] (embVar∘≤ η zero) ≈≈refl ⟩
   ø [ ≤2sub η ] [ ↑ ]
-    ≈⟨ ≈sym ≈comp ⟩
+    ≈⟨ ≈sym ≈[○] ⟩
   ø [ ≤2sub η ○ ↑ ]
     ≡⟨⟩
   embVar zero [ ≤2sub (≤weak η) ]
@@ -160,7 +160,7 @@ embVar∘≤ (≤weak η) (suc x) = begin
   embVar (var≤ η (suc x)) [ ↑ ]
     ≈⟨ ≈cong[] (embVar∘≤ η (suc x)) ≈≈refl ⟩
   embVar x [ ↑ ] [ ≤2sub η ] [ ↑ ]
-    ≈⟨ ≈sym ≈comp ⟩
+    ≈⟨ ≈sym ≈[○] ⟩
   embVar x [ ↑ ] [ ≤2sub η ○ ↑ ]
     ≡⟨⟩
   embVar (suc x) [ ≤2sub (≤weak η) ]
@@ -170,7 +170,7 @@ embVar∘≤ (≤lift η) zero = begin
   embVar (var≤ (≤lift η) zero)
     ≡⟨⟩
   ø
-    ≈⟨ ≈sym ≈proj ⟩
+    ≈⟨ ≈sym ≈ø[∷] ⟩
   ø [ ø ∷ ≤2sub η ○ ↑ ]
     ≡⟨⟩
   embVar zero [ ≤2sub (≤lift η) ]
@@ -182,11 +182,11 @@ embVar∘≤ (≤lift η) (suc x) = begin
   embVar (var≤ η x) [ ↑ ]
     ≈⟨ ≈cong[] (embVar∘≤ η x) ≈≈refl ⟩
   embVar x [ ≤2sub η ] [ ↑ ]
-    ≈⟨ ≈sym ≈comp ⟩
+    ≈⟨ ≈sym ≈[○] ⟩
   embVar x [ ≤2sub η ○ ↑ ]
     ≈⟨ ≈cong[] ≈refl (≈≈sym ≈≈wk) ⟩
   embVar x [ ↑ ○ (ø ∷ ≤2sub η ○ ↑) ]
-    ≈⟨ ≈comp ⟩
+    ≈⟨ ≈[○] ⟩
   embVar x [ ↑ ] [ ø ∷ ≤2sub η ○ ↑ ]
     ≡⟨⟩
   embVar (suc x) [ ≤2sub (≤lift η) ]
@@ -206,7 +206,7 @@ mutual
     (ƛ t) [ embEnv (env≤ η ρ) ]
       ≈⟨ ≈cong[] ≈refl (embEnv∘≤ η ρ) ⟩
     (ƛ t) [ embEnv ρ ○ ≤2sub η ]
-      ≈⟨ ≈comp  ⟩
+      ≈⟨ ≈[○]  ⟩
     (ƛ t) [ embEnv ρ ] [ ≤2sub η ]
       ≡⟨⟩
     embVal (lam t ρ) [ ≤2sub η ]
@@ -222,7 +222,7 @@ mutual
     embNeVal (neVal≤ η us) ∙ embVal (val≤ η u)
       ≈⟨ ≈cong∙ (embNeVal∘≤ η us) (embVal∘≤ η u) ⟩
     embNeVal us [ ≤2sub η ] ∙ embVal u [ ≤2sub η ]
-      ≈⟨ ≈sym ≈app ⟩
+      ≈⟨ ≈sym ≈∙[] ⟩
     (embNeVal us ∙ embVal u) [ ≤2sub η ]
       ≡⟨⟩
     embNeVal (app us u) [ ≤2sub η ]
@@ -298,7 +298,7 @@ mutual
     ƛ embNf (nf≤ (≤lift η) n)
       ≈⟨ ≈congƛ (embNf∘≤ (≤lift η) n) ⟩
     ƛ embNf n [ ø ∷ ≤2sub η ○ ↑ ]
-      ≈⟨ ≈sym ≈lam ⟩
+      ≈⟨ ≈sym ≈ƛ[] ⟩
     (ƛ embNf n) [ ≤2sub η ]
       ≡⟨⟩
     embNf (lam n) [ ≤2sub η ]
@@ -314,7 +314,7 @@ mutual
     embNeNf (neNf≤ η ns) ∙ embNf (nf≤ η u)
       ≈⟨ ≈cong∙ (embNeNf∘≤ η ns) (embNf∘≤ η u) ⟩
     (embNeNf ns [ ≤2sub η ]) ∙ (embNf u [ ≤2sub η ])
-      ≈⟨ ≈sym ≈app ⟩
+      ≈⟨ ≈sym ≈∙[] ⟩
     (embNeNf ns ∙ embNf u) [ ≤2sub η ]
       ≡⟨⟩
     embNeNf (app ns u) [ ≤2sub η ]

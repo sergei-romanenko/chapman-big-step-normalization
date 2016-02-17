@@ -151,7 +151,7 @@ mutual
     ∃ λ u → SCV u × ⟦ t ⟧ ρ ⇓ u × (t [ embEnv ρ ] ≈ embVal u)
 
   all-scv ø (u ∷ ρ) (p ∷ r) =
-    u , p , ø⇓ , ≈proj
+    u , p , ø⇓ , ≈ø[∷]
   all-scv {β} {Γ} {Δ} (t ∙ t′) ρ r with all-scv t ρ r | all-scv t′ ρ r
   ... | u , p , ⇓u , ≈u | v , q , ⇓v , ≈v
     with p ≤id v q
@@ -160,7 +160,7 @@ mutual
     = w , cw , ∙⇓ ⇓u ⇓v ⇓w ,
       (begin
         (t ∙ t′) [ embEnv ρ ]
-          ≈⟨ ≈app ⟩
+          ≈⟨ ≈∙[] ⟩
         t [ embEnv ρ ] ∙ t′ [ embEnv ρ ]
           ≈⟨ ≈cong∙ ≈u ≈v ⟩
         embVal u ∙ embVal v
@@ -192,7 +192,7 @@ mutual
     = u , p , []⇓ ⇓θ ⇓u ,
       (begin
         t [ σ ] [ embEnv ρ ]
-          ≈⟨ ≈sym ≈comp ⟩
+          ≈⟨ ≈sym ≈[○] ⟩
         t [ σ ○ embEnv ρ ]
           ≈⟨ ≈cong[] ≈refl ≈≈θ ⟩
         t [ embEnv θ ]

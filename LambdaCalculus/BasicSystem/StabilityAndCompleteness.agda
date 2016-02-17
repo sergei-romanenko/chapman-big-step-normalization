@@ -85,7 +85,7 @@ complete t
 ... | n′ , n′≡n rewrite n′≡n
   = begin
   t
-    ≈⟨ ≈sym ≈id ⟩
+    ≈⟨ ≈sym ≈[ı] ⟩
   t [ ı ]
     ≈⟨ ≈cong[] ≈refl (≈≈sym embEnv∘id-env) ⟩
   t [ embEnv id-env ]

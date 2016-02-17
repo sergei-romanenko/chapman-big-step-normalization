@@ -21,7 +21,7 @@ is easier to understand, and can be considered as a draft of the final proof.
 ## References
 
 * Thierry Coquand and Peter Dybjer. 1997.
-Intuitionistic model constructions and normalization proofs.
+**Intuitionistic model constructions and normalization proofs.**
 Mathematical. Structures in Comp. Sci. 7, 1 (February 1997), 75-94.
 DOI=10.1017/S0960129596002150 <http://dx.doi.org/10.1017/S0960129596002150>
 
