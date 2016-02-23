@@ -297,7 +297,7 @@ module DifferentValuesMayBeEquivalent where
     lam (ø [ ↑ ] [ ↑ ] ∙ ø ∙ (ø [ ↑ ] ∙ ø))
       (lam {⋆} {⋆ ⇒ ⋆} (ƛ ø [ ↑ ]) [] ∷ (lam (ƛ ø [ ↑ ]) [] ∷ []))
 
-  val-III~val-III : val-III ~ val-III
+  val-III~val-III : val-III ~ val-SKK
   val-III~val-III η u₁~u₂ = u₁~u₂
 
 mutual
@@ -362,7 +362,7 @@ mutual
 ~~≤ η (u₁~u₂ ∷ ρ₁~~ρ₂) = ~≤ η u₁~u₂ ∷ ~~≤ η ρ₁~~ρ₂
 
 --
--- u₁ ~ u₂ → ⌜ u₁ ⌝* ≡ ⌜ u₂ ⌝*
+-- u₁ ~ u₂ → ⌜ u₁ ⌝ ≡ ⌜ u₂ ⌝
 -- ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ∼ ne us₂
 --
 
@@ -375,14 +375,14 @@ mutual
     cong ne⋆ ns₁≡ns₂
   ~confl {α ⇒ β} {Γ} {u₁} {u₂} u₁~u₂ =
     lam ⌜ val≤ wk u₁ ⟨∙⟩ ne (var zero) ⌝ ≡ lam ⌜ val≤ wk u₂ ⟨∙⟩ ne (var zero) ⌝
-      ∋ cong lam (~confl {β} (u₁~u₂ wk (confl-ne→~ refl)))
+      ∋ cong lam (~confl {β} (u₁~u₂ wk (ne~ne refl)))
 
-  confl-ne→~ : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} → 
+  ne~ne : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} → 
     ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ~ ne us₂
 
-  confl-ne→~ {⋆} ns₁≡ns₂ = ns₁≡ns₂
-  confl-ne→~ {α ⇒ β} {Γ} {us₁} {us₂} ns₁≡ns₂ η v₁~v₂ =
-    confl-ne→~ {β} (cong₂ app q (~confl v₁~v₂))
+  ne~ne {⋆} ns₁≡ns₂ = ns₁≡ns₂
+  ne~ne {α ⇒ β} {Γ} {us₁} {us₂} ns₁≡ns₂ η v₁~v₂ =
+    ne~ne {β} (cong₂ app q (~confl v₁~v₂))
     where
     open ≡-Reasoning
     q : ⌜ neVal≤ η us₁ ⌝* ≡ ⌜ neVal≤ η us₂ ⌝*
@@ -525,7 +525,7 @@ mutual
 
   ~refl {⋆} (ne us) = refl
   ~refl {α ⇒ β} (ne us) η v₁~v₂ =
-    confl-ne→~ (cong₂ app refl (~confl v₁~v₂))
+    ne~ne (cong₂ app refl (~confl v₁~v₂))
   ~refl {α ⇒ β} (lam t ρ) η v₁~v₂ =
     ~cong⟦≡⟧ t (v₁~v₂ ∷ ~~≤ η (~~refl ρ))
 
