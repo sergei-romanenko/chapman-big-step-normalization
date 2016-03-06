@@ -36,7 +36,7 @@ mutual
 
   data Sub : (Γ Δ : Ctx) → Set where
     ı   : ∀ {Γ} → Sub Γ Γ
-    _○_ : ∀ {Γ Δ Γ′} (σ : Sub Δ Γ) (σ′ : Sub Γ′ Δ) → Sub Γ′ Γ
+    _○_ : ∀ {Γ Δ Γ′} (σ : Sub Δ Γ) (τ : Sub Γ′ Δ) → Sub Γ′ Γ
     _∷_ : ∀ {α Γ Δ} (t : Tm Γ α) (σ : Sub Γ Δ) → Sub Γ (α ∷ Δ)
     ↑  : ∀ {α Γ} → Sub (α ∷ Γ) Γ
 

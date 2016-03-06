@@ -1,4 +1,4 @@
-# Agda formalizations of some big-step normalization proofs
+# Big-step normalization (formalized in Agda)
 
 This is a result of refactoring James Chapman's repository
 <https://github.com/jmchapman/Big-step-Normalisation>,

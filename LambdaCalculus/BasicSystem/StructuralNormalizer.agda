@@ -23,8 +23,8 @@ mutual
 
   ⟦ ø ⟧ u ∷ ρ & ø⇓ =
     u , refl
-  ⟦ t ∙ t′ ⟧ ρ & ∙⇓ ⇓u ⇓v ⇓w
-    with ⟦ t ⟧ ρ & ⇓u | ⟦ t′ ⟧ ρ & ⇓v
+  ⟦ f ∙ a ⟧ ρ & ∙⇓ ⇓u ⇓v ⇓w
+    with ⟦ f ⟧ ρ & ⇓u | ⟦ a ⟧ ρ & ⇓v
   ... | u , refl | v , refl = u ⟨∙⟩ v & ⇓w
   ⟦ ƛ t ⟧ ρ & ƛ⇓ =
     lam t ρ , refl

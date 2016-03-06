@@ -46,7 +46,8 @@ mutual
     SCV (val≤ η u)
   scv≤ {⋆}  η (ne us) (ns , p , q) =
     neNf≤ η ns , quote*≤ η p , embNe≤≈ η us ns q
-  scv≤ {α ⇒ β} {Γ} {Β} η u p {Β′} η′ v q with p (η′ ● η) v q
+  scv≤ {α ⇒ β} {Γ} {Β} η u p {Β′} η′ v q
+    with p (η′ ● η) v q
   ... | w , r , ●⇓w , ●≈w =
     w , r , ∘⇓w , ∘≈w≤
     where
@@ -106,8 +107,10 @@ mutual
     ne⋆ ns , ⋆⇓ us ⇓ns , ≈ns
   all-quote {α ⇒ β} {Γ} u p
     with all-scv-ne {α} {α ∷ Γ} (var zero) (var zero) var⇓ ≈refl
-  ... | r with p wk (ne (var zero)) r
-  ... | v , q , ⇓v , ≈v with all-quote {β} v q
+  ... | r
+    with p wk (ne (var zero)) r
+  ... | v , q , ⇓v , ≈v
+    with all-quote {β} v q
   ... | m , ⇓m , ≈m =
     lam m , ⇒⇓ ⇓v ⇓m , u≈m
     where
@@ -200,7 +203,7 @@ mutual
 
   all-scv ø (u ∷ ρ) (p ∷ r) =
     u , p , ø⇓ , ≈ø[∷]
-  all-scv {β} {Γ} {Δ} (t ∙ t′) ρ r with all-scv t ρ r | all-scv t′ ρ r
+  all-scv {β} {Γ} {Δ} (f ∙ a) ρ r with all-scv f ρ r | all-scv a ρ r
   ... | u , p , ⇓u , ≈u | v , q , ⇓v , ≈v with p ≤id v q
   ... | w , r′ , ⇓w , ≈w =
     w , r′ , ∙⇓ ⇓u ⇓v ⇓w′ , ≈w′
@@ -208,11 +211,11 @@ mutual
     open ≈-Reasoning
     ⇓w′ : u ⟨∙⟩ v ⇓ w
     ⇓w′ = subst (λ u′ → u′ ⟨∙⟩ v ⇓ w) (val≤-≤id u) ⇓w
-    ≈w′ : (t ∙ t′) [ embEnv ρ ] ≈ embVal w
+    ≈w′ : (f ∙ a) [ embEnv ρ ] ≈ embVal w
     ≈w′ = begin
-      (t ∙ t′) [ embEnv ρ ]
+      (f ∙ a) [ embEnv ρ ]
         ≈⟨ ≈∙[] ⟩
-      t [ embEnv ρ ] ∙ t′ [ embEnv ρ ]
+      f [ embEnv ρ ] ∙ a [ embEnv ρ ]
         ≈⟨ ≈cong∙ ≈u ≈v ⟩
       embVal u ∙ embVal v
         ≡⟨ cong₂ _∙_ (cong embVal (sym $ val≤-≤id u)) refl ⟩
@@ -313,25 +316,26 @@ mutual
 
   all-sce ı ρ r =
     ρ , r , ι⇓ , ≈≈idl
-  all-sce (σ ○ σ′) ρ r
-    with all-sce σ′ ρ r
+  all-sce (σ ○ τ) ρ r
+    with all-sce τ ρ r
   ... | θ′ , r′ , ⇓θ′ , ≈≈θ′
     with all-sce σ θ′ r′
   ... | θ′′ , r′′ , ⇓θ′′ , ≈≈θ′′ =
     θ′′ , r′′ , ○⇓ ⇓θ′ ⇓θ′′ , ≈≈θ′′′
     where
     open ≈≈-Reasoning
-    ≈≈θ′′′ : (σ ○ σ′) ○ embEnv ρ ≈≈ embEnv θ′′
+    ≈≈θ′′′ : (σ ○ τ) ○ embEnv ρ ≈≈ embEnv θ′′
     ≈≈θ′′′ = begin
-      (σ ○ σ′) ○ embEnv ρ
+      (σ ○ τ) ○ embEnv ρ
         ≈⟨ ≈≈assoc ⟩
-      σ ○ (σ′ ○ embEnv ρ)
+      σ ○ (τ ○ embEnv ρ)
         ≈⟨ ≈≈cong○ ≈≈refl ≈≈θ′ ⟩
       σ ○ embEnv θ′
         ≈⟨ ≈≈θ′′ ⟩
       embEnv θ′′
       ∎
-  all-sce (t ∷ σ) ρ r with all-scv t ρ r | all-sce σ ρ r
+  all-sce (t ∷ σ) ρ r
+    with all-scv t ρ r | all-sce σ ρ r
   ... | u , p , ⇓u , ≈u | θ′ , r′ , ⇓θ′ , ≈≈θ′ =
     u ∷ θ′ , (p ∷ r′) , ∷⇓ ⇓u ⇓θ′ , ≈≈u∷θ′
     where
