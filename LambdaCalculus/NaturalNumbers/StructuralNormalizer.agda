@@ -1,12 +1,12 @@
-module FiniteProducts.StructuralNormaliser where
+module NaturalNumbers.StructuralNormalizer where
 
-open import FiniteProducts.Utils
-open import FiniteProducts.Syntax
-open import FiniteProducts.Conversion
-open import FiniteProducts.OPE
-open import FiniteProducts.OPELemmas
-open import FiniteProducts.BigStepSemantics
-open import FiniteProducts.StrongComputability
+open import NaturalNumbers.Utils
+open import NaturalNumbers.Syntax
+open import NaturalNumbers.Conversion
+open import NaturalNumbers.OPE
+open import NaturalNumbers.OPELemmas
+open import NaturalNumbers.BigStepSemantics
+open import NaturalNumbers.StrongComputability
 
 
 --
@@ -18,37 +18,31 @@ mutual
   infix 4 ⟦_⟧_&_ ⟦_⟧*_&_
   infixl 5 _⟨∙⟩_&_
 
-  ⟦_⟧_&_ : ∀ {α Γ Δ} (t : Tm Δ α) (ρ : Env Γ Δ) {w} →
-    (⇓w : ⟦ t ⟧ ρ ⇓ w) → ∃ λ w′ → w′ ≡ w
+  ⟦_⟧_&_ : ∀ {α Γ Δ} (t : Tm Δ α) (ρ : Env Γ Δ) {w : Val Γ α} →
+    ⟦ t ⟧ ρ ⇓ w → ∃ λ w′ → w′ ≡ w
 
   ⟦ ø ⟧ u ∷ ρ & ø⇓ =
     u , refl
   ⟦ t ∙ t′ ⟧ ρ & ∙⇓ ⇓u ⇓v ⇓w
     with ⟦ t ⟧ ρ & ⇓u | ⟦ t′ ⟧ ρ & ⇓v
-  ... | u , refl | v , refl = u ⟨∙⟩ v & ⇓w
+  ... | u , refl | v , refl
+    = u ⟨∙⟩ v & ⇓w
   ⟦ ƛ t ⟧ ρ & ƛ⇓ =
     lam t ρ , refl
   ⟦ t [ σ ] ⟧ ρ & []⇓ ⇓θ ⇓w
     with ⟦ σ ⟧* ρ & ⇓θ
-  ... | θ , refl = ⟦ t ⟧ θ & ⇓w
-  ⟦ void ⟧ ρ & void⇓ =
-    void , refl
-  ⟦ pair ta tb ⟧ ρ & pair⇓ ⇓u ⇓v
-    with ⟦ ta ⟧ ρ & ⇓u | ⟦ tb ⟧ ρ & ⇓v
-  ... | u , refl | v , refl
-    = pair u v , refl
-  ⟦ fst t ⟧ ρ & fst⇓ ⇓uv ⇓w
-    with ⟦ t ⟧ ρ & ⇓uv
-  ... | uv , refl
-    with fst⟦ uv ⟧& ⇓w
+  ... | θ , refl
+    = ⟦ t ⟧ θ & ⇓w
+  ⟦ zero ⟧ ρ & zero⇓ =
+    zero , refl
+  ⟦ suc t ⟧ ρ & suc⇓ ⇓w
+    with ⟦ t ⟧ ρ & ⇓w
   ... | u , refl
-    = u , refl
-  ⟦ snd t ⟧ ρ & snd⇓ ⇓uv ⇓w
-    with ⟦ t ⟧ ρ & ⇓uv
-  ... | uv , refl
-    with snd⟦ uv ⟧& ⇓w
-  ... | v , refl
-    = v , refl
+    = suc u , refl
+  ⟦ prim a b k ⟧ ρ & prim⇓ ⇓u ⇓v ⇓w ⇓w′
+    with ⟦ a ⟧ ρ & ⇓u | ⟦ b ⟧ ρ & ⇓v | ⟦ k ⟧ ρ & ⇓w
+  ... | u , refl | v , refl | w , refl
+    = prim⟦⟧ u v w ⇓w′
 
   ⟦_⟧*_&_ : ∀ {B Γ Δ} (σ : Sub Γ Δ) (ρ : Env B Γ) {θ : Env B Δ} →
     ⟦ σ ⟧* ρ ⇓ θ → ∃ λ φ → φ ≡ θ
@@ -74,19 +68,19 @@ mutual
   lam t ρ ⟨∙⟩ u & lam⇓ ⇓w =
     ⟦ t ⟧ (u ∷ ρ) & ⇓w
 
-  fst⟦_⟧& : ∀ {α β Γ} (uv : Val Γ (α * β)) {w}
-    (⇓w : Fst uv ⇓ w) → ∃ λ w′ → w′ ≡ w
-  fst⟦_⟧& (ne us) fst-ne⇓ =
-    ne (fst us) , refl
-  fst⟦_⟧& (pair u v) fst-pair⇓ =
-    u , refl
+  prim⟦⟧ : ∀ {α Γ} (u : Val Γ α) (v : Val Γ (N ⇒ α ⇒ α)) (w : Val Γ N)
+    {z} (⇓z : Prim u & v & w ⇓ z) →
+    ∃ λ z′ → z′ ≡ z
 
-  snd⟦_⟧& : ∀ {α β Γ} (uv : Val Γ (α * β)) {w}
-    (⇓w : Snd uv ⇓ w) → ∃ λ w′ → w′ ≡ w
-  snd⟦_⟧& (ne us) snd-ne⇓ =
-    ne (snd us) , refl
-  snd⟦_⟧& (pair u v) snd-pair⇓ =
-    v , refl
+  prim⟦⟧ u v (ne us) primn⇓ =
+    ne (prim u v us) , refl
+  prim⟦⟧ u v zero primz⇓ =
+    u , refl
+  prim⟦⟧ u v (suc w) (prims⇓ ⇓vw ⇓z ⇓vwz)
+    with v ⟨∙⟩ w & ⇓vw | prim⟦⟧ u v w ⇓z
+  ... | vw , refl | z , refl
+    = vw ⟨∙⟩ z & ⇓vwz
+
 
 mutual
 
@@ -104,14 +98,16 @@ mutual
     with ⌜ u′  & ⇓n ⌝
   ... | n′ , refl
     = lam n′ , refl
-  ⌜_&_⌝ {One} u One⇓ =
-    void , refl
-  ⌜_&_⌝ {α * β} uv (Prod⇓ ⇓u ⇓nu ⇓v ⇓nv)
-    with fst⟦ uv ⟧& ⇓u | snd⟦ uv ⟧& ⇓v
-  ... | u , refl | v , refl
-    with ⌜ u & ⇓nu ⌝ | ⌜ v & ⇓nv ⌝
-  ... | nu , refl | nv , refl
-    = pair nu nv , refl
+  ⌜_&_⌝ {N} (ne us) (N⇓ ⇓ns)
+    with ⌜ us & ⇓ns ⌝*
+  ... | ns , refl
+    = neN ns , refl
+  ⌜_&_⌝ {N} zero zero⇓ =
+    zero , refl
+  ⌜_&_⌝ {N} (suc u) (suc⇓ ⇓n)
+    with ⌜ u & ⇓n ⌝
+  ... | n , refl
+    = suc n , refl
 
   ⌜_&_⌝* : ∀ {α Γ} (us : NeVal Γ α) {ns} (⇓ns : Quote* us ⇓ ns) →
     ∃ λ ns′ → ns′ ≡ ns
@@ -121,14 +117,10 @@ mutual
     with ⌜ us & ⇓ns ⌝* | ⌜ u & ⇓n ⌝
   ... | ns′ , refl | n′ , refl
     = app ns′ n′ , refl
-  ⌜ fst us & fst⇓ ⇓ns ⌝*
-    with ⌜ us & ⇓ns ⌝*
-  ... | ns , refl
-    = fst ns , refl
-  ⌜ snd us & snd⇓ ⇓ns ⌝*
-    with ⌜ us & ⇓ns ⌝*
-  ... | ns , refl
-    = snd ns , refl
+  ⌜ prim u v us & prim⇓ ⇓nu ⇓nv ⇓ns ⌝*
+    with ⌜ u & ⇓nu ⌝ | ⌜ v & ⇓nv ⌝ | ⌜ us & ⇓ns ⌝*
+  ... | nu , refl | nv , refl | ns , refl
+    = prim nu nv ns , refl
 
 --
 -- Normalizer!
@@ -138,10 +130,10 @@ nf_&_ : ∀ {α Γ} (t : Tm Γ α) {n} (⇓n : Nf t ⇓ n) →
   ∃ λ n′ → n′ ≡ n
 nf t & nf⇓ ⇓u ⇓n
   with ⟦ t ⟧ id-env & ⇓u
-... | u′ , refl
-  with ⌜ u′ & ⇓n ⌝
-... | n′ , refl
-  = n′ , refl
+... | u , refl
+  with ⌜ u & ⇓n ⌝
+... | n , refl
+  = n , refl
 
 nf : ∀ {α Γ} (t : Tm Γ α) → Nf Γ α
 nf t

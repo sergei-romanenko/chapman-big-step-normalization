@@ -7,7 +7,7 @@ open import BasicSystem.OPE
 open import BasicSystem.OPELemmas
 open import BasicSystem.BigStepSemantics
 open import BasicSystem.StrongComputability
-open import BasicSystem.StructuralNormaliser
+open import BasicSystem.StructuralNormalizer
 
 
 --

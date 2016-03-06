@@ -6,12 +6,12 @@ import NaturalNumbers.Conversion
 import NaturalNumbers.OPE 
 import NaturalNumbers.OPELemmas
 --
-import NaturalNumbers.RecursiveNormaliser
+import NaturalNumbers.RecursiveNormalizer
 --
 import NaturalNumbers.BigStepSemantics
 import NaturalNumbers.OPEBigStep
 import NaturalNumbers.StrongComputability
-import NaturalNumbers.StructuralNormaliser
+import NaturalNumbers.StructuralNormalizer
 import NaturalNumbers.StabilityAndCompleteness
 import NaturalNumbers.StrongConvertibility
 import NaturalNumbers.Soundness

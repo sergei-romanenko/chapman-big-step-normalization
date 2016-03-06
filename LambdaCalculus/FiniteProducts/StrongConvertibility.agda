@@ -8,7 +8,7 @@ open import FiniteProducts.OPELemmas
 open import FiniteProducts.BigStepSemantics
 open import FiniteProducts.OPEBigStep
 open import FiniteProducts.StrongComputability
-open import FiniteProducts.StructuralNormaliser 
+open import FiniteProducts.StructuralNormalizer 
 
 --
 -- Now we define _~_ , a relation on values such that

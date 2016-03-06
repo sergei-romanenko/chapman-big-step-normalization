@@ -1,12 +1,12 @@
-module NaturalNumbers.StructuralNormaliser where
+module FullSystem.StructuralNormalizer where
 
-open import NaturalNumbers.Utils
-open import NaturalNumbers.Syntax
-open import NaturalNumbers.Conversion
-open import NaturalNumbers.OPE
-open import NaturalNumbers.OPELemmas
-open import NaturalNumbers.BigStepSemantics
-open import NaturalNumbers.StrongComputability
+open import FullSystem.Utils
+open import FullSystem.Syntax
+open import FullSystem.Conversion
+open import FullSystem.OPE
+open import FullSystem.OPELemmas
+open import FullSystem.BigStepSemantics
+open import FullSystem.StrongComputability
 
 
 --
@@ -33,6 +33,24 @@ mutual
     with ⟦ σ ⟧* ρ & ⇓θ
   ... | θ , refl
     = ⟦ t ⟧ θ & ⇓w
+  ⟦ void ⟧ ρ & void⇓ =
+    void , refl
+  ⟦ pair ta tb ⟧ ρ & pair⇓ ⇓u ⇓v
+    with ⟦ ta ⟧ ρ & ⇓u | ⟦ tb ⟧ ρ & ⇓v
+  ... | u , refl | v , refl
+    = pair u v , refl
+  ⟦ fst t ⟧ ρ & fst⇓ ⇓uv ⇓w
+    with ⟦ t ⟧ ρ & ⇓uv
+  ... | uv , refl
+    with fst⟦ uv ⟧& ⇓w
+  ... | u , refl
+    = u , refl
+  ⟦ snd t ⟧ ρ & snd⇓ ⇓uv ⇓w
+    with ⟦ t ⟧ ρ & ⇓uv
+  ... | uv , refl
+    with snd⟦ uv ⟧& ⇓w
+  ... | v , refl
+    = v , refl
   ⟦ zero ⟧ ρ & zero⇓ =
     zero , refl
   ⟦ suc t ⟧ ρ & suc⇓ ⇓w
@@ -68,6 +86,20 @@ mutual
   lam t ρ ⟨∙⟩ u & lam⇓ ⇓w =
     ⟦ t ⟧ (u ∷ ρ) & ⇓w
 
+  fst⟦_⟧& : ∀ {α β Γ} (uv : Val Γ (α * β)) {w}
+    (⇓w : Fst uv ⇓ w) → ∃ λ w′ → w′ ≡ w
+  fst⟦_⟧& (ne us) fst-ne⇓ =
+    ne (fst us) , refl
+  fst⟦_⟧& (pair u v) fst-pair⇓ =
+    u , refl
+
+  snd⟦_⟧& : ∀ {α β Γ} (uv : Val Γ (α * β)) {w}
+    (⇓w : Snd uv ⇓ w) → ∃ λ w′ → w′ ≡ w
+  snd⟦_⟧& (ne us) snd-ne⇓ =
+    ne (snd us) , refl
+  snd⟦_⟧& (pair u v) snd-pair⇓ =
+    v , refl
+
   prim⟦⟧ : ∀ {α Γ} (u : Val Γ α) (v : Val Γ (N ⇒ α ⇒ α)) (w : Val Γ N)
     {z} (⇓z : Prim u & v & w ⇓ z) →
     ∃ λ z′ → z′ ≡ z
@@ -98,6 +130,14 @@ mutual
     with ⌜ u′  & ⇓n ⌝
   ... | n′ , refl
     = lam n′ , refl
+  ⌜_&_⌝ {One} u One⇓ =
+    void , refl
+  ⌜_&_⌝ {α * β} uv (Prod⇓ ⇓u ⇓nu ⇓v ⇓nv)
+    with fst⟦ uv ⟧& ⇓u | snd⟦ uv ⟧& ⇓v
+  ... | u , refl | v , refl
+    with ⌜ u & ⇓nu ⌝ | ⌜ v & ⇓nv ⌝
+  ... | nu , refl | nv , refl
+    = pair nu nv , refl
   ⌜_&_⌝ {N} (ne us) (N⇓ ⇓ns)
     with ⌜ us & ⇓ns ⌝*
   ... | ns , refl
@@ -117,6 +157,14 @@ mutual
     with ⌜ us & ⇓ns ⌝* | ⌜ u & ⇓n ⌝
   ... | ns′ , refl | n′ , refl
     = app ns′ n′ , refl
+  ⌜ fst us & fst⇓ ⇓ns ⌝*
+    with ⌜ us & ⇓ns ⌝*
+  ... | ns , refl
+    = fst ns , refl
+  ⌜ snd us & snd⇓ ⇓ns ⌝*
+    with ⌜ us & ⇓ns ⌝*
+  ... | ns , refl
+    = snd ns , refl
   ⌜ prim u v us & prim⇓ ⇓nu ⇓nv ⇓ns ⌝*
     with ⌜ u & ⇓nu ⌝ | ⌜ v & ⇓nv ⌝ | ⌜ us & ⇓ns ⌝*
   ... | nu , refl | nv , refl | ns , refl

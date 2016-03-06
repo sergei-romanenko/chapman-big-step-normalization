@@ -1,4 +1,4 @@
-module FullSystem.RecursiveNormaliser where
+module FullSystem.RecursiveNormalizer where
 
 open import FullSystem.Utils
 open import FullSystem.Syntax
@@ -247,7 +247,7 @@ mutual
 
 --
 -- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
--- (Normalisation takes convertible terms to identical normal forms.)
+-- (Normalization takes convertible terms to identical normal forms.)
 --
 
 {-# TERMINATING #-}

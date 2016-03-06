@@ -8,7 +8,7 @@ open import NaturalNumbers.OPELemmas
 open import NaturalNumbers.BigStepSemantics
 open import NaturalNumbers.OPEBigStep
 open import NaturalNumbers.StrongComputability
-open import NaturalNumbers.StructuralNormaliser 
+open import NaturalNumbers.StructuralNormalizer 
 
 --
 -- Now we define _~_ , a relation on values such that

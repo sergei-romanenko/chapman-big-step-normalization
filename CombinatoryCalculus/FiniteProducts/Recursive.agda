@@ -4,7 +4,7 @@ open import FiniteProducts.Utils
 open import FiniteProducts.Syntax
 
 --
--- Recursive normaliser.
+-- Recursive normalizer.
 --
 
 infixl 5 _⟨∙⟩_

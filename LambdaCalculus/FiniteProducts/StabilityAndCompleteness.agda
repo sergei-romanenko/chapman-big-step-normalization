@@ -7,7 +7,7 @@ open import FiniteProducts.OPE
 open import FiniteProducts.OPELemmas
 open import FiniteProducts.BigStepSemantics
 open import FiniteProducts.StrongComputability
-open import FiniteProducts.StructuralNormaliser
+open import FiniteProducts.StructuralNormalizer
 
 
 --

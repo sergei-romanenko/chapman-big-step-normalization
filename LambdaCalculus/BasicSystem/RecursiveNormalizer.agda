@@ -1,4 +1,4 @@
-module BasicSystem.RecursiveNormaliser where
+module BasicSystem.RecursiveNormalizer where
 
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
@@ -171,7 +171,7 @@ mutual
 
 --
 -- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
--- (Normalisation takes convertible terms to identical normal forms.)
+-- (Normalization takes convertible terms to identical normal forms.)
 --
 
 {-# TERMINATING #-}

@@ -1,4 +1,4 @@
-module BasicSystem.StructuralNormaliser where
+module BasicSystem.StructuralNormalizer where
 
 open import BasicSystem.Utils
 open import BasicSystem.Syntax

@@ -7,7 +7,7 @@ open import FullSystem.OPE
 open import FullSystem.OPELemmas
 open import FullSystem.BigStepSemantics
 open import FullSystem.StrongComputability
-open import FullSystem.StructuralNormaliser
+open import FullSystem.StructuralNormalizer
 
 
 --

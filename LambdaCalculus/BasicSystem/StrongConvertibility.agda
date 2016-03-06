@@ -8,7 +8,7 @@ open import BasicSystem.OPELemmas
 open import BasicSystem.BigStepSemantics
 open import BasicSystem.OPEBigStep
 open import BasicSystem.StrongComputability
-open import BasicSystem.StructuralNormaliser 
+open import BasicSystem.StructuralNormalizer 
 
 --
 -- Now we define _~_ , a relation on values such that

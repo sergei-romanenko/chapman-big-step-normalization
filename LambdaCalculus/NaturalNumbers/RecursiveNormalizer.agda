@@ -1,10 +1,10 @@
-module FiniteProducts.RecursiveNormaliser where
+module NaturalNumbers.RecursiveNormalizer where
 
-open import FiniteProducts.Utils
-open import FiniteProducts.Syntax
-open import FiniteProducts.Conversion
-open import FiniteProducts.OPE 
-open import FiniteProducts.OPELemmas
+open import NaturalNumbers.Utils
+open import NaturalNumbers.Syntax
+open import NaturalNumbers.Conversion
+open import NaturalNumbers.OPE 
+open import NaturalNumbers.OPELemmas
 
 --
 -- The following code uses the annotation TERMINATING.
@@ -31,10 +31,9 @@ mutual
   ⟦ t ∙ t′ ⟧ ρ = ⟦ t ⟧ ρ ⟨∙⟩ ⟦ t′ ⟧ ρ
   ⟦ ƛ t ⟧ ρ = lam t ρ
   ⟦ t [ σ ] ⟧ ρ = ⟦ t ⟧ (⟦ σ ⟧* ρ)
-  ⟦ void ⟧ ρ = void
-  ⟦ pair t₁ t₂ ⟧ ρ = pair (⟦ t₁ ⟧ ρ) (⟦ t₂ ⟧ ρ)
-  ⟦ fst t ⟧ ρ = fst⟦ ⟦ t ⟧ ρ ⟧
-  ⟦ snd t ⟧ ρ = snd⟦ ⟦ t ⟧ ρ ⟧
+  ⟦ zero ⟧ ρ = zero
+  ⟦ suc t ⟧ ρ = suc (⟦ t ⟧ ρ)
+  ⟦ prim a b k ⟧ ρ = prim⟦⟧ (⟦ a ⟧ ρ) (⟦ b ⟧ ρ) (⟦ k ⟧ ρ)
 
   ⟦_⟧*_ : ∀ {Β Γ Δ} (σ : Sub Β Γ) (ρ : Env Δ Β) → Env Δ Γ
   ⟦ ı ⟧* ρ = ρ
@@ -46,13 +45,12 @@ mutual
   ne us ⟨∙⟩ u = ne (app us u)
   lam t ρ ⟨∙⟩ u = ⟦ t ⟧ (u ∷ ρ)
 
-  fst⟦_⟧ : ∀ {α β Γ} (u : Val Γ (α * β)) → Val Γ α
-  fst⟦ ne us ⟧ = ne (fst us)
-  fst⟦ pair u v ⟧ = u
+  prim⟦⟧ : ∀ {α Γ} (u : Val Γ α) (v : Val Γ (N ⇒ α ⇒ α)) (w : Val Γ N) →
+    Val Γ α
+  prim⟦⟧ u v (ne us) = ne (prim u v us)
+  prim⟦⟧ u v zero = u
+  prim⟦⟧ u v (suc w) = (v ⟨∙⟩ w) ⟨∙⟩ (prim⟦⟧ u v w)
 
-  snd⟦_⟧ : ∀ {α β Γ} (u : Val Γ (α * β)) → Val Γ β
-  snd⟦ ne us ⟧ = ne (snd us)
-  snd⟦ pair u v ⟧ = v
 
 --
 -- Example terms.
@@ -98,15 +96,14 @@ mutual
   ⌜_⌝ {⋆} (ne us) = ne⋆ ⌜ us ⌝*
   ⌜_⌝ {α ⇒ β} f =
     lam ⌜ val≤ wk f ⟨∙⟩ ne (var zero) ⌝
-  ⌜_⌝ {One} u = void
-  ⌜_⌝ {α * β} u =
-    pair ⌜ fst⟦ u ⟧ ⌝ ⌜ snd⟦ u ⟧ ⌝
+  ⌜_⌝ {N} (ne us) = neN ⌜ us ⌝*
+  ⌜_⌝ {N} zero = zero
+  ⌜_⌝ {N} (suc u) = suc ⌜ u ⌝
 
   ⌜_⌝* : ∀ {α Γ} (us : NeVal Γ α) → NeNf Γ α
   ⌜ var x ⌝* = var x
   ⌜ app us u ⌝* = app ⌜ us ⌝* ⌜ u ⌝
-  ⌜ fst us ⌝* = fst ⌜ us ⌝*
-  ⌜ snd us ⌝* = snd ⌜ us ⌝*
+  ⌜ prim u v us ⌝* = prim ⌜ u ⌝ ⌜ v ⌝ ⌜ us ⌝*
 
 -- Normalizer.
 
@@ -163,28 +160,26 @@ mutual
   ... | us , ≡ne-us , ≡ns = begin
     ⌜ ⟦ embNeNf ns ⟧ id-env ⌝
       ≡⟨ cong ⌜_⌝ ≡ne-us ⟩
-    ⌜ ne us ⌝
-      ≡⟨⟩
-    ne⋆ ⌜ us ⌝*
+    ⌜ ne us ⌝ ≡⟨⟩ ne⋆ ⌜ us ⌝*
       ≡⟨ cong ne⋆ ≡ns ⟩
     ne⋆ ns
     ∎
     where open ≡-Reasoning
   stable (lam n) =
     cong lam (stable n)
-  stable void =
-    refl
-  stable (pair na nb)
-    with stable na | stable nb
-  ... | ≡na | ≡nb
-    = begin
-    nf (pair (embNf na) (embNf nb))
-      ≡⟨⟩
-    pair (nf (embNf na)) (nf (embNf nb))
-      ≡⟨ cong₂ pair ≡na ≡nb ⟩
-    pair na nb
+  stable (neN ns)
+    with stable* ns
+  ... | us , ≡ne-us , ≡ns = begin
+    ⌜ ⟦ embNeNf ns ⟧ id-env ⌝
+      ≡⟨ cong ⌜_⌝ ≡ne-us ⟩
+    ⌜ ne us ⌝ ≡⟨⟩ neN ⌜ us ⌝*
+      ≡⟨ cong neN ≡ns ⟩
+    neN ns
     ∎
     where open ≡-Reasoning
+  stable zero =
+    refl
+  stable (suc n) = cong suc (stable n)
 
   stable* : ∀ {α Γ} (ns : NeNf Γ α) →
     ∃ λ (us : NeVal Γ α) →
@@ -198,24 +193,17 @@ mutual
   ... | ne-us′ | u 
     rewrite ≡ne-us
     = app us u , refl , cong₂ app ≡ns ≡n
-  stable* (fst ns)
-    with stable* ns
-  ... | us , ≡ne-us , ≡ns
-    with ⟦ embNeNf ns ⟧ id-env
-  ... | ne-us′ 
+  stable* (prim na nb ns)
+    with stable na | stable nb | stable* ns
+  ... | ≡na | ≡nb | us , ≡ne-us , ≡ns
+    with ⟦ embNf na ⟧ id-env | ⟦ embNf nb ⟧ id-env | ⟦ embNeNf ns ⟧ id-env
+  ... | u | v | ne-us′
     rewrite ≡ne-us
-    = fst us , refl , cong fst ≡ns
-  stable* (snd ns)
-    with stable* ns
-  ... | us , ≡ne-us , ≡ns
-    with ⟦ embNeNf ns ⟧ id-env
-  ... | ne-us′ 
-    rewrite ≡ne-us
-    = snd us , refl , cong snd ≡ns
+    = prim u v us , refl , cong₃ prim ≡na ≡nb ≡ns
 
 --
 -- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
--- (Normalisation takes convertible terms to identical normal forms.)
+-- (Normalization takes convertible terms to identical normal forms.)
 --
 
 {-# TERMINATING #-}
@@ -243,24 +231,16 @@ mutual
     val≤ η (⟦ t ⟧ (⟦ σ ⟧* ρ))
     ∎
     where open ≡-Reasoning
-  ⟦⟧∘≤ η void ρ =
+  ⟦⟧∘≤ η zero ρ =
     refl
-  ⟦⟧∘≤ η (pair t₁ t₂) ρ =
-    cong₂ pair (⟦⟧∘≤ η t₁ ρ) (⟦⟧∘≤ η t₂ ρ)
-  ⟦⟧∘≤ η (fst t) ρ = begin
-    fst⟦ ⟦ t ⟧ env≤ η ρ ⟧
-      ≡⟨ cong fst⟦_⟧ (⟦⟧∘≤ η t ρ) ⟩
-    fst⟦ val≤ η (⟦ t ⟧ ρ) ⟧
-      ≡⟨ fst⟦⟧∘≤ η (⟦ t ⟧ ρ) ⟩
-    val≤ η fst⟦ ⟦ t ⟧ ρ ⟧
-    ∎
-    where open ≡-Reasoning
-  ⟦⟧∘≤ η (snd t) ρ = begin
-    snd⟦ ⟦ t ⟧ env≤ η ρ ⟧
-      ≡⟨ cong snd⟦_⟧ (⟦⟧∘≤ η t ρ) ⟩
-    snd⟦ val≤ η (⟦ t ⟧ ρ) ⟧
-      ≡⟨ snd⟦⟧∘≤ η (⟦ t ⟧ ρ) ⟩
-    val≤ η snd⟦ ⟦ t ⟧ ρ ⟧
+  ⟦⟧∘≤ η (suc t) ρ =
+    cong suc (⟦⟧∘≤ η t ρ)
+  ⟦⟧∘≤ η (prim a b k) ρ = begin
+    prim⟦⟧ (⟦ a ⟧ env≤ η ρ) (⟦ b ⟧ env≤ η ρ) (⟦ k ⟧ env≤ η ρ)
+      ≡⟨ cong₃ prim⟦⟧ (⟦⟧∘≤ η a ρ) (⟦⟧∘≤ η b ρ) (⟦⟧∘≤ η k ρ) ⟩
+    prim⟦⟧ (val≤ η (⟦ a ⟧ ρ)) (val≤ η (⟦ b ⟧ ρ)) (val≤ η (⟦ k ⟧ ρ))
+      ≡⟨ prim⟦⟧∘≤ η (⟦ a ⟧ ρ) (⟦ b ⟧ ρ) (⟦ k ⟧ ρ) ⟩
+    val≤ η (prim⟦⟧ (⟦ a ⟧ ρ) (⟦ b ⟧ ρ) (⟦ k ⟧ ρ))
     ∎
     where open ≡-Reasoning
 
@@ -279,23 +259,25 @@ mutual
     cong₂ _∷_ (⟦⟧∘≤ η t ρ) (⟦⟧*∘≤ η σ ρ)
   ⟦⟧*∘≤ η ↑ (u ∷ ρ) = refl
 
-
   ⟨∙⟩∘≤ : ∀ {α β Γ Δ} (η : Γ ≤ Δ) (u : Val Δ (α ⇒ β)) (v : Val Δ α) →
     val≤ η u ⟨∙⟩ val≤ η v ≡ val≤ η (u ⟨∙⟩ v)
   ⟨∙⟩∘≤ η (ne us) v = refl
   ⟨∙⟩∘≤ η (lam t ρ) v =
     ⟦⟧∘≤ η t (v ∷ ρ)
 
-  fst⟦⟧∘≤ : ∀ {α β Γ Δ} (η : Γ ≤ Δ) (u : Val Δ (α * β)) →
-    fst⟦ val≤ η u ⟧ ≡ val≤ η fst⟦ u ⟧
-  fst⟦⟧∘≤ η (ne us) = refl
-  fst⟦⟧∘≤ η (pair u v) = refl
-
-  snd⟦⟧∘≤ : ∀ {α β Γ Δ} (η : Γ ≤ Δ) (u : Val Δ (α * β)) →
-    snd⟦ val≤ η u ⟧ ≡ val≤ η snd⟦ u ⟧
-  snd⟦⟧∘≤ η (ne us) = refl
-  snd⟦⟧∘≤ η (pair u v) = refl
-
+  prim⟦⟧∘≤ : ∀ {α Γ Δ} (η : Γ ≤ Δ)
+    (u : Val Δ α) (v : Val Δ (N ⇒ α ⇒ α)) (w : Val Δ N) →
+    prim⟦⟧ (val≤ η u) (val≤ η v) (val≤ η w) ≡ val≤ η (prim⟦⟧ u v w)
+  prim⟦⟧∘≤ η u v (ne us) = refl
+  prim⟦⟧∘≤ η u v zero = refl
+  prim⟦⟧∘≤ η u v (suc w) = begin
+    (val≤ η v ⟨∙⟩ val≤ η w) ⟨∙⟩ prim⟦⟧ (val≤ η u) (val≤ η v) (val≤ η w)
+      ≡⟨ cong₂ _⟨∙⟩_ (⟨∙⟩∘≤ η v w) (prim⟦⟧∘≤ η u v w) ⟩
+    val≤ η (v ⟨∙⟩ w) ⟨∙⟩ val≤ η (prim⟦⟧ u v w)
+      ≡⟨ ⟨∙⟩∘≤ η (v ⟨∙⟩ w) (prim⟦⟧ u v w) ⟩
+    val≤ η (v ⟨∙⟩ w ⟨∙⟩ prim⟦⟧ u v w)
+    ∎
+    where open ≡-Reasoning
 
 {-# TERMINATING #-}
 mutual
@@ -336,42 +318,54 @@ mutual
         ≡⟨ quote∘≤ (≤lift η) (val≤ wk u ⟨∙⟩ ne (var zero)) ⟩
       nf≤ (≤lift η) ⌜ val≤ wk u ⟨∙⟩ ne (var zero) ⌝
       ∎
-  quote∘≤ {One} η u =
+  quote∘≤ {N} η (ne us) =
+    cong neN (quote*∘≤ η us)
+  quote∘≤ {N} η zero =
     refl
-  quote∘≤ {α * β} η u = begin
-    pair ⌜ fst⟦ val≤ η u ⟧ ⌝ ⌜ snd⟦ val≤ η u ⟧ ⌝
-      ≡⟨ cong₂ pair (cong ⌜_⌝ (fst⟦⟧∘≤ η u)) (cong ⌜_⌝ (snd⟦⟧∘≤ η u)) ⟩
-    pair (⌜ val≤ η  fst⟦ u ⟧ ⌝) ( ⌜ val≤ η snd⟦ u ⟧ ⌝)
-      ≡⟨ cong₂ pair (quote∘≤ η fst⟦ u ⟧) (quote∘≤ η snd⟦ u ⟧) ⟩
-    pair (nf≤ η ⌜ fst⟦ u ⟧ ⌝) (nf≤ η ⌜ snd⟦ u ⟧ ⌝)
-    ∎
-    where open ≡-Reasoning
+  quote∘≤ {N} η (suc u) =
+    cong suc (quote∘≤ η u)
 
   quote*∘≤ : ∀ {α Γ Δ} (η : Γ ≤ Δ) (us : NeVal Δ α) →
     ⌜ neVal≤ η us ⌝* ≡ neNf≤ η ⌜ us ⌝*
 
-  quote*∘≤ η (var x) =
-    refl
+  quote*∘≤ η (var x) = refl
   quote*∘≤ η (app us u) =
     cong₂ app (quote*∘≤ η us) (quote∘≤ η u)
-  quote*∘≤ η (fst us) =
-    cong fst (quote*∘≤ η us)
-  quote*∘≤ η (snd us) =
-    cong snd (quote*∘≤ η us)
+  quote*∘≤ η (prim u v us) =
+    cong₃ prim (quote∘≤ η u) (quote∘≤ η v) (quote*∘≤ η us)
 
+--  ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ⌜ neVal≤ η us₁ ⌝* ≡ ⌜ neVal≤ η us₂ ⌝*
+
+quote*∘≤≡ : ∀ {α Γ Δ} (η : Γ ≤ Δ) {us₁ us₂ : NeVal Δ α} →
+  ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ⌜ neVal≤ η us₁ ⌝* ≡ ⌜ neVal≤ η us₂ ⌝*
+quote*∘≤≡ η {us₁} {us₂} r  = begin
+  ⌜ neVal≤ η us₁ ⌝*
+    ≡⟨ quote*∘≤ η us₁ ⟩
+  neNf≤ η ⌜ us₁ ⌝*
+    ≡⟨ cong (neNf≤ η) r ⟩
+  neNf≤ η ⌜ us₂ ⌝*
+    ≡⟨ sym $ quote*∘≤ η us₂ ⟩
+  ⌜ neVal≤ η us₂ ⌝*
+  ∎
+  where open ≡-Reasoning
 --
 -- Strong convertibility.
 --
 
-infix 4 _~_ _~~_
+infix 4 _~N~_ _~_ _~~_
+
+data _~N~_ {Γ : Ctx} : (u₁ u₂ : Val Γ N) → Set where
+  neN~  : ∀ {us₁ us₂ : NeVal Γ N} →
+    ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ~N~ ne us₂
+  zero~ : zero ~N~ zero
+  suc~  : ∀ {u₁ u₂ : Val Γ N} →
+    u₁ ~N~ u₂ → suc u₁ ~N~ suc u₂
 
 _~_ : ∀ {α Γ} (u₁ u₂ : Val Γ α) → Set
 _~_ {⋆} (ne us₁) (ne us₂) = ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝*
 _~_ {α ⇒ β} {Γ} f₁ f₂ = ∀ {Β} (η : Β ≤ Γ) {u₁ u₂ : Val Β α} →
   u₁ ~ u₂ → val≤ η f₁ ⟨∙⟩ u₁ ~ val≤ η f₂ ⟨∙⟩ u₂
-_~_ {One} u₁ u₂ = ⊤
-_~_ {α * β} u₁ u₂ =
-  fst⟦ u₁ ⟧ ~ fst⟦ u₂ ⟧ × snd⟦ u₁ ⟧ ~ snd⟦ u₂ ⟧
+_~_ {N} u₁ u₂ = u₁ ~N~ u₂
 
 data _~~_ : ∀ {Γ Δ} (ρ₁ ρ₂ : Env Γ Δ) → Set where
   [] :  ∀ {Γ} →
@@ -396,21 +390,33 @@ module DifferentValuesMayBeEquivalent where
   val-III~val-III : val-III ~ val-III
   val-III~val-III η u₁~u₂ = u₁~u₂
 
+
+-- u₁ ~ u₂ → u₂ ~ u₁
+
+~N~sym : ∀ {Γ} {u₁ u₂ : Val Γ N} → u₁ ~N~ u₂ → u₂ ~N~ u₁
+~N~sym (neN~ r) = neN~ (sym r)
+~N~sym zero~ = zero~
+~N~sym (suc~ r) = suc~ (~N~sym r)
+
 mutual
 
   ~sym : ∀ {α Γ} {u₁ u₂ : Val Γ α} → u₁ ~ u₂ → u₂ ~ u₁
-  ~sym {⋆} {Γ} {ne us} {ne us′} u~u′ =
-    sym u~u′
+  ~sym {⋆} {Γ} {ne us} {ne us′} u~u′ = sym u~u′
   ~sym {α ⇒ β} p η u₁~u₂ =
     ~sym (p η (~sym u₁~u₂))
-  ~sym {One} tt = tt
-  ~sym {α * β} (fst~fst , snd~snd) =
-    ~sym fst~fst , ~sym snd~snd
+  ~sym {N} u₁~u₂ = ~N~sym u₁~u₂
 
   ~~sym :  ∀ {Γ Δ} {ρ₁ ρ₂ : Env Γ Δ} → ρ₁ ~~ ρ₂ → ρ₂ ~~ ρ₁
   ~~sym [] = []
   ~~sym (u₁~u₂ ∷ ρ₁~~ρ₂) = ~sym u₁~u₂ ∷ ~~sym ρ₁~~ρ₂
 
+-- u₁ ~ u₂ → u₂ ~ u₃ → u₁ ~ u₃
+
+~N~trans : ∀ {Γ} {u₁ u₂ u₃ : Val Γ N} →
+       u₁ ~N~ u₂ → u₂ ~N~ u₃ → u₁ ~N~ u₃
+~N~trans (neN~ r₁) (neN~ r₂) = neN~ (trans r₁ r₂)
+~N~trans zero~ zero~ = zero~
+~N~trans (suc~ u₁~N~u₂) (suc~ u₂~N~u₃) = suc~ (~N~trans u₁~N~u₂ u₂~N~u₃)
 
 mutual
 
@@ -426,9 +432,8 @@ mutual
     where open ≡-Reasoning
   ~trans {α ⇒ β} p q η v₁~v₂ =
     ~trans (p η (~refl′ v₁~v₂)) (q η v₁~v₂)
-  ~trans {One} tt tt = tt
-  ~trans {α * β} (fst₁~fst₂ , snd₁~snd₂) (fst₂~fst₃ , snd₂~snd₃) =
-    ~trans fst₁~fst₂ fst₂~fst₃ , ~trans snd₁~snd₂ snd₂~snd₃
+  ~trans {N} u₁~N~u₂ u₂~N~u₃ =
+    ~N~trans u₁~N~u₂ u₂~N~u₃
 
   ~~trans : ∀ {Γ Δ} {ρ₁ ρ₂ ρ₃ : Env Γ Δ} →
     ρ₁ ~~ ρ₂ → ρ₂ ~~ ρ₃ → ρ₁ ~~ ρ₃
@@ -442,26 +447,27 @@ mutual
   ~~refl′ : ∀ {Γ Δ} {ρ ρ′ : Env Γ Δ} → ρ ~~ ρ′ → ρ ~~ ρ
   ~~refl′ ρ~~ρ′ = ~~trans ρ~~ρ′ (~~sym ρ~~ρ′)
 
+--
+-- u₁ ~ u₂ → val≤ η u₁ ~ val≤ η u₂
+-- ρ₁ ~~ ρ₂ → env≤ η ρ₁ ~~ env≤ η ρ₂
+--
+
+~N~≤ : ∀ {Γ Δ} (η : Γ ≤ Δ) {u₁ u₂ : Val Δ N} → u₁ ~N~ u₂ →
+         val≤ η u₁ ~N~ val≤ η u₂
+~N~≤ η (neN~ r) = neN~ (quote*∘≤≡ η r)
+~N~≤ η zero~ = zero~
+~N~≤ η (suc~ u₁~N~u₂) = suc~ (~N~≤ η u₁~N~u₂)
+
 ~≤ : ∀ {α Γ Δ} (η : Γ ≤ Δ) {u₁ u₂ : Val Δ α} → u₁ ~ u₂ →
        val≤ η u₁ ~ val≤ η u₂
-~≤ {⋆} η {ne us₁} {ne us₂} u₁~u₂ = begin
-  ⌜ neVal≤ η us₁ ⌝*
-    ≡⟨ quote*∘≤ η us₁ ⟩
-  neNf≤ η ⌜ us₁ ⌝*
-    ≡⟨ cong (neNf≤ η) u₁~u₂ ⟩
-  neNf≤ η ⌜ us₂ ⌝*
-    ≡⟨ sym $ quote*∘≤ η us₂ ⟩
-  ⌜ neVal≤ η us₂ ⌝*
-  ∎
-  where open ≡-Reasoning
+~≤ {⋆} η {ne us₁} {ne us₂} r =
+  quote*∘≤≡ η r
 ~≤ {α ⇒ β} η {u₁} {u₂} p {B} η′ {v₁} {v₂} v₁~v₂
   rewrite val≤ η′ (val≤ η u₁) ≡ val≤ (η′ ● η) u₁ ∋ val≤∘ η′ η u₁ |
           val≤ η′ (val≤ η u₂) ≡ val≤ (η′ ● η) u₂ ∋ val≤∘ η′ η u₂
   = p (η′ ● η) v₁~v₂
-~≤ {One} η tt = tt
-~≤ {α * β} η {u₁} {u₂} (fst₁~fst₂ , snd₁~snd₂)
-  rewrite fst⟦⟧∘≤ η u₁ | fst⟦⟧∘≤ η u₂ | snd⟦⟧∘≤ η u₁ | snd⟦⟧∘≤ η u₂
-  = ~≤ η fst₁~fst₂ , ~≤ η snd₁~snd₂
+~≤ {N} η u₁~N~u₂ =
+  ~N~≤ η u₁~N~u₂
 
 ~~≤ : ∀ {Β Γ Δ} (η : Β ≤ Γ) {ρ₁ ρ₂ : Env Γ Δ} → ρ₁ ~~ ρ₂ → 
         env≤ η ρ₁ ~~ env≤ η ρ₂
@@ -483,9 +489,10 @@ mutual
   ~confl {α ⇒ β} {Γ} {u₁} {u₂} u₁~u₂ =
     lam ⌜ val≤ wk u₁ ⟨∙⟩ ne (var zero) ⌝ ≡ lam ⌜ val≤ wk u₂ ⟨∙⟩ ne (var zero) ⌝
       ∋ cong lam (~confl {β} (u₁~u₂ wk (ne~ne refl)))
-  ~confl {One} tt = refl
-  ~confl {α * β} (fst₁~fst₂ , snd₁~snd₂) =
-    cong₂ pair (~confl fst₁~fst₂) (~confl snd₁~snd₂)
+  ~confl {N} (neN~ r) = cong neN r
+  ~confl {N} zero~ = refl
+  ~confl {N} (suc~ u₁~N~u₂) =
+    cong suc (~confl u₁~N~u₂)
 
   ne~ne : ∀ {α Γ} {us₁ us₂ : NeVal Γ α} → 
     ⌜ us₁ ⌝* ≡ ⌜ us₂ ⌝* → ne us₁ ~ ne us₂
@@ -505,15 +512,38 @@ mutual
         ≡⟨ sym $ quote*∘≤ η us₂ ⟩
       ⌜ neVal≤ η us₂ ⌝*
       ∎
-  ne~ne {One} ns₁≡ns₂ = tt
-  ne~ne {α * β} {Γ} {us₁} {us₂} ns₁≡ns₂ =
-    ne~ne {α} (cong fst ns₁≡ns₂) , ne~ne {β} (cong snd ns₁≡ns₂)
+  ne~ne {N} r =
+    neN~ r
+
+--
+-- ρ₁ ~~ ρ₂ → ⟦ t ⟧ ρ₁ ~ ⟦ t ⟧ ρ₂
+--
+
+~cong-prim⟦⟧ : ∀ {α Γ}
+  {u₁ u₂ : Val Γ α} (u₁~u₂ : u₁ ~ u₂)
+  {v₁ v₂ : Val Γ (N ⇒ α ⇒ α)} (v₁~v₂ : v₁ ~ v₂)
+  {w₁ w₂ : Val Γ N} (w₁~N~w₂ : w₁ ~N~ w₂) →
+  prim⟦⟧ u₁ v₁ w₁ ~ prim⟦⟧ u₂ v₂ w₂
+~cong-prim⟦⟧ {α} u₁~u₂ {v₁} {v₂} v₁~v₂ (neN~ r) =
+  ne~ne (cong₃ prim (~confl u₁~u₂) (cong (lam ∘′ lam) (~confl h)) r)
+  where
+  h : val≤ wk (val≤ wk v₁ ⟨∙⟩ ne (var zero)) ⟨∙⟩ ne (var zero) ~
+      val≤ wk (val≤ wk v₂ ⟨∙⟩ ne (var zero)) ⟨∙⟩ ne (var zero)
+  h = v₁~v₂ wk (ne~ne refl) wk (ne~ne refl)
+~cong-prim⟦⟧ u₁~u₂ v₁~v₂ zero~ = u₁~u₂
+~cong-prim⟦⟧ u₁~u₂ {v₁} {v₂} v₁~v₂ (suc~ {w₁} {w₂} w₁~N~w₂)
+  with ~cong-prim⟦⟧ u₁~u₂ v₁~v₂ w₁~N~w₂
+... | z₁~z₂
+  with v₁~v₂ ≤id w₁~N~w₂ ≤id z₁~z₂
+... | r
+  rewrite val≤-≤id v₁ | val≤-≤id v₂ |
+          val≤-≤id (v₁ ⟨∙⟩ w₁) | val≤-≤id (v₂ ⟨∙⟩ w₂)
+  = r
 
 mutual
 
   ~cong⟦≡⟧ : ∀ {α Γ Δ} (t : Tm Δ α) {ρ₁ ρ₂ : Env Γ Δ} →
-    ρ₁ ~~ ρ₂ →
-    ⟦ t ⟧ ρ₁ ~ ⟦ t ⟧ ρ₂
+    ρ₁ ~~ ρ₂ → ⟦ t ⟧ ρ₁ ~ ⟦ t ⟧ ρ₂
 
   ~cong⟦≡⟧ ø (u₁~u₂ ∷ ρ₁~~ρ₂) = u₁~u₂
   ~cong⟦≡⟧ (t ∙ t′) {ρ₁} {ρ₂} ρ₁~~ρ₂
@@ -528,13 +558,12 @@ mutual
     ~cong⟦≡⟧ t (v₁~v₂ ∷ ~~≤ η ρ₁~~ρ₂)
   ~cong⟦≡⟧ (t [ σ ]) ρ₁~~ρ₂ =
     ~cong⟦≡⟧ t (~~cong⟦≡⟧* σ ρ₁~~ρ₂)
-  ~cong⟦≡⟧ void ρ₁~~ρ₂ = tt
-  ~cong⟦≡⟧ (pair ta tb) ρ₁~~ρ₂ =
-    ~cong⟦≡⟧ ta ρ₁~~ρ₂ , ~cong⟦≡⟧ tb ρ₁~~ρ₂
-  ~cong⟦≡⟧ (fst t) ρ₁~~ρ₂ =
-    proj₁ $ ~cong⟦≡⟧ t ρ₁~~ρ₂
-  ~cong⟦≡⟧ (snd t) ρ₁~~ρ₂ =
-    proj₂ $ ~cong⟦≡⟧ t ρ₁~~ρ₂
+  ~cong⟦≡⟧ zero ρ₁~~ρ₂ =
+    zero~
+  ~cong⟦≡⟧ (suc t) ρ₁~~ρ₂ =
+    suc~ (~cong⟦≡⟧ t ρ₁~~ρ₂)
+  ~cong⟦≡⟧ (prim a b k) ρ₁~~ρ₂ =
+    ~cong-prim⟦⟧ (~cong⟦≡⟧ a ρ₁~~ρ₂) (~cong⟦≡⟧ b ρ₁~~ρ₂) (~cong⟦≡⟧ k ρ₁~~ρ₂)
 
   ~~cong⟦≡⟧* : ∀ {Γ Δ Δ′} (σ : Sub Δ Δ′) {ρ₁ ρ₂ : Env Γ Δ} →
     ρ₁ ~~ ρ₂ →
@@ -605,27 +634,33 @@ mutual
             val≤ ≤id (⟦ t ⟧ env≤ η ρ₂) ≡ ⟦ t ⟧ env≤ η ρ₂ ∋ val≤-≤id _ |
             ⟦ t ⟧ env≤ η ρ₁ ≡ val≤ η (⟦ t ⟧ ρ₁) ∋ ⟦⟧∘≤ η t ρ₁
     = w₁~w₂
-  ~cong⟦⟧ (≈cong-pair t₁≈t₂ t₁≈t₃) ρ₁~~ρ₂ =
-    ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂ , ~cong⟦⟧ t₁≈t₃ ρ₁~~ρ₂
-  ~cong⟦⟧ (≈cong-fst t₁≈t₂) ρ₁~~ρ₂ =
-    proj₁ $ ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
-  ~cong⟦⟧ (≈cong-snd t₁≈t₂) ρ₁~~ρ₂ =
-    proj₂ $ ~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂
-  ~cong⟦⟧ ≈void[] ρ₁~~ρ₂ = tt
-  ~cong⟦⟧ {t₁ = pair f s [ σ ]} ≈pair[] ρ₁~~ρ₂ =
-    ~cong⟦≡⟧ f (~~cong⟦≡⟧* σ ρ₁~~ρ₂) , ~cong⟦≡⟧ s (~~cong⟦≡⟧* σ ρ₁~~ρ₂)
-  ~cong⟦⟧ {t₁ = fst t [ σ ]} ≈fst[] ρ₁~~ρ₂ =
-    proj₁ $ ~cong⟦≡⟧ t (~~cong⟦≡⟧* σ ρ₁~~ρ₂)
-  ~cong⟦⟧ {t₁ = snd t [ σ ]} ≈snd[] ρ₁~~ρ₂ =
-    proj₂ $ ~cong⟦≡⟧ t (~~cong⟦≡⟧* σ ρ₁~~ρ₂)
-  ~cong⟦⟧ {t₁ = fst (pair f s)} ≈βfst ρ₁~~ρ₂ =
-    ~cong⟦≡⟧ f ρ₁~~ρ₂
-  ~cong⟦⟧ {t₁ = snd (pair f s)} ≈βsnd ρ₁~~ρ₂ =
-    ~cong⟦≡⟧ s ρ₁~~ρ₂
-  ~cong⟦⟧ {t₁ = t} ≈ηpair ρ₁~~ρ₂ =
-    ~cong⟦≡⟧ t ρ₁~~ρ₂
-  ~cong⟦⟧ ≈ηvoid ρ₁~~ρ₂ =
-    tt
+  ~cong⟦⟧ (≈cong-suc t₁≈t₂) ρ₁~~ρ₂ =
+    suc~ (~cong⟦⟧ t₁≈t₂ ρ₁~~ρ₂)
+  ~cong⟦⟧ {t₁ = prim a₁ b₁ k₁} {t₂ = prim a₂ b₂ k₂}
+    (≈cong-prim a₁≈a₂ b₁≈b₂ k₁≈k₂) ρ₁~~ρ₂
+    with ~cong⟦⟧ b₁≈b₂ ρ₁~~ρ₂
+  ... | r
+    = ~cong-prim⟦⟧ (~cong⟦⟧ a₁≈a₂ ρ₁~~ρ₂) r (~cong⟦⟧ k₁≈k₂ ρ₁~~ρ₂)
+  ~cong⟦⟧ ≈zero[] ρ₁~~ρ₂ =
+    zero~
+  ~cong⟦⟧ {t₁ = suc t [ σ ]} ≈suc[] ρ₁~~ρ₂ =
+    suc~ (~cong⟦≡⟧ (t [ σ ]) ρ₁~~ρ₂)
+  ~cong⟦⟧ {t₁ = prim a b k [ σ ]} ≈prim[] ρ₁~~ρ₂
+    with ~~cong⟦≡⟧* σ ρ₁~~ρ₂
+  ... | θ₁~θ₂
+    = ~cong-prim⟦⟧ (~cong⟦≡⟧ a θ₁~θ₂) (~cong⟦≡⟧ b θ₁~θ₂) (~cong⟦≡⟧ k θ₁~θ₂)
+  ~cong⟦⟧ {t₁ = prim a b zero} ≈primz ρ₁~~ρ₂ =
+    ~cong⟦≡⟧ a ρ₁~~ρ₂
+  ~cong⟦⟧ {α} {Γ} {t₁ = prim a b (suc k)} ≈prims {ρ₁} {ρ₂} ρ₁~~ρ₂
+    with ~cong⟦≡⟧ a ρ₁~~ρ₂ | ~cong⟦≡⟧ b ρ₁~~ρ₂ | ~cong⟦≡⟧ k ρ₁~~ρ₂ 
+  ... | u₁~u₂ | v₁~v₂ | w₁~w₂
+    with ~cong-prim⟦⟧ {α} u₁~u₂ v₁~v₂ w₁~w₂
+  ... | z₁~z₂
+    with v₁~v₂ ≤id w₁~w₂ ≤id z₁~z₂
+  ... | r
+    rewrite val≤-≤id (⟦ b ⟧ ρ₁) | val≤-≤id (⟦ b ⟧ ρ₂) |
+            val≤-≤id (⟦ b ⟧ ρ₁ ⟨∙⟩ ⟦ k ⟧ ρ₁) | val≤-≤id (⟦ b ⟧ ρ₂ ⟨∙⟩ ⟦ k ⟧ ρ₂)
+    = r
 
   ~~cong⟦⟧* : ∀ {Γ Δ Δ′}
     {σ₁ σ₂ : Sub Δ Δ′} (σ₁≈≈σ₂ : σ₁ ≈≈ σ₂)

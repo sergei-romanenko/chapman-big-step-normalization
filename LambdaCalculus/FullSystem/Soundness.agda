@@ -8,12 +8,12 @@ open import FullSystem.OPELemmas
 open import FullSystem.BigStepSemantics
 open import FullSystem.OPEBigStep
 open import FullSystem.StrongComputability
-open import FullSystem.StructuralNormaliser 
+open import FullSystem.StructuralNormalizer 
 open import FullSystem.StrongConvertibility
 
 --
 -- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
--- (Normalisation takes convertible terms to identical normal forms.)
+-- (Normalization takes convertible terms to identical normal forms.)
 --
 
 --

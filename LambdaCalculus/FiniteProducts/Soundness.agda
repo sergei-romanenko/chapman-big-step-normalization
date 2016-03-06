@@ -8,12 +8,12 @@ open import FiniteProducts.OPELemmas
 open import FiniteProducts.BigStepSemantics
 open import FiniteProducts.OPEBigStep
 open import FiniteProducts.StrongComputability
-open import FiniteProducts.StructuralNormaliser 
+open import FiniteProducts.StructuralNormalizer 
 open import FiniteProducts.StrongConvertibility
 
 --
 -- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
--- (Normalisation takes convertible terms to identical normal forms.)
+-- (Normalization takes convertible terms to identical normal forms.)
 --
 
 --

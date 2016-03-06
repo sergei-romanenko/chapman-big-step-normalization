@@ -1,4 +1,4 @@
-module BasicSystem.PuristicStructuralNormaliser where
+module BasicSystem.PuristicStructuralNormalizer where
 
 open import BasicSystem.Utils
 open import BasicSystem.Syntax
@@ -10,7 +10,7 @@ open import BasicSystem.StrongComputability
 
 --
 -- This version of structurally recursive evaluator,
--- as compared to the one in `BasicSystem.StructuralNormaliser`,
+-- as compared to the one in `BasicSystem.StructuralNormalizer`,
 -- is written in more "puristic" style, in order for
 -- "computation" and "logic" to be more explicitly separated.
 -- Now pattern matching against proofs is made in auxiliary functions that

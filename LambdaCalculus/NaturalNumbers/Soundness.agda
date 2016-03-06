@@ -8,12 +8,12 @@ open import NaturalNumbers.OPELemmas
 open import NaturalNumbers.BigStepSemantics
 open import NaturalNumbers.OPEBigStep
 open import NaturalNumbers.StrongComputability
-open import NaturalNumbers.StructuralNormaliser 
+open import NaturalNumbers.StructuralNormalizer 
 open import NaturalNumbers.StrongConvertibility
 
 --
 -- Soundness: t₁ ≈ t₂ → nf t₁ ≡ nf t₂
--- (Normalisation takes convertible terms to identical normal forms.)
+-- (Normalization takes convertible terms to identical normal forms.)
 --
 
 --

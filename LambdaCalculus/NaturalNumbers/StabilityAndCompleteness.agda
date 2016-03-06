@@ -7,7 +7,7 @@ open import NaturalNumbers.OPE
 open import NaturalNumbers.OPELemmas
 open import NaturalNumbers.BigStepSemantics
 open import NaturalNumbers.StrongComputability
-open import NaturalNumbers.StructuralNormaliser
+open import NaturalNumbers.StructuralNormalizer
 
 
 --

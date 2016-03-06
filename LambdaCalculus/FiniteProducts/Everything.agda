@@ -6,12 +6,12 @@ import FiniteProducts.Conversion
 import FiniteProducts.OPE 
 import FiniteProducts.OPELemmas
 --
-import FiniteProducts.RecursiveNormaliser
+import FiniteProducts.RecursiveNormalizer
 --
 import FiniteProducts.BigStepSemantics
 import FiniteProducts.OPEBigStep
 import FiniteProducts.StrongComputability
-import FiniteProducts.StructuralNormaliser
+import FiniteProducts.StructuralNormalizer
 import FiniteProducts.StabilityAndCompleteness
 import FiniteProducts.StrongConvertibility
 import FiniteProducts.Soundness

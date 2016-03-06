@@ -72,7 +72,7 @@ complete x with all-sc x
   ⇓-complete x⇓u
 
 --
--- Soundness: normalisation takes convertible terms to identical normal forms.
+-- Soundness: normalization takes convertible terms to identical normal forms.
 --
 
 -- x ≈ y → x ⇓ u → y ⇓ v → u ≡ v

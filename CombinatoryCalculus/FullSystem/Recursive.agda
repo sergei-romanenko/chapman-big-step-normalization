@@ -4,7 +4,7 @@ open import FullSystem.Utils
 open import FullSystem.Syntax
 
 --
--- Recursive normaliser.
+-- Recursive normalizer.
 --
 
 infixl 5 _⟨∙⟩_

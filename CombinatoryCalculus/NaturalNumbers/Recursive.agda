@@ -4,7 +4,7 @@ open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
 
 --
--- Recursive normaliser.
+-- Recursive normalizer.
 --
 
 infixl 5 _⟨∙⟩_
