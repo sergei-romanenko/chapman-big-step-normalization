@@ -16,6 +16,9 @@ nf x with all-sc x
 ... | u′ , u′≡u = u′
 
 
+norm : ∀ {α} (x : Tm α) → Tm α
+norm = ⌜_⌝ ∘ nf
+
 --
 -- Completeness: terms are convertible to their normal forms.
 -- 

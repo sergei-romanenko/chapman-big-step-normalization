@@ -4,7 +4,7 @@ open import NaturalNumbers.Utils
 open import NaturalNumbers.Syntax
 
 --
--- Big step semantics (the graph of the recursive function).
+-- Big-step semantics (the graph of the recursive function).
 --
 
 infix 4 _⇓_ _⟨∙⟩_⇓_
@@ -61,7 +61,8 @@ K0 ⟨∙⟩ v & K0⇓ = K1 v , refl
 K1 u ⟨∙⟩ v & K1⇓ = u , refl
 S0 ⟨∙⟩ v & S0⇓ = S1 v , refl
 S1 u ⟨∙⟩ v & S1⇓ = S2 u v , refl
-S2 u v ⟨∙⟩ w & S2⇓ uw⇓ vw⇓ uwvw⇓ with u ⟨∙⟩ w & uw⇓ | v ⟨∙⟩ w & vw⇓
+S2 u v ⟨∙⟩ w & S2⇓ uw⇓ vw⇓ uwvw⇓
+  with u ⟨∙⟩ w & uw⇓ | v ⟨∙⟩ w & vw⇓
 ... | u′ , refl | v′ , refl = u′ ⟨∙⟩ v′ & uwvw⇓
 Suc0 ⟨∙⟩ u & Suc0⇓ = Suc1 u , refl
 R0 ⟨∙⟩ u & R0⇓ = R1 u , refl
@@ -75,7 +76,8 @@ eval : ∀ {α} (x : Tm α) {u} (x⇓ : x ⇓ u) → ∃ λ u′ → u′ ≡ u
 
 eval K K⇓ = K0 , refl
 eval S S⇓ = S0 , refl
-eval (x ∙ y) (A⇓ x⇓ y⇓ ⇓w) with eval x x⇓ | eval y y⇓
+eval (x ∙ y) (A⇓ x⇓ y⇓ ⇓w)
+  with eval x x⇓ | eval y y⇓
 ... | u , refl | v , refl = u ⟨∙⟩ v & ⇓w
 eval Zero Zero⇓ = Zero0 , refl
 eval Suc Suc⇓ = Suc0 , refl

@@ -1,0 +1,8 @@
+module FiniteCoproducts.Everything where
+
+import FiniteCoproducts.Utils
+import FiniteCoproducts.Syntax
+import FiniteCoproducts.Recursive
+import FiniteCoproducts.BigStep
+import FiniteCoproducts.StrongComp
+import FiniteCoproducts.Structural
